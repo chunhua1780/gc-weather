@@ -3312,7 +3312,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.53';
+var CORE_VERSION='v1.54';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -6816,6 +6816,7 @@ async function sendMsg(){
   var inp=document.getElementById('mi'),t=inp.value.trim();if(!t)return;
   if(_sendLock)return; // 防止连续快速点击重复发送
   if(G.chat&&isBlocked(G.chat)){alert('对方已被你拉黑，请先在通讯录中解除拉黑');return;}
+  if(G.chat){var _hh=getHiddenContacts();if(_hh.indexOf(String(G.chat))>=0)setHiddenContacts(_hh.filter(function(x){return x!==String(G.chat);}));}
   _sendLock=true;
   if(_sendLockTimer)clearTimeout(_sendLockTimer);
   // 安全兜底：10秒后无论如何都释放锁
@@ -7017,6 +7018,8 @@ function _renderFriendRows(frData,userMap,avatarMap2){
     var name=f.nickname||userMap[cid]||('User '+cid);
     var color=colors[parseInt(cid)%colors.length];
     var isBlk=blocked.indexOf(cid)>=0;
+    var hiddenSet=getHiddenContacts();
+    var isHid=hiddenSet.indexOf(cid)>=0;
     var wrap=document.createElement('div');
     wrap.className='swipe-wrap';
     wrap.style.cssText='position:relative;overflow:hidden;margin:6px 8px;border-radius:16px;';
@@ -7025,12 +7028,14 @@ function _renderFriendRows(frData,userMap,avatarMap2){
     var _fbtn='display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;';
     if(isBlk){
       actions.innerHTML='<div onclick="toggleBlock(\''+cid+'\')" style="background:#34c759;color:#fff;'+_fbtn+'">解除拉黑</div><div onclick="reportUser(\''+cid+'\')" style="background:#ff9f0a;color:#fff;'+_fbtn+'">举报</div><div onclick="deleteFriendEntry(\''+cid+'\')" style="background:#e8a0a0;color:#fff;'+_fbtn+'">删除</div>';
+    }else if(isHid){
+      actions.innerHTML='<div onclick="unhideContact(\''+cid+'\')" style="background:#34c759;color:#fff;'+_fbtn+'">取消隐藏</div><div onclick="reportUser(\''+cid+'\')" style="background:#ff9f0a;color:#fff;'+_fbtn+'">举报</div><div onclick="deleteFriendEntry(\''+cid+'\')" style="background:#ff3b30;color:#fff;'+_fbtn+'">删除</div>';
     }else{
       actions.innerHTML='<div onclick="toggleBlock(\''+cid+'\')" style="background:#c89b6d;color:#fff;'+_fbtn+'">拉黑</div><div onclick="reportUser(\''+cid+'\')" style="background:#ff9f0a;color:#fff;'+_fbtn+'">举报</div><div onclick="deleteFriendEntry(\''+cid+'\')" style="background:#ff3b30;color:#fff;'+_fbtn+'">删除</div>';
     }
     var div=document.createElement('div');
     div.className='row';
-    div.style.cssText='background:var(--theme-bg,#fdf2f8);position:relative;transition:transform .2s;touch-action:pan-y;margin:0;border-radius:0;'+(isBlk?'opacity:.45;filter:grayscale(1);':'');
+    div.style.cssText='background:var(--theme-bg,#fdf2f8);position:relative;transition:transform .2s;touch-action:pan-y;margin:0;border-radius:0;'+(isBlk?'opacity:.45;filter:grayscale(1);':isHid?'opacity:.65;':'');
     div.onclick=(function(c,n,col,blk){return function(){
       if(parseFloat(div.style.transform.replace(/[^-\d.]/g,''))<-5)return;
       if(blk){alert('该联系人已被拉黑，请先解除拉黑');return;}
@@ -7040,7 +7045,7 @@ function _renderFriendRows(frData,userMap,avatarMap2){
     var avHtml2=avUrl2
       ?'<div class="av" style="background:'+color+';overflow:hidden;padding:0;position:relative;"><img src="'+avUrl2+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';"><span style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;align-items:center;justify-content:center;color:#fff;font-weight:700;">'+esc(name[0].toUpperCase())+'</span></div>'
       :'<div class="av" style="background:'+color+'">'+name[0].toUpperCase()+'</div>';
-    var rowName=esc(name)+(isBlk?' <span style="color:#8e8e93;font-size:12px;">(已拉黑)</span>':'');
+    var rowName=esc(name)+(isBlk?' <span style="color:#8e8e93;font-size:12px;">(已拉黑)</span>':isHid?' <span style="color:#34c759;font-size:12px;">(已隐藏)</span>':'');
     div.innerHTML=avHtml2+'<div style="flex:1;min-width:0;"><div style="font-size:17px;">'+rowName+'</div><div style="font-size:13px;color:#8e8e93;margin-top:1px;">ID: '+cid+'</div></div><span style="color:#c7c7cc;font-size:18px;">&#x203A;</span>';
     attachSwipe(div,actions);
     wrap.appendChild(actions);wrap.appendChild(div);
@@ -7354,6 +7359,12 @@ function hideContact(cid){
   var h=getHiddenContacts();
   if(h.indexOf(cid)<0)h.push(cid);
   setHiddenContacts(h);
+}
+function unhideContact(cid){
+  var h=getHiddenContacts();
+  setHiddenContacts(h.filter(function(x){return x!==String(cid);}));
+  _lastContactsLoad=0;
+  loadFriendsList();
 }
 async function deleteContact(cid){
   // 立即从 DOM 移除，立即更新本地缓存（秒生效，不需等 DB）
