@@ -3312,7 +3312,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.56';
+var CORE_VERSION='v1.57';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -6964,16 +6964,22 @@ function updateLastPreview(cid,content,type,highlight,readState,ts){
   var lastEl=document.getElementById('last-'+String(cid));
   if(!lastEl){
     try{
-      var _clc=JSON.parse(localStorage.getItem('chatListCache')||'null');
-      if(_clc&&_clc.ids){
-        var _cidStr=String(cid);
-        _clc.ids=_clc.ids.filter(function(x){return x!==_cidStr;});
-        _clc.ids.unshift(_cidStr);
-        if(!_clc.seen)_clc.seen={};
-        _clc.seen[_cidStr]={content:content,type:type,sender:String(myId||''),created_at:ts?new Date(ts).toISOString():new Date().toISOString()};
-        localStorage.setItem('chatListCache',JSON.stringify(_clc));
-        _renderContacts(_clc.ids,_clc.seen,_clc.fm||{},_clc.um||{},_clc.am||{});
+      var _cidStr=String(cid);
+      // 先从 deletedContacts 里移除，否则 _renderContacts 会跳过这个人
+      var _dca=JSON.parse(localStorage.getItem('deletedContacts')||'[]');
+      if(_dca.indexOf(_cidStr)>=0){
+        localStorage.setItem('deletedContacts',JSON.stringify(_dca.filter(function(x){return x!==_cidStr;})));
       }
+      // 更新/初始化 chatListCache，把此会话放到第一位
+      var _clc=JSON.parse(localStorage.getItem('chatListCache')||'null');
+      if(!_clc){_clc={ids:[],seen:{},fm:{},um:{},am:{}};}
+      if(!_clc.ids)_clc.ids=[];
+      if(!_clc.seen)_clc.seen={};
+      _clc.ids=_clc.ids.filter(function(x){return x!==_cidStr;});
+      _clc.ids.unshift(_cidStr);
+      _clc.seen[_cidStr]={content:content,type:type,sender:String(myId||''),created_at:ts?new Date(ts).toISOString():new Date().toISOString()};
+      localStorage.setItem('chatListCache',JSON.stringify(_clc));
+      _renderContacts(_clc.ids,_clc.seen,_clc.fm||{},_clc.um||{},_clc.am||{});
     }catch(e){}
     _lastContactsLoad=0;
     setTimeout(function(){loadContacts();},800);
