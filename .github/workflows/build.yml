@@ -1,0 +1,33 @@
+name: Build APK
+on:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    - name: Install Cordova
+      run: npm install -g cordova
+    - name: Build APK
+      run: |
+        cordova create app com.gc.weather "天气"
+        cp index.html app/www/index.html
+        cd app
+        cordova platform add android
+        sed -i 's|</widget>|    <preference name="android-windowSoftInputMode" value="adjustResize"/>\n    <preference name="Orientation" value="portrait"/>\n</widget>|' config.xml
+        cordova build android
+    - name: Find APK
+      run: find . -name "*.apk" 2>/dev/null
+    - uses: actions/upload-artifact@v4
+      with:
+        name: 天气-APK
+        path: '**/*.apk'
+        retention-days: 30
