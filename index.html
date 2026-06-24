@@ -3312,7 +3312,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.50';
+var CORE_VERSION='v1.53';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -3845,36 +3845,70 @@ function _startMain(){
   setTimeout(function(){ AdManager.init(); },1500);
 }
 
+// ─── 隐身启动辅助 ───
+function _needStartupLock(){
+  // 本 session 已解锁过 → 不重复锁
+  if(sessionStorage.getItem('testGatePassed')==='1')return false;
+  var mode=lg('focusMode')||'free';
+  var cfg=(typeof FOCUS_MODES!=='undefined'&&FOCUS_MODES[mode])||{lock:false};
+  return !!(cfg.lock&&lg('appLockPin'));
+}
+function _showStartupStealth(){
+  // hide 模式 → 先显示伪装界面（计算器/天气/时钟/备忘录）
+  // 非 hide 模式（工作模式）→ 直接显示锁屏 PIN
+  var hideOn=lg('hide')==='true';
+  G.hide=hideOn;G.dis=lg('dis')||'calculator';
+  if(hideOn){
+    var dm={weather:'dweather',calculator:'dcalc',clock:'dclk',note:'dnote'};
+    show(dm[G.dis]||'dcalc');
+  } else {
+    var lb=document.getElementById('lockBubble');
+    if(lb){var p=lb.querySelector('p');if(p)p.textContent='验证身份后进入 天气';}
+    show('applock');
+    var inp=document.getElementById('lockPinInput');
+    if(inp){inp.value='';setTimeout(function(){try{inp.focus();}catch(e){}},300);}
+  }
+}
+function _fastBootSetName(){
+  try{var _sn=lg('myName')||'';var _nd=document.getElementById('nameDisplay');if(_nd&&_sn)_nd.textContent=_sn;var _av=document.getElementById('avatarDisplay');if(_av&&_sn)_av.textContent=_sn[0].toUpperCase();}catch(e){}
+}
+
 // ★★★ 快速启动：DOMContentLoaded 时同步检查 localStorage，
 //     已登录用户无需等 window.onload，立刻显示界面+缓存列表 ★★★
 document.addEventListener('DOMContentLoaded', function(){
   if(lg('registered')==='true'&&lg('myId')){
-    window._gcFastBoot=true;
     myId=lg('myId')||'';
-    ls('gatePassedPersist','1');
-    sessionStorage.setItem('testGatePassed','1');
-    show('main');
-    _renderChatListCache(); // 缓存数据瞬间渲染，0ms 白屏
-    // 头像/名字从缓存更新
-    try{
-      var _sn=lg('myName')||'';
-      var _nd=document.getElementById('nameDisplay');if(_nd&&_sn)_nd.textContent=_sn;
-      var _av=document.getElementById('avatarDisplay');if(_av&&_sn)_av.textContent=_sn[0].toUpperCase();
-    }catch(e){}
+    _fastBootSetName();
+    if(_needStartupLock()){
+      // 隐身/工作模式：先显示伪装界面或锁屏，等用户解锁后再初始化
+      _showStartupStealth();
+      // 不设置 _gcFastBoot，解锁后由 _startMain() show('main')
+    } else {
+      // 自由模式或本 session 已解锁：直接快速进入聊天
+      window._gcFastBoot=true;
+      ls('gatePassedPersist','1');
+      sessionStorage.setItem('testGatePassed','1');
+      show('main');
+      _renderChatListCache();
+    }
   }else{
     // 未登录：立即显示注册页，不白屏等待
-    // 但先给 IDB/Cookie 恢复 50ms 机会（比之前的 400ms 更快）
     var _qt=setTimeout(function(){show('reg');},50);
     _restoreSession().then(function(ok){
       clearTimeout(_qt);
       if(ok&&lg('myId')&&lg('registered')){
-        window._gcFastBoot=true;
         myId=lg('myId')||'';
-        ls('gatePassedPersist','1');
-        sessionStorage.setItem('testGatePassed','1');
-        show('main');
-        _renderChatListCache();
-        _saveDeviceToken(myId);
+        _fastBootSetName();
+        if(_needStartupLock()){
+          _showStartupStealth();
+        } else {
+          window._gcFastBoot=true;
+          ls('gatePassedPersist','1');
+          sessionStorage.setItem('testGatePassed','1');
+          show('main');
+          _renderChatListCache();
+          _saveDeviceToken(myId);
+        }
       }else{
         show('reg');
       }
@@ -3925,20 +3959,24 @@ window.onload=async function(){
 
   // ★ 老用户迁移：已有账号但没有gatePassedPersist → 自动补写，不再进屏保
   // 判断条件：registered=true + myId存在 + pin存在 = 之前已正常登录过
-  // ★★★ 永久登录守卫 ★★★
-  // 有账号就写死，任何代码都无法覆盖这个逻辑
+  // ★★★ 永久登录守卫（保护凭证，不干扰隐身锁屏逻辑）★★★
   (function _permanentLoginGuard(){
+    function _guardSetSession(){
+      // 仅非锁屏模式才自动写 session（锁屏模式需要用户手动解锁才能写）
+      var _m=lg('focusMode')||'free';
+      var _c=(typeof FOCUS_MODES!=='undefined'&&FOCUS_MODES[_m])||{lock:false};
+      if(!_c.lock||!lg('appLockPin'))sessionStorage.setItem('testGatePassed','1');
+    }
     if(lg('registered')==='true'&&lg('myId')){
       ls('gatePassedPersist','1');
-      sessionStorage.setItem('testGatePassed','1');
+      _guardSetSession();
       _backupCredentials();
-      _saveDeviceToken(lg('myId')); // 写服务端 token
+      _saveDeviceToken(lg('myId'));
     }
-    // 心跳无论登录状态都启动，确保恢复后依然守护
     setInterval(function(){
       if(lg('registered')==='true'&&lg('myId')){
         if(lg('gatePassedPersist')!=='1')ls('gatePassedPersist','1');
-        sessionStorage.setItem('testGatePassed','1');
+        _guardSetSession();
         _backupCredentials();
       } else {
         // localStorage 清除了 → 三层恢复
@@ -3953,7 +3991,7 @@ window.onload=async function(){
           }
         });
       }
-    }, 8000); // 每8秒检查
+    }, 8000);
   })();
   try{applyI18n();var rls=document.getElementById('regLangSelect');if(rls)rls.value=curLang;}catch(e){console.log('i18n err',e);}
   try{
@@ -5767,6 +5805,8 @@ function cleanupMediaMessage(id,url,expired){
 
 // 拉取服务器上该房间的消息，与本地缓存合并去重，并刷新界面
 async function syncRoomMessages(name){
+  // 已删联系人：不从 DB 拉取历史，保持本地清空状态
+  if(typeof isDeletedContact==='function'&&isDeletedContact(name))return;
   var localMsgs=loadLocalMsgs(name);
   try{
   var a=parseInt(myId)||myId, b=parseInt(name)||name;
@@ -6503,12 +6543,6 @@ function listenForCalls(){
 
 // ═══ 聊天 ═══
 function openChat(name,ini,color,displayName){
-  // 用户主动打开聊天 → 从永久删除名单移除，恢复会话
-  if(isDeletedContact(name)){
-    var _dl=getDeletedContacts().filter(function(x){return x!==String(name);});
-    setDeletedContacts(_dl);
-    _lastContactsLoad=0; // 强制下次 loadContacts 立即重建列表
-  }
   clearUnread(name);
   G.chat=name;
   var dn=displayName||name;
@@ -6984,17 +7018,19 @@ function _renderFriendRows(frData,userMap,avatarMap2){
     var color=colors[parseInt(cid)%colors.length];
     var isBlk=blocked.indexOf(cid)>=0;
     var wrap=document.createElement('div');
-    wrap.className='swipe-wrap';wrap.style.cssText='position:relative;overflow:hidden;';
+    wrap.className='swipe-wrap';
+    wrap.style.cssText='position:relative;overflow:hidden;margin:6px 8px;border-radius:16px;';
     var actions=document.createElement('div');
     actions.style.cssText='position:absolute;top:0;right:0;bottom:0;display:flex;width:210px;transform:translateX(210px);';
+    var _fbtn='display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;';
     if(isBlk){
-      actions.innerHTML='<div onclick="toggleBlock(\''+cid+'\')" style="background:linear-gradient(135deg,#a8d8b9,#7fc99e);color:#fff;display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;cursor:pointer;">解除拉黑</div><div onclick="reportUser(\''+cid+'\')" style="background:linear-gradient(135deg,#ff9f0a,#e68900);color:#fff;display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;cursor:pointer;">举报</div><div onclick="deleteFriendEntry(\''+cid+'\')" style="background:linear-gradient(135deg,#e8a0a0,#d4737e);color:#fff;display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;cursor:pointer;border-radius:0 16px 16px 0;">删除</div>';
+      actions.innerHTML='<div onclick="toggleBlock(\''+cid+'\')" style="background:#34c759;color:#fff;'+_fbtn+'">解除拉黑</div><div onclick="reportUser(\''+cid+'\')" style="background:#ff9f0a;color:#fff;'+_fbtn+'">举报</div><div onclick="deleteFriendEntry(\''+cid+'\')" style="background:#e8a0a0;color:#fff;'+_fbtn+'">删除</div>';
     }else{
-      actions.innerHTML='<div onclick="toggleBlock(\''+cid+'\')" style="background:linear-gradient(135deg,#d4a5a5,#c89b6d);color:#fff;display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;cursor:pointer;">拉黑</div><div onclick="reportUser(\''+cid+'\')" style="background:linear-gradient(135deg,#ff9f0a,#e68900);color:#fff;display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;cursor:pointer;">举报</div><div onclick="deleteFriendEntry(\''+cid+'\')" style="background:linear-gradient(135deg,#e8a0a0,#d4737e);color:#fff;display:flex;align-items:center;justify-content:center;width:70px;font-size:14px;cursor:pointer;border-radius:0 16px 16px 0;">删除</div>';
+      actions.innerHTML='<div onclick="toggleBlock(\''+cid+'\')" style="background:#c89b6d;color:#fff;'+_fbtn+'">拉黑</div><div onclick="reportUser(\''+cid+'\')" style="background:#ff9f0a;color:#fff;'+_fbtn+'">举报</div><div onclick="deleteFriendEntry(\''+cid+'\')" style="background:#ff3b30;color:#fff;'+_fbtn+'">删除</div>';
     }
     var div=document.createElement('div');
     div.className='row';
-    div.style.cssText='background:var(--theme-bg,#fdf2f8);position:relative;transition:transform .2s;touch-action:pan-y;'+(isBlk?'opacity:.45;filter:grayscale(1);':'');
+    div.style.cssText='background:var(--theme-bg,#fdf2f8);position:relative;transition:transform .2s;touch-action:pan-y;margin:0;border-radius:0;'+(isBlk?'opacity:.45;filter:grayscale(1);':'');
     div.onclick=(function(c,n,col,blk){return function(){
       if(parseFloat(div.style.transform.replace(/[^-\d.]/g,''))<-5)return;
       if(blk){alert('该联系人已被拉黑，请先解除拉黑');return;}
@@ -7211,7 +7247,15 @@ function checkAppLockPin(){
   var saved=lg('appLockPin')||'1234';
   if(typed===saved){
     ls('lastHiddenAt','0');
-    resumeFromLock();
+    sessionStorage.setItem('testGatePassed','1');
+    ls('gatePassedPersist','1');
+    if(!_appWasActive){
+      // 首次启动解锁 → 完整初始化流程
+      _renderChatListCache();
+      _startMain();
+    } else {
+      resumeFromLock();
+    }
   }else{
     var hint=document.getElementById('lockHint');var bubble=document.getElementById('lockBubble');
     if(hint)hint.classList.add('show');
@@ -7312,13 +7356,14 @@ function hideContact(cid){
   setHiddenContacts(h);
 }
 async function deleteContact(cid){
-  // 立即从 DOM 移除
+  // 立即从 DOM 移除，立即更新本地缓存（秒生效，不需等 DB）
   _removeContactFromDOM(cid);
-  // 清本机内存和缓存
+  _removeCidFromChatListCache(cid);
+  // 清本机内存和消息缓存
   if(G.msgs&&G.msgs[cid])delete G.msgs[cid];
   saveLocalMsgs(cid,[]);
   if(_unread)_unread[cid]=0;
-  // 加入永久删除列表（本人单侧生效，不删 DB，对方消息保留）
+  // 加入本地删除名单（阻断实时消息在删除后复活）
   addDeletedContact(cid);
   // 从隐藏列表中也移除
   var h=getHiddenContacts();
@@ -7330,8 +7375,11 @@ async function deleteContact(cid){
     if(realtimeSub){try{realtimeSub.unsubscribe();}catch(e){}realtimeSub=null;}
     currentRoom=null;
   }
-  // 不再删 DB 数据（单侧删除，仅对本人生效）
-  // 删除后强制重建列表（绕过节流），让剩余会话正确显示
+  // 硬删除 DB 会话（数据库为准，彻底杜绝下次同步复活）
+  _sb.from('conversations').delete().eq('room_id',room).then(function(r){
+    if(r&&r.error)console.warn('[deleteContact] conv delete error:',r.error.message);
+  }).catch(function(e){console.warn('[deleteContact] conv delete fail:',e&&e.message);});
+  // 强制重建列表（绕过节流）
   _lastContactsLoad=0;
   loadContacts();
 }
@@ -7385,6 +7433,16 @@ function _renderChatListCache(){
     _renderContacts(c.ids,c.seen||{},c.fm||{},c.um||{},c.am||{});
     return true;
   }catch(e){return false;}
+}
+function _removeCidFromChatListCache(cid){
+  try{
+    var c=JSON.parse(localStorage.getItem('chatListCache')||'null');
+    if(!c||!c.ids)return;
+    var s=String(cid);
+    c.ids=c.ids.filter(function(id){return id!==s;});
+    if(c.seen)delete c.seen[s];
+    localStorage.setItem('chatListCache',JSON.stringify(c));
+  }catch(e){}
 }
 async function loadContacts(){
   console.log('[loadContacts] myId='+myId);
@@ -7556,7 +7614,7 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
 
     var wrap=document.createElement('div');
     wrap.className='swipe-wrap';wrap.id='wrap-'+cid;
-    wrap.style.cssText='position:relative;overflow:hidden;';
+    wrap.style.cssText='position:relative;overflow:hidden;margin:6px 8px;border-radius:16px;';
 
     var actions=document.createElement('div');
     actions.style.cssText='position:absolute;top:0;right:0;bottom:0;display:flex;width:140px;transform:translateX(140px);';
@@ -7566,7 +7624,7 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
 
     var div=document.createElement('div');
     div.className='row';div.id='contact-'+cid;
-    div.style.cssText='background:var(--theme-bg,#fdf2f8);position:relative;transition:transform .2s;touch-action:pan-y;';
+    div.style.cssText='background:var(--theme-bg,#fdf2f8);position:relative;transition:transform .2s;touch-action:pan-y;margin:0;border-radius:0;';
     div.dataset.cid=cid;
     var avUrl=avatarMap&&avatarMap[cid];
     var avHtml=avUrl
@@ -8255,8 +8313,11 @@ function cp(b){
       sessionStorage.setItem('testGatePassed','1');
       if(!lg('registered')||!lg('myId')){
         show('reg');
+      } else if(!_appWasActive){
+        // 首次启动解锁（计算器伪装）
+        _renderChatListCache();
+        _startMain();
       } else {
-        ls('gatePassedPersist','1');
         claimSession(true);
         setTimeout(initOneSignal,2000);
         resumeFromLock();
@@ -8616,12 +8677,12 @@ function pk(k){
   G.pe+=k;updDots(false);
   // 锁屏密码比登录密码短时，提前在它的长度上做一次匹配
   if(altPin&&altPin.length<G.pin.length&&G.pe.length===altPin.length&&G.pe===altPin){
-    setTimeout(function(){G.wrongN=0;closePIN();show('main');listenForCalls();listenForAllMessages();},80);
+    setTimeout(function(){G.wrongN=0;closePIN();sessionStorage.setItem('testGatePassed','1');ls('gatePassedPersist','1');if(!_appWasActive){_renderChatListCache();_startMain();}else{show('main');listenForCalls();listenForAllMessages();}},80);
     return;
   }
   if(G.pe.length===maxLen||G.pe.length===G.pin.length){
     setTimeout(function(){
-      if(G.pe===G.pin||(altPin&&G.pe===altPin)){G.wrongN=0;closePIN();show('main');listenForCalls();listenForAllMessages();}
+      if(G.pe===G.pin||(altPin&&G.pe===altPin)){G.wrongN=0;closePIN();sessionStorage.setItem('testGatePassed','1');ls('gatePassedPersist','1');if(!_appWasActive){_renderChatListCache();_startMain();}else{show('main');listenForCalls();listenForAllMessages();}}
       else if(G.dpin&&G.pe===G.dpin){doDestruct();}
       else{
         G.wrongN++;
