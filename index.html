@@ -7557,6 +7557,20 @@ async function loadContacts(){
       if(!seen[fid]){contactIds.push(fid);seen[fid]={};}
     });
 
+    // ── 3b. 合并本地缓存：防止 _upsertConv 尚未写入DB就被 loadContacts 覆盖 ──
+    try{
+      var _ec=JSON.parse(localStorage.getItem('chatListCache')||'null');
+      var _ds=getDeletedContacts();
+      if(_ec&&_ec.ids){
+        _ec.ids.forEach(function(cachedCid){
+          if(!seen[cachedCid]&&_ds.indexOf(String(cachedCid))<0){
+            contactIds.push(cachedCid);
+            seen[cachedCid]=(_ec.seen&&_ec.seen[cachedCid])||{};
+          }
+        });
+      }
+    }catch(e){}
+
     if(contactIds.length===0){list.innerHTML='<div style="text-align:center;color:#8e8e93;padding:64px 0 32px;font-size:15px;">暂无聊天<br><span style="font-size:13px;margin-top:8px;display:block;">在通讯录添加好友后开始聊天</span></div>';return;}
 
     // ── 4. 拉取用户信息 ──
@@ -7568,7 +7582,18 @@ async function loadContacts(){
       if(u.avatar_url)avatarMap[String(u.id)]=u.avatar_url;
     });
 
-    // ── 5. 保存缓存 + 渲染 ──
+    // ── 5. 用缓存补全 DB 未返回的用户名/头像（合并的缓存联系人可能没有 DB 记录）──
+    try{
+      var _ec2=JSON.parse(localStorage.getItem('chatListCache')||'null');
+      if(_ec2){
+        contactIds.forEach(function(cid){
+          if(!userMap[cid]&&_ec2.um&&_ec2.um[cid])userMap[cid]=_ec2.um[cid];
+          if(!avatarMap[cid]&&_ec2.am&&_ec2.am[cid])avatarMap[cid]=_ec2.am[cid];
+        });
+      }
+    }catch(e){}
+
+    // ── 6. 保存缓存 + 渲染 ──
     _saveChatListCache(contactIds,seen,friendMap,userMap,avatarMap);
     _renderContacts(contactIds,seen,friendMap,userMap,avatarMap);
     if(AdManager._ready)AdManager.showInChatList();
