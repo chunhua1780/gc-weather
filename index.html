@@ -3372,7 +3372,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.63';
+var CORE_VERSION='v1.64';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5824,7 +5824,7 @@ async function joinRoom(name){
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room_id=eq.'+currentRoom},function(p){
         var m=p.new;
         if(String(m.sender)===String(myId))return;
-        if(m.type==='read_receipt')return;
+        if(m.type==='read_receipt'||m.type==='gc_del')return;
         var createdMs1=new Date(m.created_at).getTime()||Date.now();
         var dl1=new Date(createdMs1);
         var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:dl1.getHours()+':'+(dl1.getMinutes()<10?'0':'')+dl1.getMinutes(),ts:createdMs1};
@@ -5898,7 +5898,7 @@ async function syncRoomMessages(name){
   var prevReadIds={};
   (G.msgs[name]||[]).forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});
   if(res.data&&res.data.length>0){
-    serverMsgs=res.data.map(function(m){
+    serverMsgs=res.data.filter(function(m){return m.type!=='gc_del';}).map(function(m){
       try{
       var content=m.content||'';
       var createdMs=new Date(m.created_at).getTime()||Date.now();
@@ -6471,7 +6471,7 @@ function listenForAllMessages(){
       var parts=m.room_id.split('_');
       if(parts.indexOf(mid)<0)return;
       if(String(m.sender)===mid)return;
-      if(m.type==='read_receipt')return;
+      if(m.type==='read_receipt'||m.type==='gc_del')return;
       var senderId=parts[0]===mid?parts[1]:parts[0];
       if(isBlocked(senderId))return;
       // 永久删除的联系人：静默丢弃，不让其因新消息复活
@@ -7456,43 +7456,49 @@ function unhideContact(cid){
 }
 async function deleteContact(cid){
   var mid=String(myId);
+  var cidStr=String(cid);
   var room=roomIdOf(mid,cid);
   var legacyRoom=[mid,cid].sort().join('_');
-  // 立即从 DOM 移除，立即更新本地缓存
+  // ── 1. 本地立即全部清除（对用户即时生效）──
   _removeContactFromDOM(cid);
   _removeCidFromChatListCache(cid);
-  // 彻底清除本机消息缓存（内存 + localStorage + IndexedDB）
   if(G.msgs&&G.msgs[cid])delete G.msgs[cid];
-  var msgKey='msgcache_'+String(cid);
+  var msgKey='msgcache_'+cidStr;
   try{localStorage.removeItem(msgKey);}catch(e){}
   openMsgDB().then(function(db){
     if(!db)return;
     try{db.transaction('chats','readwrite').objectStore('chats').delete(msgKey);}catch(e){}
   });
   if(_unread)_unread[cid]=0;
-  // 加入本地删除名单（阻断实时消息在删除后复活）
   addDeletedContact(cid);
-  // 从隐藏列表中也移除
   var h=getHiddenContacts();
   if(h.indexOf(cid)>=0){h=h.filter(function(x){return x!==cid;});setHiddenContacts(h);}
   if(currentRoom===room||currentRoom===legacyRoom){
     if(realtimeSub){try{realtimeSub.unsubscribe();}catch(e){}realtimeSub=null;}
     currentRoom=null;
   }
-  // 云端同时删除：消息记录 + 会话记录
-  _sb.from('messages').delete().eq('room_id',room).then(function(r){
-    if(r&&r.error)console.warn('[deleteContact] msg delete error:',r.error.message);
-  }).catch(function(e){console.warn('[deleteContact] msg delete fail:',e&&e.message);});
-  if(legacyRoom!==room){
-    _sb.from('messages').delete().eq('room_id',legacyRoom).then(function(){}).catch(function(){});
-  }
-  _sb.from('conversations').delete().eq('room_id',room).then(function(r){
-    if(r&&r.error)console.warn('[deleteContact] conv delete error:',r.error.message);
-  }).catch(function(e){console.warn('[deleteContact] conv delete fail:',e&&e.message);});
-  if(legacyRoom!==room){
-    _sb.from('conversations').delete().eq('room_id',legacyRoom).then(function(){}).catch(function(){});
-  }
-  // 强制重建列表（绕过节流）
+  // ── 2. 云端哨兵机制（删除只影响自己，保护对方聊天记录）──
+  // 第一个删除者：插入 gc_del 哨兵，消息/会话保留给对方
+  // 第二个删除者：检测到对方哨兵 → 双方都删了 → 清理云端
+  // gc_del 消息对用户完全不可见（已在所有渲染路径过滤）
+  var _gcDelClean=function(r){
+    _sb.from('messages').select('id').eq('room_id',r).eq('type','gc_del').eq('sender',cidStr).limit(1).maybeSingle()
+      .then(function(res){
+        if(res&&res.data){
+          // 对方已先删除 → 双方都删了 → 清理云端所有记录
+          _sb.from('messages').delete().eq('room_id',r).catch(function(){});
+          _sb.from('conversations').delete().eq('room_id',r).catch(function(){});
+        }else{
+          // 我是第一个删除 → 留哨兵，消息和会话保留，保护对方聊天记录
+          _sb.from('messages').insert({room_id:r,sender:mid,type:'gc_del',content:'1'}).catch(function(){});
+        }
+      }).catch(function(){
+        // 查询失败 → 保守处理：留哨兵
+        _sb.from('messages').insert({room_id:r,sender:mid,type:'gc_del',content:'1'}).catch(function(){});
+      });
+  };
+  _gcDelClean(room);
+  if(legacyRoom!==room)_gcDelClean(legacyRoom);
   _lastContactsLoad=0;
   loadContacts();
 }
@@ -7623,7 +7629,7 @@ async function loadContacts(){
         if(parts.length!==2)return;
         if(parts[0]!==mid&&parts[1]!==mid)return;
         var otherId=parts[0]===mid?parts[1]:parts[0];
-        if(m.type==='read_receipt'||m.type==='recall')return;
+        if(m.type==='read_receipt'||m.type==='recall'||m.type==='gc_del')return;
         if(otherId&&otherId!==mid&&!seen[otherId]){
           seen[otherId]=m;
           contactIds.push(otherId);
