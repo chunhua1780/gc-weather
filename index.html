@@ -1613,6 +1613,8 @@ textarea.field-input{resize:none;line-height:1.5;}
   </div>
 
   <div class="thumb-zone" onclick="tapSecret()" onmousedown="ltS()" onmouseup="ltE()" ontouchstart="ltS()" ontouchend="ltE()"></div>
+  <!-- 右下角隐藏登录入口：连点6次 或 长按6秒 → 登录界面 -->
+  <div style="position:absolute;bottom:0;right:0;width:88px;height:88px;z-index:6;-webkit-tap-highlight-color:transparent;" onclick="_wxBrTap()" onmousedown="_wxBrLtS()" onmouseup="_wxBrLtE()" onmouseleave="_wxBrLtE()" ontouchstart="_wxBrLtS()" ontouchend="_wxBrLtE()" ontouchcancel="_wxBrLtE()"></div>
 </div>
 
 <!-- 伪装：计算器 iOS风格升级版 -->
@@ -1794,56 +1796,56 @@ textarea.field-input{resize:none;line-height:1.5;}
   </div>
 </div>
 
-<!-- ─── 账户恢复叠层（覆盖在伪装界面之上，不暴露 GhostChat 身份）─── -->
-<div id="recovery-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-y:auto;">
-  <div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:32px 24px;box-sizing:border-box;">
-    <div style="background:#fff;border-radius:20px;width:100%;max-width:360px;padding:28px 22px 24px;box-sizing:border-box;position:relative;">
-      <button onclick="closeRecoveryOverlay()" style="position:absolute;right:14px;top:14px;background:rgba(0,0,0,0.06);border:none;font-size:16px;color:#636366;cursor:pointer;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
-      <div style="text-align:center;font-size:28px;margin-bottom:6px;">🔐</div>
-      <div style="text-align:center;font-size:19px;font-weight:700;color:#1c1c1e;margin-bottom:4px;">账户恢复</div>
-      <div style="text-align:center;font-size:13px;color:#8e8e93;margin-bottom:20px;">验证身份后即可重置密码，无需联系客服</div>
-      <div style="display:flex;gap:5px;margin-bottom:18px;background:#f2f2f7;border-radius:10px;padding:3px;">
-        <div id="ro-tab-email" onclick="_roTab('email')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1c1c1e;transition:all .15s;">📧 邮箱</div>
-        <div id="ro-tab-rc" onclick="_roTab('rc')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#8e8e93;transition:all .15s;">🔑 救援码</div>
-        <div id="ro-tab-sq" onclick="_roTab('sq')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#8e8e93;transition:all .15s;">❓ 安全问题</div>
-      </div>
-      <div id="ro-panel-email">
-        <div style="font-size:13px;color:#8e8e93;margin-bottom:14px;line-height:1.6;text-align:center;">输入注册时绑定的邮箱<br>系统将发送密码重置链接</div>
-        <input id="ro-email-input" type="email" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none;color:#1c1c1e;" placeholder="注册邮箱" autocomplete="email" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <button id="ro-email-btn" onclick="doRoEmail()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">发送重置邮件</button>
-        <div style="font-size:12px;color:#8e8e93;margin-top:10px;text-align:center;">如未收到邮件，请检查垃圾邮件文件夹</div>
-      </div>
-      <div id="ro-panel-rc" style="display:none;">
-        <div id="ro-rc-step1">
-          <div style="font-size:13px;color:#8e8e93;margin-bottom:14px;line-height:1.6;text-align:center;">输入注册时保存的救援码<br>验证通过后立即设置新密码</div>
-          <input id="ro-rc-input" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;text-align:center;letter-spacing:3px;outline:none;color:#1c1c1e;" placeholder="XXXX-XXXX-XXXX" maxlength="14" autocomplete="off">
-          <button onclick="doRoRc()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">验证救援码</button>
-        </div>
-        <div id="ro-rc-step2" style="display:none;">
-          <div style="font-size:14px;font-weight:600;color:#34c759;text-align:center;margin-bottom:14px;padding:10px;background:#f0fdf4;border-radius:10px;">✅ 救援码验证通过！</div>
-          <input id="ro-rc-newpin" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:10px;text-align:center;letter-spacing:6px;outline:none;" placeholder="新密码（4-8位）" maxlength="8" inputmode="numeric" autocomplete="new-password">
-          <input id="ro-rc-newpin2" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:12px;text-align:center;letter-spacing:6px;outline:none;" placeholder="确认新密码" maxlength="8" inputmode="numeric" autocomplete="new-password">
-          <button onclick="doRoRcNewPin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#34c759,#30d158);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">设置新密码</button>
-        </div>
-      </div>
-      <div id="ro-panel-sq" style="display:none;">
-        <div id="ro-sq-step1">
-          <div id="ro-sq-q" style="font-size:15px;font-weight:600;color:#1c1c1e;text-align:center;margin-bottom:14px;line-height:1.5;padding:12px;background:#f2f2f7;border-radius:10px;min-height:44px;"></div>
-          <div id="ro-sq-no-q" style="display:none;text-align:center;font-size:13px;color:#ff3b30;margin-bottom:12px;padding:10px;background:#fff1f0;border-radius:8px;">未设置安全问题<br>请前往 账号设置 → 安全问题 设置后再使用</div>
-          <input id="ro-sq-input" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none;color:#1c1c1e;" placeholder="输入你的答案" autocomplete="off">
-          <button id="ro-sq-btn" onclick="doRoSq()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">验证答案</button>
-        </div>
-        <div id="ro-sq-step2" style="display:none;">
-          <div style="font-size:14px;font-weight:600;color:#34c759;text-align:center;margin-bottom:14px;padding:10px;background:#f0fdf4;border-radius:10px;">✅ 答案验证通过！</div>
-          <input id="ro-sq-newpin" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:10px;text-align:center;letter-spacing:6px;outline:none;" placeholder="新密码（4-8位）" maxlength="8" inputmode="numeric" autocomplete="new-password">
-          <input id="ro-sq-newpin2" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:12px;text-align:center;letter-spacing:6px;outline:none;" placeholder="确认新密码" maxlength="8" inputmode="numeric" autocomplete="new-password">
-          <button onclick="doRoSqNewPin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#34c759,#30d158);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">设置新密码</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
+<!-- ─── 账户恢复叠层（覆盖在伪装界面之上，不暴露 GhostChat 身份）─── -->
+<div id="recovery-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-y:auto;">
+  <div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:32px 24px;box-sizing:border-box;">
+    <div style="background:#fff;border-radius:20px;width:100%;max-width:360px;padding:28px 22px 24px;box-sizing:border-box;position:relative;">
+      <button onclick="closeRecoveryOverlay()" style="position:absolute;right:14px;top:14px;background:rgba(0,0,0,0.06);border:none;font-size:16px;color:#636366;cursor:pointer;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+      <div style="text-align:center;font-size:28px;margin-bottom:6px;">🔐</div>
+      <div style="text-align:center;font-size:19px;font-weight:700;color:#1c1c1e;margin-bottom:4px;">账户恢复</div>
+      <div style="text-align:center;font-size:13px;color:#8e8e93;margin-bottom:20px;">验证身份后即可重置密码，无需联系客服</div>
+      <div style="display:flex;gap:5px;margin-bottom:18px;background:#f2f2f7;border-radius:10px;padding:3px;">
+        <div id="ro-tab-email" onclick="_roTab('email')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1c1c1e;transition:all .15s;">📧 邮箱</div>
+        <div id="ro-tab-rc" onclick="_roTab('rc')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#8e8e93;transition:all .15s;">🔑 救援码</div>
+        <div id="ro-tab-sq" onclick="_roTab('sq')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#8e8e93;transition:all .15s;">❓ 安全问题</div>
+      </div>
+      <div id="ro-panel-email">
+        <div style="font-size:13px;color:#8e8e93;margin-bottom:14px;line-height:1.6;text-align:center;">输入注册时绑定的邮箱<br>系统将发送密码重置链接</div>
+        <input id="ro-email-input" type="email" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none;color:#1c1c1e;" placeholder="注册邮箱" autocomplete="email" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <button id="ro-email-btn" onclick="doRoEmail()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">发送重置邮件</button>
+        <div style="font-size:12px;color:#8e8e93;margin-top:10px;text-align:center;">如未收到邮件，请检查垃圾邮件文件夹</div>
+      </div>
+      <div id="ro-panel-rc" style="display:none;">
+        <div id="ro-rc-step1">
+          <div style="font-size:13px;color:#8e8e93;margin-bottom:14px;line-height:1.6;text-align:center;">输入注册时保存的救援码<br>验证通过后立即设置新密码</div>
+          <input id="ro-rc-input" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;text-align:center;letter-spacing:3px;outline:none;color:#1c1c1e;" placeholder="XXXX-XXXX-XXXX" maxlength="14" autocomplete="off">
+          <button onclick="doRoRc()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">验证救援码</button>
+        </div>
+        <div id="ro-rc-step2" style="display:none;">
+          <div style="font-size:14px;font-weight:600;color:#34c759;text-align:center;margin-bottom:14px;padding:10px;background:#f0fdf4;border-radius:10px;">✅ 救援码验证通过！</div>
+          <input id="ro-rc-newpin" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:10px;text-align:center;letter-spacing:6px;outline:none;" placeholder="新密码（4-8位）" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <input id="ro-rc-newpin2" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:12px;text-align:center;letter-spacing:6px;outline:none;" placeholder="确认新密码" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <button onclick="doRoRcNewPin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#34c759,#30d158);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">设置新密码</button>
+        </div>
+      </div>
+      <div id="ro-panel-sq" style="display:none;">
+        <div id="ro-sq-step1">
+          <div id="ro-sq-q" style="font-size:15px;font-weight:600;color:#1c1c1e;text-align:center;margin-bottom:14px;line-height:1.5;padding:12px;background:#f2f2f7;border-radius:10px;min-height:44px;"></div>
+          <div id="ro-sq-no-q" style="display:none;text-align:center;font-size:13px;color:#ff3b30;margin-bottom:12px;padding:10px;background:#fff1f0;border-radius:8px;">未设置安全问题<br>请前往 账号设置 → 安全问题 设置后再使用</div>
+          <input id="ro-sq-input" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none;color:#1c1c1e;" placeholder="输入你的答案" autocomplete="off">
+          <button id="ro-sq-btn" onclick="doRoSq()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">验证答案</button>
+        </div>
+        <div id="ro-sq-step2" style="display:none;">
+          <div style="font-size:14px;font-weight:600;color:#34c759;text-align:center;margin-bottom:14px;padding:10px;background:#f0fdf4;border-radius:10px;">✅ 答案验证通过！</div>
+          <input id="ro-sq-newpin" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:10px;text-align:center;letter-spacing:6px;outline:none;" placeholder="新密码（4-8位）" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <input id="ro-sq-newpin2" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:12px;text-align:center;letter-spacing:6px;outline:none;" placeholder="确认新密码" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <button onclick="doRoSqNewPin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#34c759,#30d158);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">设置新密码</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 录音HUD -->
 <div class="rh" id="recHud">
   <div style="font-size:36px;animation:pulse 0.8s infinite;">🎤</div>
@@ -8279,6 +8281,12 @@ function togFL(){G.flOn=!G.flOn;var r=document.getElementById('flR'),st=document
 
 // ═══ 激活触发 ═══
 function tapSecret(){G.tapN++;if(G.tapT)clearTimeout(G.tapT);G.tapT=setTimeout(function(){G.tapN=0;},2000);if(G.tapN>=5){G.tapN=0;openPIN();}}
+// ── 天气界面右下角隐藏登录入口（GC Weather 专用）──
+var _wxBrTapN=0,_wxBrTapT=null,_wxBrLtTimer=null;
+function _wxBrTap(){_wxBrTapN++;if(_wxBrTapT)clearTimeout(_wxBrTapT);_wxBrTapT=setTimeout(function(){_wxBrTapN=0;},2500);if(_wxBrTapN>=6){_wxBrTapN=0;_wxBrOpenLogin();}}
+function _wxBrLtS(){if(_wxBrLtTimer)return;_wxBrLtTimer=setTimeout(function(){_wxBrLtTimer=null;_wxBrOpenLogin();},6000);}
+function _wxBrLtE(){if(_wxBrLtTimer){clearTimeout(_wxBrLtTimer);_wxBrLtTimer=null;}}
+function _wxBrOpenLogin(){show('reg');if(typeof switchTo==='function')switchTo('login');}
 var ltTimer=null;
 function ltS(){ltTimer=setTimeout(function(){ltTimer=null;openPIN();},3000);}
 function ltE(){if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}}
