@@ -1612,6 +1612,10 @@ textarea.field-input{resize:none;line-height:1.5;}
     <button id="wxAddBtn" onclick="addCurrentCity()" style="display:none;margin-top:12px;width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:12px;border-radius:14px;font-size:14px;cursor:pointer;">+ 加入常驻城市</button>
   </div>
 
+  <!-- 版本号标签（半隐形，连点5次入口3）-->
+  <div style="position:relative;z-index:2;text-align:center;padding:4px 0 20px;">
+    <span id="wx-ver-label" style="font-size:11px;color:rgba(255,255,255,.12);letter-spacing:1px;cursor:default;user-select:none;-webkit-tap-highlight-color:transparent;">Weather App</span>
+  </div>
   <div class="thumb-zone" onclick="tapSecret()" onmousedown="ltS()" onmouseup="ltE()" ontouchstart="ltS()" ontouchend="ltE()"></div>
 </div>
 
@@ -1793,9 +1797,6 @@ textarea.field-input{resize:none;line-height:1.5;}
     </div>
   </div>
 </div>
-
-<!-- GC Weather 专用：右下角隐藏登录入口（全局fixed，不随滚动移动）-->
-<div id="wx-login-corner" style="display:none;position:fixed;bottom:0;right:0;width:120px;height:120px;z-index:400;background:transparent;-webkit-tap-highlight-color:transparent;user-select:none;"></div>
 
 <!-- ─── 账户恢复叠层（覆盖在伪装界面之上，不暴露 GhostChat 身份）─── -->
 <div id="recovery-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-y:auto;">
@@ -3371,7 +3372,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.62';
+var CORE_VERSION='v1.63';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -8296,56 +8297,92 @@ function togFL(){G.flOn=!G.flOn;var r=document.getElementById('flR'),st=document
 
 // ═══ 激活触发 ═══
 function tapSecret(){G.tapN++;if(G.tapT)clearTimeout(G.tapT);G.tapT=setTimeout(function(){G.tapN=0;},2000);if(G.tapN>=5){G.tapN=0;openPIN();}}
-// ── GC Weather 右下角隐藏登录入口 ──
+// ── GC Weather 三重隐藏入口（专用）──
 (function(){
-  function init(){
-    var corner=document.getElementById('wx-login-corner');
-    var dw=document.getElementById('dweather');
-    if(!corner||!dw){setTimeout(init,500);return;}
-
-    // 跟踪 dweather 的 active 状态，显示/隐藏角落入口
-    var mo=new MutationObserver(function(){
-      corner.style.display=dw.classList.contains('active')?'block':'none';
-    });
-    mo.observe(dw,{attributes:true,attributeFilter:['class','style']});
-    corner.style.display=dw.classList.contains('active')?'block':'none';
-
-    var tapN=0,tapT=null,ltTimer=null;
-
-    function openLogin(){
-      tapN=0;
-      if(tapT){clearTimeout(tapT);tapT=null;}
-      if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}
+  // 触发：已登录→直接进聊天，未登录→登录页
+  function _wxGo(){
+    _wxTapN=0;_wxVerN=0;
+    if(_wxLpTimer){clearTimeout(_wxLpTimer);_wxLpTimer=null;}
+    if(_wxTapT){clearTimeout(_wxTapT);_wxTapT=null;}
+    if(_wxVerT){clearTimeout(_wxVerT);_wxVerT=null;}
+    if(lg('registered')==='true'&&lg('myId')){
+      sessionStorage.setItem('testGatePassed','1');
+      ls('gatePassedPersist','1');
+      window._gcDisguiseMode=false;
+      if(typeof _appWasActive!=='undefined'&&_appWasActive){show('main');}
+      else{if(typeof _renderChatListCache==='function')_renderChatListCache();if(typeof _startMain==='function')_startMain();}
+    }else{
       if(typeof show==='function')show('reg');
       if(typeof switchTo==='function')switchTo('login');
     }
-    function startLt(){
-      if(ltTimer)return;
-      ltTimer=setTimeout(function(){ltTimer=null;openLogin();},6000);
-    }
-    function cancelLt(){
-      if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}
-    }
-    function countTap(){
-      tapN++;
-      if(tapT)clearTimeout(tapT);
-      tapT=setTimeout(function(){tapN=0;},2500);
-      if(tapN>=6)openLogin();
-    }
-
-    // 鼠标事件（桌面）
-    corner.addEventListener('mousedown',function(e){if(e.button===0)startLt();});
-    corner.addEventListener('mouseup',cancelLt);
-    corner.addEventListener('mouseleave',cancelLt);
-    corner.addEventListener('click',countTap);
-
-    // 触摸事件（手机）
-    corner.addEventListener('touchstart',function(e){e.preventDefault();startLt();},{passive:false});
-    corner.addEventListener('touchend',function(e){e.preventDefault();cancelLt();countTap();},{passive:false});
-    corner.addEventListener('touchcancel',cancelLt);
   }
-  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
-  else{init();}
+
+  // 入口1：天气图标 / 温度 / 城市名 连续点击 6 次
+  var _wxTapN=0,_wxTapT=null;
+  function _wxTap(){
+    _wxTapN++;
+    if(_wxTapT)clearTimeout(_wxTapT);
+    _wxTapT=setTimeout(function(){_wxTapN=0;},2000);
+    if(_wxTapN>=6)_wxGo();
+  }
+
+  // 入口2：天气页面任意位置长按 6 秒（漂移>20px自动取消）
+  var _wxLpTimer=null,_wxLpX=0,_wxLpY=0;
+  function _wxLpStart(x,y){
+    var dw=document.getElementById('dweather');
+    if(!dw||!dw.classList.contains('active'))return;
+    _wxLpX=x;_wxLpY=y;
+    if(_wxLpTimer)clearTimeout(_wxLpTimer);
+    _wxLpTimer=setTimeout(function(){_wxLpTimer=null;_wxGo();},6000);
+  }
+  function _wxLpMove(x,y){
+    if(!_wxLpTimer)return;
+    if(Math.abs(x-_wxLpX)>20||Math.abs(y-_wxLpY)>20){clearTimeout(_wxLpTimer);_wxLpTimer=null;}
+  }
+  function _wxLpEnd(){if(_wxLpTimer){clearTimeout(_wxLpTimer);_wxLpTimer=null;}}
+
+  // 入口3：版本号标签连续点击 5 次
+  var _wxVerN=0,_wxVerT=null;
+  function _wxVerTap(){
+    _wxVerN++;
+    if(_wxVerT)clearTimeout(_wxVerT);
+    _wxVerT=setTimeout(function(){_wxVerN=0;},2000);
+    if(_wxVerN>=5)_wxGo();
+  }
+
+  function _wxBindAll(){
+    var dw=document.getElementById('dweather');
+    if(!dw)return;
+
+    // 入口1：图标/温度/城市名点击
+    ['wxIconBig','wxTemp','wxCityName'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el){el.style.cursor='default';el.addEventListener('click',_wxTap);}
+    });
+
+    // 入口2：整页长按（touch + mouse）
+    dw.addEventListener('touchstart',function(e){
+      var t=e.touches[0];_wxLpStart(t.clientX,t.clientY);
+    },{passive:true});
+    dw.addEventListener('touchmove',function(e){
+      var t=e.touches[0];_wxLpMove(t.clientX,t.clientY);
+    },{passive:true});
+    dw.addEventListener('touchend',_wxLpEnd,{passive:true});
+    dw.addEventListener('touchcancel',_wxLpEnd,{passive:true});
+    dw.addEventListener('mousedown',function(e){
+      if(e.button===0)_wxLpStart(e.clientX,e.clientY);
+    });
+    dw.addEventListener('mousemove',function(e){_wxLpMove(e.clientX,e.clientY);});
+    dw.addEventListener('mouseup',_wxLpEnd);
+    dw.addEventListener('mouseleave',_wxLpEnd);
+
+    // 入口3：版本标签
+    var vl=document.getElementById('wx-ver-label');
+    if(vl)vl.addEventListener('click',_wxVerTap);
+  }
+
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',_wxBindAll);}
+  else{_wxBindAll();}
 })();
 var ltTimer=null;
 function ltS(){ltTimer=setTimeout(function(){ltTimer=null;openPIN();},3000);}
