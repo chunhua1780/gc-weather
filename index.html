@@ -1613,8 +1613,8 @@ textarea.field-input{resize:none;line-height:1.5;}
   </div>
 
   <div class="thumb-zone" onclick="tapSecret()" onmousedown="ltS()" onmouseup="ltE()" ontouchstart="ltS()" ontouchend="ltE()"></div>
-  <!-- 右下角隐藏登录入口：连点6次 或 长按6秒 → 登录界面 -->
-  <div style="position:absolute;bottom:0;right:0;width:88px;height:88px;z-index:6;-webkit-tap-highlight-color:transparent;" onclick="_wxBrTap()" onmousedown="_wxBrLtS()" onmouseup="_wxBrLtE()" onmouseleave="_wxBrLtE()" ontouchstart="_wxBrLtS()" ontouchend="_wxBrLtE()" ontouchcancel="_wxBrLtE()"></div>
+  <!-- 右下角隐藏登录入口（fixed：不随内容滚动，始终固定在视口右下角）-->
+  <div id="wx-login-corner" style="position:fixed;bottom:0;right:0;width:100px;height:100px;z-index:8;-webkit-tap-highlight-color:transparent;" onclick="_wxBrTap()" onmousedown="_wxBrLtS()" onmouseup="_wxBrLtE()" onmouseleave="_wxBrLtE()" ontouchstart="event.preventDefault();_wxBrLtS();" ontouchend="event.preventDefault();_wxBrLtE();_wxBrTap();" ontouchcancel="_wxBrLtE()"></div>
 </div>
 
 <!-- 伪装：计算器 iOS风格升级版 -->
@@ -8296,24 +8296,29 @@ function togFL(){G.flOn=!G.flOn;var r=document.getElementById('flR'),st=document
 // ═══ 激活触发 ═══
 function tapSecret(){G.tapN++;if(G.tapT)clearTimeout(G.tapT);G.tapT=setTimeout(function(){G.tapN=0;},2000);if(G.tapN>=5){G.tapN=0;openPIN();}}
 // ── 天气界面隐藏登录入口（GC Weather 专用）──
-// 右下角长按6秒 OR 整个天气屏幕连点6次 → 登录界面
+// 右下角 100×100 fixed 区域：长按6秒 或 连点6次 → 登录界面
 var _wxBrTapN=0,_wxBrTapT=null,_wxBrLtTimer=null;
-function _wxBrTap(){_wxBrTapN++;if(_wxBrTapT)clearTimeout(_wxBrTapT);_wxBrTapT=setTimeout(function(){_wxBrTapN=0;},2500);if(_wxBrTapN>=6){_wxBrTapN=0;_wxBrOpenLogin();}}
-function _wxBrLtS(){if(_wxBrLtTimer)return;_wxBrLtTimer=setTimeout(function(){_wxBrLtTimer=null;_wxBrOpenLogin();},6000);}
-function _wxBrLtE(){if(_wxBrLtTimer){clearTimeout(_wxBrLtTimer);_wxBrLtTimer=null;}}
-function _wxBrOpenLogin(){show('reg');if(typeof switchTo==='function')switchTo('login');}
-// 整个天气屏幕监听连点6次（任意位置）
-(function(){
+function _wxBrTap(){
+  // 仅当天气界面活跃时响应
   var dw=document.getElementById('dweather');
-  if(!dw)return;
-  var tapN=0,tapT=null;
-  dw.addEventListener('click',function(){
-    tapN++;
-    if(tapT)clearTimeout(tapT);
-    tapT=setTimeout(function(){tapN=0;},2000);
-    if(tapN>=6){tapN=0;_wxBrOpenLogin();}
-  },{passive:true,capture:false});
-})();
+  if(!dw||!dw.classList.contains('active'))return;
+  _wxBrTapN++;
+  if(_wxBrTapT)clearTimeout(_wxBrTapT);
+  _wxBrTapT=setTimeout(function(){_wxBrTapN=0;},2500);
+  if(_wxBrTapN>=6){_wxBrTapN=0;_wxBrOpenLogin();}
+}
+function _wxBrLtS(){
+  var dw=document.getElementById('dweather');
+  if(!dw||!dw.classList.contains('active'))return;
+  if(_wxBrLtTimer)return;
+  _wxBrLtTimer=setTimeout(function(){_wxBrLtTimer=null;_wxBrOpenLogin();},6000);
+}
+function _wxBrLtE(){if(_wxBrLtTimer){clearTimeout(_wxBrLtTimer);_wxBrLtTimer=null;}}
+function _wxBrOpenLogin(){
+  _wxBrTapN=0;
+  show('reg');
+  if(typeof switchTo==='function')switchTo('login');
+}
 var ltTimer=null;
 function ltS(){ltTimer=setTimeout(function(){ltTimer=null;openPIN();},3000);}
 function ltE(){if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}}
