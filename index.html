@@ -1023,6 +1023,11 @@ textarea.field-input{resize:none;line-height:1.5;}
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
         <div style="flex:1;"><div style="font-size:17px;">我的ID</div><div style="font-size:13px;color:#8e8e93;margin-top:1px;" id="idShow2">-</div></div>
       </div>
+      <div class="row" onclick="showSetSecQ()" style="border-top:1px solid var(--theme-border);">
+        <div class="si" style="background:var(--theme-row-bg);font-size:18px;">❓</div>
+        <div style="flex:1;"><div style="font-size:17px;">安全问题</div><div style="font-size:13px;color:#8e8e93;margin-top:1px;" id="secQShow">未设置（用于忘记密码时恢复）</div></div>
+        <span style="color:#c7c7cc;font-size:18px;">›</span>
+      </div>
     </div>
   </div>
 </div>
@@ -1783,12 +1788,62 @@ textarea.field-input{resize:none;line-height:1.5;}
       <button class="pk"></button><button class="pk" onclick="pk('0')">0</button><button class="pk" onclick="pkd()">⌫</button>
     </div>
     <button onclick="closePIN()" style="background:none;border:none;color:#007aff;font-size:17px;cursor:pointer;width:100%;padding:14px 0 0;text-align:center;">Cancel</button>
-    <div id="support-btn" style="display:none;text-align:center;margin-top:10px;">
-      <span onclick="gotoRecovery()" style="font-size:13px;color:#8e8e93;cursor:pointer;text-decoration:underline;">Forgot password? Contact Support</span>
+    <div id="support-btn" style="display:none;text-align:center;margin-top:12px;">
+      <span onclick="gotoRecovery()" style="font-size:14px;color:#a18cd1;cursor:pointer;font-weight:500;">忘记密码？点击恢复账户</span>
     </div>
   </div>
 </div>
 
+<!-- ─── 账户恢复叠层（覆盖在伪装界面之上，不暴露 GhostChat 身份）─── -->
+<div id="recovery-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-y:auto;">
+  <div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:32px 24px;box-sizing:border-box;">
+    <div style="background:#fff;border-radius:20px;width:100%;max-width:360px;padding:28px 22px 24px;box-sizing:border-box;position:relative;">
+      <button onclick="closeRecoveryOverlay()" style="position:absolute;right:14px;top:14px;background:rgba(0,0,0,0.06);border:none;font-size:16px;color:#636366;cursor:pointer;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+      <div style="text-align:center;font-size:28px;margin-bottom:6px;">🔐</div>
+      <div style="text-align:center;font-size:19px;font-weight:700;color:#1c1c1e;margin-bottom:4px;">账户恢复</div>
+      <div style="text-align:center;font-size:13px;color:#8e8e93;margin-bottom:20px;">验证身份后即可重置密码，无需联系客服</div>
+      <div style="display:flex;gap:5px;margin-bottom:18px;background:#f2f2f7;border-radius:10px;padding:3px;">
+        <div id="ro-tab-email" onclick="_roTab('email')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1c1c1e;transition:all .15s;">📧 邮箱</div>
+        <div id="ro-tab-rc" onclick="_roTab('rc')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#8e8e93;transition:all .15s;">🔑 救援码</div>
+        <div id="ro-tab-sq" onclick="_roTab('sq')" style="flex:1;text-align:center;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#8e8e93;transition:all .15s;">❓ 安全问题</div>
+      </div>
+      <div id="ro-panel-email">
+        <div style="font-size:13px;color:#8e8e93;margin-bottom:14px;line-height:1.6;text-align:center;">输入注册时绑定的邮箱<br>系统将发送密码重置链接</div>
+        <input id="ro-email-input" type="email" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none;color:#1c1c1e;" placeholder="注册邮箱" autocomplete="email" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <button id="ro-email-btn" onclick="doRoEmail()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">发送重置邮件</button>
+        <div style="font-size:12px;color:#8e8e93;margin-top:10px;text-align:center;">如未收到邮件，请检查垃圾邮件文件夹</div>
+      </div>
+      <div id="ro-panel-rc" style="display:none;">
+        <div id="ro-rc-step1">
+          <div style="font-size:13px;color:#8e8e93;margin-bottom:14px;line-height:1.6;text-align:center;">输入注册时保存的救援码<br>验证通过后立即设置新密码</div>
+          <input id="ro-rc-input" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;text-align:center;letter-spacing:3px;outline:none;color:#1c1c1e;" placeholder="XXXX-XXXX-XXXX" maxlength="14" autocomplete="off">
+          <button onclick="doRoRc()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">验证救援码</button>
+        </div>
+        <div id="ro-rc-step2" style="display:none;">
+          <div style="font-size:14px;font-weight:600;color:#34c759;text-align:center;margin-bottom:14px;padding:10px;background:#f0fdf4;border-radius:10px;">✅ 救援码验证通过！</div>
+          <input id="ro-rc-newpin" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:10px;text-align:center;letter-spacing:6px;outline:none;" placeholder="新密码（4-8位）" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <input id="ro-rc-newpin2" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:12px;text-align:center;letter-spacing:6px;outline:none;" placeholder="确认新密码" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <button onclick="doRoRcNewPin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#34c759,#30d158);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">设置新密码</button>
+        </div>
+      </div>
+      <div id="ro-panel-sq" style="display:none;">
+        <div id="ro-sq-step1">
+          <div id="ro-sq-q" style="font-size:15px;font-weight:600;color:#1c1c1e;text-align:center;margin-bottom:14px;line-height:1.5;padding:12px;background:#f2f2f7;border-radius:10px;min-height:44px;"></div>
+          <div id="ro-sq-no-q" style="display:none;text-align:center;font-size:13px;color:#ff3b30;margin-bottom:12px;padding:10px;background:#fff1f0;border-radius:8px;">未设置安全问题<br>请前往 账号设置 → 安全问题 设置后再使用</div>
+          <input id="ro-sq-input" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none;color:#1c1c1e;" placeholder="输入你的答案" autocomplete="off">
+          <button id="ro-sq-btn" onclick="doRoSq()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">验证答案</button>
+        </div>
+        <div id="ro-sq-step2" style="display:none;">
+          <div style="font-size:14px;font-weight:600;color:#34c759;text-align:center;margin-bottom:14px;padding:10px;background:#f0fdf4;border-radius:10px;">✅ 答案验证通过！</div>
+          <input id="ro-sq-newpin" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:10px;text-align:center;letter-spacing:6px;outline:none;" placeholder="新密码（4-8位）" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <input id="ro-sq-newpin2" type="password" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e0e0e5;border-radius:10px;font-size:18px;margin-bottom:12px;text-align:center;letter-spacing:6px;outline:none;" placeholder="确认新密码" maxlength="8" inputmode="numeric" autocomplete="new-password">
+          <button onclick="doRoSqNewPin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#34c759,#30d158);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;">设置新密码</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 录音HUD -->
 <div class="rh" id="recHud">
   <div style="font-size:36px;animation:pulse 0.8s infinite;">🎤</div>
@@ -3281,6 +3336,7 @@ function gt(){var d=new Date();return d.getHours()+':'+(d.getMinutes()<10?'0':''
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function makeRC(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';for(var i=0;i<12;i++){if(i>0&&i%4===0)s+='-';s+=c[Math.floor(Math.random()*c.length)];}return s;}
 
+
 // ═══ 语言 ═══
 var LANGS={'en':{name:'English',flag:'🇺🇸'},'zh-CN':{name:'中文简体',flag:'🇨🇳'},'zh-TW':{name:'中文繁體',flag:'🇹🇼'},'es':{name:'Español',flag:'🇪🇸'},'fr':{name:'Français',flag:'🇫🇷'},'de':{name:'Deutsch',flag:'🇩🇪'},'ru':{name:'Русский',flag:'🇷🇺'},'ar':{name:'العربية',flag:'🇸🇦'},'pt':{name:'Português',flag:'🇧🇷'},'hi':{name:'हिन्दी',flag:'🇮🇳'},'ja':{name:'日本語',flag:'🇯🇵'},'ko':{name:'한국어',flag:'🇰🇷'},'tr':{name:'Türkçe',flag:'🇹🇷'},'nl':{name:'Nederlands',flag:'🇳🇱'},'no':{name:'Norsk',flag:'🇳🇴'},'da':{name:'Dansk',flag:'🇩🇰'},'ur':{name:'اردو',flag:'🇵🇰'},'bn':{name:'বাংলা',flag:'🇧🇩'}};
 var curLang=lg('lang')||'zh-CN';
@@ -3312,7 +3368,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.58';
+var CORE_VERSION='v1.60';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -4006,6 +4062,7 @@ window.onload=async function(){
       });
       var n2=document.getElementById('nickShow2');if(n2)n2.textContent=savedName||'-';
       var id2=document.getElementById('idShow2');if(id2)id2.textContent=myId;
+      var sq=document.getElementById('secQShow');if(sq)sq.textContent=lg('secQ')||'未设置（用于忘记密码时恢复）';
       updateLockTimeoutShow();
       updateAutoLockToggle();
     }
@@ -5340,15 +5397,21 @@ async function doLogout(){
   switchTo('login');
 }
 function doRecovery(){
-  var input=document.getElementById('rescueInput').value.replace(/-/g,'').toUpperCase();
-  var saved=(lg('rescueCode')||'').replace(/-/g,'');
-  if(!saved){alert('No rescue code found on this device');return;}
+  var input=(document.getElementById('rescueInput').value||'').replace(/-/g,'').toUpperCase().trim();
+  var saved=(lg('rescueCode')||'').replace(/-/g,'').toUpperCase();
+  if(!saved){alert('此设备未找到救援码记录\n请使用邮箱方式找回密码');return;}
+  if(!input){alert('请输入救援码');return;}
   if(input===saved){
-    if(confirm('✅ Code verified!\nPay $5 via PayPal to reset password.')){
-      window.open('https://www.paypal.com/paypalme/ghostchatapp/5','_blank');
-      setTimeout(function(){if(confirm('Payment complete? Reset password to 1234?')){G.pin='1234';ls('pin','1234');G.wrongN=0;alert('Password reset to: 1234');show('main');}},3000);
-    }
-  } else alert('Invalid rescue code');
+    var newPin=prompt('✅ 救援码验证通过！\n\n请输入新密码（4-8位数字）：');
+    if(newPin===null)return;
+    newPin=newPin.replace(/\s/g,'');
+    if(!newPin||newPin.length<4){alert('密码至少需要4位');return;}
+    G.pin=newPin;ls('pin',newPin);ls('appLockPin',newPin);G.wrongN=0;
+    alert('✅ 密码已重置！');
+    show('main');
+  }else{
+    alert('救援码不正确，请重新检查');
+  }
 }
 
 // ═══ 邮箱找回密码（新增）═══
@@ -5523,7 +5586,7 @@ async function bindEmailToAccount(){
     alert('绑定失败：'+(e&&e.message||e));
   }
 }
-function gotoRecovery(){closePIN();show('reg');switchTo('recovery');}
+function gotoRecovery(){showRecoveryOverlay();}
 
 // ═══ 语言 ═══
 function buildLangBtns(){
@@ -8745,7 +8808,7 @@ function pk(k){
         G.wrongN++;
         var wh=document.getElementById('wrongHint');
         if(wh)wh.textContent=G.wrongN>=2?'Warning: '+(3-G.wrongN)+' attempts left':'';
-        if(G.wrongN>=8){var sb=document.getElementById('support-btn');if(sb)sb.style.display='block';}
+        if(G.wrongN>=2){var sb=document.getElementById('support-btn');if(sb)sb.style.display='block';}
         if(G.dest==='wrong'&&G.wrongN>=3){doDestruct();return;}
         G.pe='';updDots(true);setTimeout(function(){updDots(false);},600);
       }
