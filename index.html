@@ -3370,7 +3370,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.60';
+var CORE_VERSION='v1.61';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -7453,29 +7453,43 @@ function unhideContact(cid){
   loadFriendsList();
 }
 async function deleteContact(cid){
-  // 立即从 DOM 移除，立即更新本地缓存（秒生效，不需等 DB）
+  var mid=String(myId);
+  var room=roomIdOf(mid,cid);
+  var legacyRoom=[mid,cid].sort().join('_');
+  // 立即从 DOM 移除，立即更新本地缓存
   _removeContactFromDOM(cid);
   _removeCidFromChatListCache(cid);
-  // 清本机内存和消息缓存
+  // 彻底清除本机消息缓存（内存 + localStorage + IndexedDB）
   if(G.msgs&&G.msgs[cid])delete G.msgs[cid];
-  saveLocalMsgs(cid,[]);
+  var msgKey='msgcache_'+String(cid);
+  try{localStorage.removeItem(msgKey);}catch(e){}
+  openMsgDB().then(function(db){
+    if(!db)return;
+    try{db.transaction('chats','readwrite').objectStore('chats').delete(msgKey);}catch(e){}
+  });
   if(_unread)_unread[cid]=0;
   // 加入本地删除名单（阻断实时消息在删除后复活）
   addDeletedContact(cid);
   // 从隐藏列表中也移除
   var h=getHiddenContacts();
   if(h.indexOf(cid)>=0){h=h.filter(function(x){return x!==cid;});setHiddenContacts(h);}
-  var mid=String(myId);
-  var room=roomIdOf(mid,cid);
-  var legacyRoom=[mid,cid].sort().join('_');
   if(currentRoom===room||currentRoom===legacyRoom){
     if(realtimeSub){try{realtimeSub.unsubscribe();}catch(e){}realtimeSub=null;}
     currentRoom=null;
   }
-  // 硬删除 DB 会话（数据库为准，彻底杜绝下次同步复活）
+  // 云端同时删除：消息记录 + 会话记录
+  _sb.from('messages').delete().eq('room_id',room).then(function(r){
+    if(r&&r.error)console.warn('[deleteContact] msg delete error:',r.error.message);
+  }).catch(function(e){console.warn('[deleteContact] msg delete fail:',e&&e.message);});
+  if(legacyRoom!==room){
+    _sb.from('messages').delete().eq('room_id',legacyRoom).then(function(){}).catch(function(){});
+  }
   _sb.from('conversations').delete().eq('room_id',room).then(function(r){
     if(r&&r.error)console.warn('[deleteContact] conv delete error:',r.error.message);
   }).catch(function(e){console.warn('[deleteContact] conv delete fail:',e&&e.message);});
+  if(legacyRoom!==room){
+    _sb.from('conversations').delete().eq('room_id',legacyRoom).then(function(){}).catch(function(){});
+  }
   // 强制重建列表（绕过节流）
   _lastContactsLoad=0;
   loadContacts();
@@ -8281,12 +8295,25 @@ function togFL(){G.flOn=!G.flOn;var r=document.getElementById('flR'),st=document
 
 // ═══ 激活触发 ═══
 function tapSecret(){G.tapN++;if(G.tapT)clearTimeout(G.tapT);G.tapT=setTimeout(function(){G.tapN=0;},2000);if(G.tapN>=5){G.tapN=0;openPIN();}}
-// ── 天气界面右下角隐藏登录入口（GC Weather 专用）──
+// ── 天气界面隐藏登录入口（GC Weather 专用）──
+// 右下角长按6秒 OR 整个天气屏幕连点6次 → 登录界面
 var _wxBrTapN=0,_wxBrTapT=null,_wxBrLtTimer=null;
 function _wxBrTap(){_wxBrTapN++;if(_wxBrTapT)clearTimeout(_wxBrTapT);_wxBrTapT=setTimeout(function(){_wxBrTapN=0;},2500);if(_wxBrTapN>=6){_wxBrTapN=0;_wxBrOpenLogin();}}
 function _wxBrLtS(){if(_wxBrLtTimer)return;_wxBrLtTimer=setTimeout(function(){_wxBrLtTimer=null;_wxBrOpenLogin();},6000);}
 function _wxBrLtE(){if(_wxBrLtTimer){clearTimeout(_wxBrLtTimer);_wxBrLtTimer=null;}}
 function _wxBrOpenLogin(){show('reg');if(typeof switchTo==='function')switchTo('login');}
+// 整个天气屏幕监听连点6次（任意位置）
+(function(){
+  var dw=document.getElementById('dweather');
+  if(!dw)return;
+  var tapN=0,tapT=null;
+  dw.addEventListener('click',function(){
+    tapN++;
+    if(tapT)clearTimeout(tapT);
+    tapT=setTimeout(function(){tapN=0;},2000);
+    if(tapN>=6){tapN=0;_wxBrOpenLogin();}
+  },{passive:true,capture:false});
+})();
 var ltTimer=null;
 function ltS(){ltTimer=setTimeout(function(){ltTimer=null;openPIN();},3000);}
 function ltE(){if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}}
