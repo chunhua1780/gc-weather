@@ -1613,8 +1613,6 @@ textarea.field-input{resize:none;line-height:1.5;}
   </div>
 
   <div class="thumb-zone" onclick="tapSecret()" onmousedown="ltS()" onmouseup="ltE()" ontouchstart="ltS()" ontouchend="ltE()"></div>
-  <!-- 右下角隐藏登录入口（fixed：不随内容滚动，始终固定在视口右下角）-->
-  <div id="wx-login-corner" style="position:fixed;bottom:0;right:0;width:100px;height:100px;z-index:8;-webkit-tap-highlight-color:transparent;" onclick="_wxBrTap()" onmousedown="_wxBrLtS()" onmouseup="_wxBrLtE()" onmouseleave="_wxBrLtE()" ontouchstart="event.preventDefault();_wxBrLtS();" ontouchend="event.preventDefault();_wxBrLtE();_wxBrTap();" ontouchcancel="_wxBrLtE()"></div>
 </div>
 
 <!-- 伪装：计算器 iOS风格升级版 -->
@@ -1795,6 +1793,9 @@ textarea.field-input{resize:none;line-height:1.5;}
     </div>
   </div>
 </div>
+
+<!-- GC Weather 专用：右下角隐藏登录入口（全局fixed，不随滚动移动）-->
+<div id="wx-login-corner" style="display:none;position:fixed;bottom:0;right:0;width:120px;height:120px;z-index:400;background:transparent;-webkit-tap-highlight-color:transparent;user-select:none;"></div>
 
 <!-- ─── 账户恢复叠层（覆盖在伪装界面之上，不暴露 GhostChat 身份）─── -->
 <div id="recovery-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-y:auto;">
@@ -3370,7 +3371,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.61';
+var CORE_VERSION='v1.62';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -8295,30 +8296,57 @@ function togFL(){G.flOn=!G.flOn;var r=document.getElementById('flR'),st=document
 
 // ═══ 激活触发 ═══
 function tapSecret(){G.tapN++;if(G.tapT)clearTimeout(G.tapT);G.tapT=setTimeout(function(){G.tapN=0;},2000);if(G.tapN>=5){G.tapN=0;openPIN();}}
-// ── 天气界面隐藏登录入口（GC Weather 专用）──
-// 右下角 100×100 fixed 区域：长按6秒 或 连点6次 → 登录界面
-var _wxBrTapN=0,_wxBrTapT=null,_wxBrLtTimer=null;
-function _wxBrTap(){
-  // 仅当天气界面活跃时响应
-  var dw=document.getElementById('dweather');
-  if(!dw||!dw.classList.contains('active'))return;
-  _wxBrTapN++;
-  if(_wxBrTapT)clearTimeout(_wxBrTapT);
-  _wxBrTapT=setTimeout(function(){_wxBrTapN=0;},2500);
-  if(_wxBrTapN>=6){_wxBrTapN=0;_wxBrOpenLogin();}
-}
-function _wxBrLtS(){
-  var dw=document.getElementById('dweather');
-  if(!dw||!dw.classList.contains('active'))return;
-  if(_wxBrLtTimer)return;
-  _wxBrLtTimer=setTimeout(function(){_wxBrLtTimer=null;_wxBrOpenLogin();},6000);
-}
-function _wxBrLtE(){if(_wxBrLtTimer){clearTimeout(_wxBrLtTimer);_wxBrLtTimer=null;}}
-function _wxBrOpenLogin(){
-  _wxBrTapN=0;
-  show('reg');
-  if(typeof switchTo==='function')switchTo('login');
-}
+// ── GC Weather 右下角隐藏登录入口 ──
+(function(){
+  function init(){
+    var corner=document.getElementById('wx-login-corner');
+    var dw=document.getElementById('dweather');
+    if(!corner||!dw){setTimeout(init,500);return;}
+
+    // 跟踪 dweather 的 active 状态，显示/隐藏角落入口
+    var mo=new MutationObserver(function(){
+      corner.style.display=dw.classList.contains('active')?'block':'none';
+    });
+    mo.observe(dw,{attributes:true,attributeFilter:['class','style']});
+    corner.style.display=dw.classList.contains('active')?'block':'none';
+
+    var tapN=0,tapT=null,ltTimer=null;
+
+    function openLogin(){
+      tapN=0;
+      if(tapT){clearTimeout(tapT);tapT=null;}
+      if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}
+      if(typeof show==='function')show('reg');
+      if(typeof switchTo==='function')switchTo('login');
+    }
+    function startLt(){
+      if(ltTimer)return;
+      ltTimer=setTimeout(function(){ltTimer=null;openLogin();},6000);
+    }
+    function cancelLt(){
+      if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}
+    }
+    function countTap(){
+      tapN++;
+      if(tapT)clearTimeout(tapT);
+      tapT=setTimeout(function(){tapN=0;},2500);
+      if(tapN>=6)openLogin();
+    }
+
+    // 鼠标事件（桌面）
+    corner.addEventListener('mousedown',function(e){if(e.button===0)startLt();});
+    corner.addEventListener('mouseup',cancelLt);
+    corner.addEventListener('mouseleave',cancelLt);
+    corner.addEventListener('click',countTap);
+
+    // 触摸事件（手机）
+    corner.addEventListener('touchstart',function(e){e.preventDefault();startLt();},{passive:false});
+    corner.addEventListener('touchend',function(e){e.preventDefault();cancelLt();countTap();},{passive:false});
+    corner.addEventListener('touchcancel',cancelLt);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
+  else{init();}
+})();
 var ltTimer=null;
 function ltS(){ltTimer=setTimeout(function(){ltTimer=null;openPIN();},3000);}
 function ltE(){if(ltTimer){clearTimeout(ltTimer);ltTimer=null;}}
