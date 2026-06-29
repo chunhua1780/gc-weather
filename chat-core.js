@@ -570,13 +570,10 @@ function renderMsgs(){
     }
     // 🐾 单个，嵌入气泡内部右侧，只在最后一条已读消息上
     var inPaw=(s&&i===_lastReadSentIdx)?'<span style="display:inline-block;margin-left:5px;font-size:12px;opacity:0.65;vertical-align:bottom;line-height:1;">🐾</span>':'';
-    // 气泡：我发未读→暖橙；我发已读→主题渐变0.78透明；收到→自然色（不覆盖）
+    // 气泡：我发未读→暖橙；我发已读→bub-read白底暗字立体；收到→自然色
     var bubSty='';
-    if(s){
-      if(m.read&&m.id!=null){bubSty=' style="opacity:0.78;"';}
-      else if(m.id!=null&&!m.failed){bubSty=' style="background:#ff8c5a;color:#fff;"';}
-    }
-    var bubCls='bub';
+    if(s&&m.id!=null&&!m.failed&&!m.read){bubSty=' style="background:#ff8c5a;color:#fff;"';}
+    var bubCls='bub'+(s&&m.read&&m.id!=null?' bub-read':'');
     var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
     html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubSty+'>'+b+inPaw+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
   }
