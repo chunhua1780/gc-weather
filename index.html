@@ -487,13 +487,13 @@ html,body{height:100%;height:100dvh;margin:0;padding:0;}
 .btn-red{background:#ff3b30;border:none;color:#fff;padding:16px;border-radius:14px;font-size:17px;font-weight:600;width:100%;cursor:pointer;}
 .field{background:var(--theme-field-bg);border:0.5px solid var(--theme-field-border);border-radius:12px;padding:14px 16px;color:var(--theme-text);font-size:17px;width:100%;outline:none;margin-bottom:14px;font-family:inherit;}
 .nav-bar{background:var(--theme-navbar);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--theme-border);flex-shrink:0;;position:relative;z-index:10;}
-.nav-lg{padding:max(44px,calc(36px + var(--safe-top))) 20px 10px;}
+.nav-lg{padding:max(16px,calc(8px + var(--safe-top))) 20px 8px;}
 .nav-lg .t{font-size:34px;font-weight:700;letter-spacing:-.5px;}
-.nav-sm{padding:max(40px,calc(env(safe-area-inset-top,14px) + 8px)) 16px 8px;display:flex;align-items:center;justify-content:space-between;}
+.nav-sm{padding:max(12px,calc(env(safe-area-inset-top,0px) + 8px)) 16px 8px;display:flex;align-items:center;justify-content:space-between;}
 .nav-sm .t{font-size:17px;font-weight:600;}
 .nav-btn{color:var(--theme-link);font-size:15px;cursor:pointer;padding:4px 8px;}
-.tabs{background:var(--theme-navbar);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;padding-bottom:max(var(--safe-bottom),4px);;position:relative;z-index:10;padding-bottom:max(env(safe-area-inset-bottom,0px),14px);}
-.tab{flex:1;padding:8px 0 4px;text-align:center;cursor:pointer;font-size:10px;color:#8e8e93;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.tabs{background:var(--theme-navbar);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;position:relative;z-index:10;padding-bottom:max(env(safe-area-inset-bottom,0px),6px);}
+.tab{flex:1;padding:6px 0 2px;text-align:center;cursor:pointer;font-size:10px;color:#8e8e93;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .tab.on{color:var(--theme-tab-active);}
 .tab svg{width:24px;height:24px;}
 .scroll{flex:1;overflow-y:auto;background:transparent;min-height:0;-webkit-overflow-scrolling:touch;}
@@ -3372,7 +3372,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.70';
+var CORE_VERSION='v1.71';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
