@@ -570,12 +570,13 @@ function renderMsgs(){
     }
     // 🐾 单个，嵌入气泡内部右侧，只在最后一条已读消息上
     var inPaw=(s&&i===_lastReadSentIdx)?'<span style="display:inline-block;margin-left:5px;font-size:12px;opacity:0.65;vertical-align:bottom;line-height:1;">🐾</span>':'';
-    // 气泡颜色：已读→灰淡；我发未读→暖橙；收到未读→暖玫瑰；无光圈
+    // 气泡：我发未读→暖橙；我发已读→主题渐变0.78透明；收到→自然色（不覆盖）
     var bubSty='';
-    if(m.read&&m.id!=null){bubSty=' style="opacity:0.48;"';}
-    else if(s&&m.id!=null&&!m.failed){bubSty=' style="background:#ff8c5a;color:#fff;"';}
-    else if(!s&&!m.read){bubSty=' style="background:#e05b9b;color:#fff;"';}
-    var bubCls='bub'+(s&&m.read?' bub-read':'');
+    if(s){
+      if(m.read&&m.id!=null){bubSty=' style="opacity:0.78;"';}
+      else if(m.id!=null&&!m.failed){bubSty=' style="background:#ff8c5a;color:#fff;"';}
+    }
+    var bubCls='bub';
     var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
     html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubSty+'>'+b+inPaw+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
   }
