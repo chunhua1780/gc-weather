@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// GhostChat · Chat Core v1.66
+// GhostChat · Chat Core v1.67
 // 共享核心 — 跨仓库同步，不要手动修改此文件
 //
 // 删除逻辑遵循 WhatsApp / 微信标准：
@@ -558,17 +558,21 @@ function renderMsgs(){
       else if(m.src)b='<a href="'+m.src+'" target="_blank" download style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;min-width:160px;"><span style="font-size:24px;">📄</span><div style="overflow:hidden;"><div style="font-weight:600;word-break:break-all;">'+esc(m.fname||'File')+'</div><div style="font-size:12px;opacity:.7;">点击下载</div></div></a>';
       else b='<div>📄 File</div>';
     }else{var txt=m.text||m.content||'';if(txt.length>500)txt='[Message]';b=esc(txt);}
-    var statusTick='';var bubExtra='';
+    // ★ 极简状态：颜色 + 双猫爪印，去掉 ✓ sent / ✓✓ delivered
+    var statusTick='';
     if(s){
       if(m.failed)statusTick='<span style="color:#ff3b30;font-size:11px;margin-left:2px;cursor:pointer;" title="发送失败，点重试" onclick="retrySendText(this)">⚠️失败</span>';
       else if(m.id==null||m.loading)statusTick='<span style="color:#aaa;font-size:11px;margin-left:2px;" title="发送中">🕐</span>';
-      else if(m.read)bubExtra='<span class="msg-paw" title="对方已读">🐾</span>';
-      else if(m.delivered)statusTick='<span style="color:#34c759;font-size:11px;margin-left:2px;font-weight:700;letter-spacing:-1px;" title="已送达">✓✓</span>';
-      else statusTick='<span style="color:#8e8e93;font-size:11px;margin-left:2px;font-weight:700;" title="已发送">✓</span>';
+      else if(m.read)statusTick='<span style="font-size:12px;margin-left:3px;opacity:0.65;" title="已读">🐾🐾</span>';
+      // 无 ✓ sent / ✓✓ delivered
     }
+    // 颜色：我发+已读 → 灰化；对方发+未读 → 高亮边框
     var bubCls='bub'+(s&&m.read?' bub-read':'');
+    var bubExtra='';
+    if(s&&m.read)bubExtra=' style="opacity:0.65;"';
+    else if(!s&&!m.read)bubExtra=' style="box-shadow:0 0 0 2px var(--theme-accent1,#a18cd1);"';
     var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
-    html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+'>'+(s&&!m.read?bubExtra:'')+b+(s&&m.read?bubExtra:'')+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
+    html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubExtra+'>'+b+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
   }
   var _atBottom=(c.scrollHeight-c.scrollTop-c.clientHeight)<200;
   var _prevScrollTop=c.scrollTop;var _prevScrollHeight=c.scrollHeight;
@@ -683,8 +687,8 @@ function updateLastPreview(cid,content,type,highlight,readState,ts){
   var label;
   if(type==='text')label=content;else if(type==='contact')label='[名片]';else if(type==='image')label='[图片]';else if(type==='voice')label='[语音]';else if(type==='video')label='[视频]';else if(type==='file')label='[文件]';else if(type==='location')label='[位置]';else label='['+type+']';
   lastEl.textContent=label;
+  // ★ 极简颜色：未读高亮，已读灰色，其余默认
   if(highlight){lastEl.style.color='#d4537e';lastEl.style.fontWeight='600';}
-  else if(readState==='sent'||readState==='delivered'){lastEl.style.color='var(--theme-accent1,#a18cd1)';lastEl.style.fontWeight='600';}
   else if(readState==='read'){lastEl.style.color='var(--theme-icon,#8e8e93)';lastEl.style.fontWeight='normal';}
   else{lastEl.style.color='';lastEl.style.fontWeight='';}
   var prefixEl=lastEl.parentElement&&lastEl.parentElement.querySelector('.last-prefix');
@@ -838,11 +842,8 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
     if(isMine&&lm&&lm.content){
       var cached=loadLocalMsgs(cid);var myLast=null;
       for(var ci=cached.length-1;ci>=0;ci--){if(cached[ci].sent){myLast=cached[ci];break;}}
-      if(myLast){
-        if(myLast.read)readTick=' <span style="color:var(--theme-accent1,#a18cd1);font-size:11px;">已读</span>';
-        else if(myLast.delivered)readTick=' <span style="color:#34c759;font-size:11px;font-weight:700;letter-spacing:-1px;">✓✓</span>';
-        else if(myLast.id!=null)readTick=' <span style="color:var(--theme-icon,#999);font-size:11px;font-weight:700;">✓</span>';
-      }
+      // ★ 极简：只显示双猫爪印（已读），无 ✓ / ✓✓
+      if(myLast&&myLast.read){readTick=' <span style="font-size:11px;opacity:0.55;" title="已读">🐾🐾</span>';}
     }
     var accent='var(--theme-accent1,#a18cd1)';
     var lastStyle,nameStyle,timeStyle;
