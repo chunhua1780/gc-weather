@@ -3373,7 +3373,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.73';
+var CORE_VERSION='v1.74';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5387,7 +5387,7 @@ async function doLogout(){
   try{await _idbSet('account',null);}catch(e){}
   try{
     var _dt=lg('gcDevTok')||(typeof _ckGet==='function'?_ckGet('gcDevTok'):'');
-    if(_dt)_sb.from('device_tokens').delete().eq('token',_dt).then(function(){}).catch(function(){});
+    if(_dt)await _sb.from('device_tokens').delete().eq('token',_dt);
   }catch(e){}
   try{
     var myDid=getDeviceId();
@@ -5406,8 +5406,7 @@ async function doLogout(){
   try{Object.keys(_unread).forEach(function(k){_unread[k]=0;});updateUnreadBadge();}catch(e){}
   _stopSessionWatch();
   _kicked=false;
-  show('reg');
-  switchTo('login');
+  location.reload();
 }
 function doRecovery(){
   var input=(document.getElementById('rescueInput').value||'').replace(/-/g,'').toUpperCase().trim();
