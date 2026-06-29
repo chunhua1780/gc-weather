@@ -3373,7 +3373,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.74';
+var CORE_VERSION='v1.75';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5120,6 +5120,11 @@ async function pullSettings(){
 }
 
 async function doLogin(){
+  // ★ 每次点击登录前彻底清除旧状态，确保绝不会登录到旧账户
+  myId=null;G.pin='';
+  ['registered','pin','myId','myName','gcDevTok','sessionToken','tokenExpiry'].forEach(function(k){ls(k,'');});
+  try{await _idbSet('account',null);}catch(e){}
+
   var raw=(document.getElementById('loginId')?document.getElementById('loginId').value.trim():'');
   var pin=document.getElementById('loginPin').value;
   if(!raw){alert('请输入 ID 或邮箱');return;}
@@ -5141,14 +5146,7 @@ async function doLogin(){
     if(!resolvedId){alert('ID 只能是数字，例如：42');return;}
   }
 
-  // 同一设备快速验证
-  if(resolvedId===String(lg('myId'))&&pin===lg('pin')){
-    await pullSettings();
-    _startMain();
-    return;
-  }
-
-  // 查数据库验证 ID 存在
+  // 查数据库验证 ID 存在（移除同设备快速验证，每次都走完整流程）
   var res=await _sb.from('users').select('id,name').eq('id',parseInt(resolvedId)).maybeSingle();
   if(!res.data){alert('用户 ID '+resolvedId+' 不存在，请检查后重试');return;}
 
