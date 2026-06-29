@@ -3372,7 +3372,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.68';
+var CORE_VERSION='v1.69';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5374,27 +5374,26 @@ function playVoice(el,src){
 
 async function doLogout(){
   if(!confirm('确定退出登录？\n\n退出后需要重新输入密码才能登录。'))return;
-  try{await _idbSet('account',null);}catch(e){} // 清除备份
+  try{await _idbSet('account',null);}catch(e){}
   try{
-    // 从数据库多设备列表里移除本机
+    var _dt=lg('gcDevTok')||(typeof _ckGet==='function'?_ckGet('gcDevTok'):'');
+    if(_dt)_sb.from('device_tokens').delete().eq('token',_dt).then(function(){}).catch(function(){});
+  }catch(e){}
+  try{
     var myDid=getDeviceId();
     var r=await _sb.from('users').select('session_token').eq('id',parseInt(myId)||myId).maybeSingle();
     if(r.data&&r.data.session_token){
-      try{
-        var parsed=JSON.parse(r.data.session_token);
-        if(parsed&&parsed.devices){
-          delete parsed.devices[myDid];
-          await _sb.from('users').update({session_token:JSON.stringify(parsed)}).eq('id',parseInt(myId)||myId);
-        }
-      }catch(e){}
+      try{var parsed=JSON.parse(r.data.session_token);if(parsed&&parsed.devices){delete parsed.devices[myDid];await _sb.from('users').update({session_token:JSON.stringify(parsed)}).eq('id',parseInt(myId)||myId);}}catch(e){}
     }
   }catch(e){}
-  // 清除所有本地凭据，退出后必须重新输密码
-  ls('registered','');
-  ls('gatePassedPersist','');   // 清除 → 下次必须密码验证
-  ls('sessionToken','');
-  ls('pin','');                  // 清除密码 → 强制重新输入
-  sessionStorage.removeItem('testGatePassed');
+  ['registered','gatePassedPersist','sessionToken','pin','myId','myName','gcDevTok','myEmail','rescueCode','appLockPin'].forEach(function(k){ls(k,'');});
+  ['myId','registered','pin','myName','myEmail','gcDevTok','rescueCode'].forEach(function(k){
+    try{document.cookie='gc_'+k+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax';}catch(e){}
+  });
+  try{sessionStorage.clear();}catch(e){}
+  myId=null;
+  try{G.msgs={};G.friends=null;G.chat=null;G.pin='';}catch(e){}
+  try{Object.keys(_unread).forEach(function(k){_unread[k]=0;});updateUnreadBadge();}catch(e){}
   _stopSessionWatch();
   _kicked=false;
   show('reg');
@@ -8968,6 +8967,7 @@ window.addEventListener('load',function(){
 <script src="./chat-core.js"></script>
 </body>
 </html>
+
 
 
 

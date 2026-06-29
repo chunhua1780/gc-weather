@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// GhostChat · Chat Core v1.68
+// GhostChat · Chat Core v1.69
 // 共享核心 — 跨仓库同步，不要手动修改此文件
 //
 // 删除逻辑遵循 WhatsApp / 微信标准：
@@ -561,26 +561,19 @@ function renderMsgs(){
       else if(m.src)b='<a href="'+m.src+'" target="_blank" download style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;min-width:160px;"><span style="font-size:24px;">📄</span><div style="overflow:hidden;"><div style="font-weight:600;word-break:break-all;">'+esc(m.fname||'File')+'</div><div style="font-size:12px;opacity:.7;">点击下载</div></div></a>';
       else b='<div>📄 File</div>';
     }else{var txt=m.text||m.content||'';if(txt.length>500)txt='[Message]';b=esc(txt);}
-    // ★ 极简温馨状态：
-    //   我发未读 = 暖紫光圈  我发已读 = 灰淡  双猫爪只在最后一条已读上出现一次
-    //   收到未读 = 暖桃光圈  收到已读 = 灰淡
+    // 状态：失败/发送中 显示在时间行；单个🐾只在最后一条已读消息内部右侧
     var statusTick='';
     if(s){
       if(m.failed)statusTick='<span style="color:#ff3b30;font-size:11px;margin-left:2px;cursor:pointer;" title="发送失败，点重试" onclick="retrySendText(this)">⚠️失败</span>';
       else if(m.id==null||m.loading)statusTick='<span style="color:#c8a8e0;font-size:11px;margin-left:2px;" title="发送中">🕐</span>';
-      else if(i===_lastReadSentIdx)statusTick='<span style="font-size:13px;margin-left:3px;opacity:0.75;" title="对方已读">🐾🐾</span>';
     }
-    // 温馨气泡颜色
-    var bubSty='';
-    if(m.id!=null&&!m.loading&&!m.failed){
-      if(s&&m.read)bubSty=' style="opacity:0.42;"';                                                                        // 我发已读 → 灰淡
-      else if(s&&!m.read)bubSty=' style="box-shadow:0 0 0 2.5px #d4a0f0,0 0 10px rgba(200,145,255,0.18);"';               // 我发未读 → 暖紫
-      else if(!s&&m.read)bubSty=' style="opacity:0.42;"';                                                                   // 收到已读 → 灰淡
-      else if(!s&&!m.read)bubSty=' style="box-shadow:0 0 0 2.5px #ffb07a,0 0 10px rgba(255,165,100,0.18);"';              // 收到未读 → 暖桃
-    }
+    // 🐾 单个，嵌入气泡内部右侧，只在最后一条已读消息上
+    var inPaw=(s&&i===_lastReadSentIdx)?'<span style="display:inline-block;margin-left:5px;font-size:12px;opacity:0.65;vertical-align:bottom;line-height:1;">🐾</span>':'';
+    // 气泡颜色：已读 → 灰淡；未读 → 自然颜色（发/收气泡本来就不同）；无光圈
+    var bubSty=(m.read&&m.id!=null)?' style="opacity:0.48;"':'';
     var bubCls='bub'+(s&&m.read?' bub-read':'');
     var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
-    html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubSty+'>'+b+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
+    html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubSty+'>'+b+inPaw+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
   }
   var _atBottom=(c.scrollHeight-c.scrollTop-c.clientHeight)<200;
   var _prevScrollTop=c.scrollTop;var _prevScrollHeight=c.scrollHeight;
@@ -850,8 +843,7 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
     if(isMine&&lm&&lm.content){
       var cached=loadLocalMsgs(cid);var myLast=null;
       for(var ci=cached.length-1;ci>=0;ci--){if(cached[ci].sent){myLast=cached[ci];break;}}
-      // ★ 极简：只显示双猫爪印（已读），无 ✓ / ✓✓
-      if(myLast&&myLast.read){readTick=' <span style="font-size:11px;opacity:0.55;" title="已读">🐾🐾</span>';}
+      if(myLast&&myLast.read){readTick=' <span style="font-size:11px;opacity:0.55;" title="已读">🐾</span>';}
     }
     var accent='var(--theme-accent1,#a18cd1)';
     var lastStyle,nameStyle,timeStyle;
