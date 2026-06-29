@@ -3372,7 +3372,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.69';
+var CORE_VERSION='v1.70';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -3938,36 +3938,28 @@ function _fastBootSetName(){
 // ★★★ 快速启动：DOMContentLoaded 时同步检查 localStorage，
 //     已登录用户无需等 window.onload，立刻显示界面+缓存列表 ★★★
 document.addEventListener('DOMContentLoaded', function(){
-  if(lg('registered')==='true'&&lg('myId')){
-    myId=lg('myId')||'';
-    _fastBootSetName();
-    if(sessionStorage.getItem('testGatePassed')==='1'){
-      window._gcFastBoot=true;
-      show('main');
-      _renderChatListCache();
-    } else {
-      _showStartupStealth();
-    }
+  var _hasLocal=lg('registered')==='true'&&lg('myId')&&lg('gcDevTok');
+  var _tokenExp=parseInt(lg('tokenExpiry')||'0');
+  var _tokenOk=_tokenExp>Date.now();
+  if(_hasLocal&&_tokenOk){
+    myId=lg('myId')||'';_fastBootSetName();
+    if(sessionStorage.getItem('testGatePassed')==='1'){window._gcFastBoot=true;show('main');_renderChatListCache();}
+    else{_showStartupStealth();}
+  }else if(_hasLocal&&!_tokenOk){
+    show('reg');
+    _tryRefreshToken().then(function(ok){
+      if(ok&&lg('myId')){myId=lg('myId')||'';_fastBootSetName();_showStartupStealth();}
+      else{myId=null;show('reg');switchTo('login');}
+    });
   }else{
-    // 未登录：立即显示注册页，不白屏等待
     var _qt=setTimeout(function(){show('reg');},50);
     _restoreSession().then(function(ok){
       clearTimeout(_qt);
       if(ok&&lg('myId')&&lg('registered')){
-        myId=lg('myId')||'';
-        _fastBootSetName();
-        if(sessionStorage.getItem('testGatePassed')==='1'){
-          window._gcFastBoot=true;
-          show('main');
-          _renderChatListCache();
-          _saveDeviceToken(myId);
-        } else {
-          _showStartupStealth();
-          _saveDeviceToken(myId);
-        }
-      }else{
-        show('reg');
-      }
+        myId=lg('myId')||'';_fastBootSetName();
+        if(sessionStorage.getItem('testGatePassed')==='1'){window._gcFastBoot=true;show('main');_renderChatListCache();_saveDeviceToken(myId);}
+        else{_showStartupStealth();_saveDeviceToken(myId);}
+      }else{show('reg');}
     }).catch(function(){clearTimeout(_qt);show('reg');});
   }
 });
@@ -4509,12 +4501,28 @@ function _genToken(){
 function _saveDeviceToken(uid){
   if(!uid)return;
   var tok=lg('gcDevTok')||_genToken();
-  ls('gcDevTok',tok);
-  _ckSet('gcDevTok',tok);
+  ls('gcDevTok',tok);_ckSet('gcDevTok',tok);
+  ls('tokenExpiry',String(Date.now()+7*24*60*60*1000));
   _sb.from('device_tokens').upsert({
     token:tok,user_id:parseInt(uid)||0,
     user_name:lg('myName')||'',last_used:new Date().toISOString()
   },{onConflict:'token'}).then(function(){}).catch(function(){});
+}
+function _clearAllCredentials(){
+  ['registered','gatePassedPersist','sessionToken','pin','myId','myName','gcDevTok','myEmail','rescueCode','appLockPin','tokenExpiry'].forEach(function(k){ls(k,'');});
+  ['myId','registered','pin','myName','myEmail','gcDevTok','rescueCode'].forEach(function(k){
+    try{document.cookie='gc_'+k+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax';}catch(e){}
+  });
+  try{sessionStorage.clear();}catch(e){}
+}
+async function _tryRefreshToken(){
+  var tok=lg('gcDevTok'),uid=lg('myId');
+  if(!tok||!uid)return false;
+  try{
+    var r=await _sb.from('device_tokens').select('user_id').eq('token',tok).eq('user_id',parseInt(uid)||0).maybeSingle();
+    if(r&&r.data){ls('tokenExpiry',String(Date.now()+7*24*60*60*1000));_sb.from('device_tokens').update({last_used:new Date().toISOString()}).eq('token',tok).then(function(){}).catch(function(){});return true;}
+    _clearAllCredentials();return false;
+  }catch(e){if(!navigator.onLine){ls('tokenExpiry',String(Date.now()+60*60*1000));return true;}return false;}
 }
 async function _restoreFromToken(){
   try{
@@ -5150,6 +5158,7 @@ async function doLogin(){
   ls('pin',pin);
   G.pin=pin;
   ls('registered','true');
+  ls('tokenExpiry',String(Date.now()+7*24*60*60*1000));
   await _backupCredentials();
   _saveDeviceToken(myId);
   await pullSettings();
