@@ -451,6 +451,26 @@ body.theme-pumpkin{
   --theme-row-bg:rgba(240,120,32,.08);--theme-ibar:rgba(255,244,230,0.96);--theme-itxt-bg:#fff;--theme-icon:#c05000;
   --theme-ep-active:rgba(240,120,32,.15);--theme-bub-shadow:rgba(220,120,0,.13);
 }
+/* ── 聊天气泡风格 Chat Style Variables ── */
+#chat{--cs-bg1:var(--theme-bg);--cs-bg2:var(--theme-bg2);--cs-sent-unread:#ff8c5a;--cs-recv-bg:var(--theme-bub-other);--cs-recv-text:var(--theme-bub-other-text);--cs-recv-shadow:var(--theme-bub-shadow);}
+#chat.cs-warm{--cs-bg1:#fff8f0;--cs-bg2:#fff0e0;--cs-sent-unread:#ff7a30;--cs-recv-bg:#fff9f5;--cs-recv-text:#4a2010;--cs-recv-shadow:rgba(255,120,60,.10);}
+#chat.cs-rose{--cs-bg1:#fff5f8;--cs-bg2:#ffeef5;--cs-sent-unread:#e91e8c;--cs-recv-bg:#fff8fc;--cs-recv-text:#3a1020;--cs-recv-shadow:rgba(230,30,140,.10);}
+#chat.cs-sky{--cs-bg1:#f5f9ff;--cs-bg2:#eaf2ff;--cs-sent-unread:#1e88e5;--cs-recv-bg:#f8fcff;--cs-recv-text:#1a3060;--cs-recv-shadow:rgba(30,136,229,.10);}
+#chat.cs-matcha{--cs-bg1:#f5fdf5;--cs-bg2:#edf7ed;--cs-sent-unread:#43a047;--cs-recv-bg:#f8fdf8;--cs-recv-text:#1a3a1a;--cs-recv-shadow:rgba(67,160,71,.10);}
+#chat.cs-lavender{--cs-bg1:#f8f5ff;--cs-bg2:#f0ebff;--cs-sent-unread:#8e24aa;--cs-recv-bg:#fdf8ff;--cs-recv-text:#2a1040;--cs-recv-shadow:rgba(142,36,170,.10);}
+#chat.cs-night{--cs-bg1:#141a2e;--cs-bg2:#0e1220;--cs-sent-unread:#7c4dff;--cs-recv-bg:#1e2438;--cs-recv-text:#c8d4e8;--cs-recv-shadow:rgba(0,0,0,.25);}
+#chat.cs-coral{--cs-bg1:#fff5f3;--cs-bg2:#ffede8;--cs-sent-unread:#f4511e;--cs-recv-bg:#fff8f5;--cs-recv-text:#3a1810;--cs-recv-shadow:rgba(244,81,30,.10);}
+/* bub-read per-style (high specificity to override dark-theme rules) */
+#chat.cs-warm .mr.s .bub.bub-read{background:linear-gradient(160deg,#fff8f0,#fce8d0);color:#5a2808;border-color:#f4d4b0;}
+#chat.cs-rose .mr.s .bub.bub-read{background:linear-gradient(160deg,#fff5f8,#fce8f4);color:#5a0830;border-color:#f0c8dc;}
+#chat.cs-sky .mr.s .bub.bub-read{background:linear-gradient(160deg,#f0f7ff,#e0f0ff);color:#0a2848;border-color:#c0dcf8;}
+#chat.cs-matcha .mr.s .bub.bub-read{background:linear-gradient(160deg,#f0faf0,#e0f4e0);color:#0a2810;border-color:#b0e0b8;}
+#chat.cs-lavender .mr.s .bub.bub-read{background:linear-gradient(160deg,#faf5ff,#f0e8ff);color:#2a0848;border-color:#d8c0f8;}
+#chat.cs-night .mr.s .bub.bub-read{background:linear-gradient(160deg,#1e2040,#181a38);color:#c0b8e8;border-color:#302858;box-shadow:0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);}
+#chat.cs-night .mr.s .bub:not(.bub-read){color:#fff;}
+#chat.cs-night .mt{color:#5a6a7a;}
+#chat.cs-night .chat-sentinel{color:#3a4a5a;}
+#chat.cs-coral .mr.s .bub.bub-read{background:linear-gradient(160deg,#fff5f0,#fde0d4);color:#5a1808;border-color:#f4c4b0;}
 /* 外观/皮肤选择 */
 .theme-swatch{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:10px 4px;border-radius:14px;border:2px solid transparent;transition:border-color .2s;}
 .theme-swatch.on{border-color:var(--theme-link);}
@@ -480,7 +500,7 @@ body{
 #chat.active{display:flex;}
 #chat > .nav-bar{flex-shrink:0;}
 #chat > .cbg{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;}`n.cbg .chat-spacer{flex:1;min-height:80px;pointer-events:none;}`n.cbg .chat-sentinel{text-align:center;color:#c7c7cc;font-size:12px;padding:4px 0 6px;flex-shrink:0;letter-spacing:.3px;}
-#chat > .ibar{flex-shrink:0;width:100%;position:sticky;bottom:0;}
+#chat > .ibar{flex-shrink:0;width:100%;}
 html,body{height:100%;height:100dvh;margin:0;padding:0;}
 .screen.active{display:flex;}
 .btn-blue{background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));border:none;color:#fff;padding:16px;border-radius:14px;font-size:17px;font-weight:600;width:100%;cursor:pointer;margin-bottom:10px;}
@@ -540,14 +560,14 @@ textarea.field-input{resize:none;line-height:1.5;}
 .tog.on{background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));}
 .td{width:27px;height:27px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .25s;box-shadow:0 2px 5px rgba(0,0,0,.25);}
 .tog.on .td{left:22px;}
-.cbg{min-height:0;-webkit-overflow-scrolling:touch;flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 16px;display:flex;flex-direction:column;gap:6px;background:linear-gradient(160deg,var(--theme-bg),var(--theme-bg2));overscroll-behavior:none;}`n.cbg .chat-spacer{flex:1;min-height:80px;pointer-events:none;}`n.cbg .chat-sentinel{text-align:center;color:#c7c7cc;font-size:12px;padding:4px 0 6px;flex-shrink:0;letter-spacing:.3px;}
+.cbg{min-height:0;-webkit-overflow-scrolling:touch;flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 16px;display:flex;flex-direction:column;gap:6px;background:linear-gradient(160deg,var(--cs-bg1,var(--theme-bg)),var(--cs-bg2,var(--theme-bg2)));overscroll-behavior:none;}`n.cbg .chat-spacer{flex:1;min-height:80px;pointer-events:none;}`n.cbg .chat-sentinel{text-align:center;color:#c7c7cc;font-size:12px;padding:4px 0 6px;flex-shrink:0;letter-spacing:.3px;}
 .mr{display:flex;flex-direction:column;margin-bottom:2px;}
 .mr.s{align-items:flex-end;}.mr.r{align-items:flex-start;}
 .bub{max-width:72%;padding:10px 14px;border-radius:20px;font-size:16px;line-height:1.45;word-break:break-word;position:relative;}
 .mr.s .bub{background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:var(--theme-bub-mine-text);border-bottom-right-radius:5px;font-weight:700;border:1px solid transparent;transition:background .6s,color .6s,font-weight .3s,border-color .6s;}
 .mr.s .bub.bub-read{background:linear-gradient(160deg,#fff 0%,var(--theme-bub-read2) 100%);color:#1a1a2a;font-weight:500;border:1px solid var(--theme-bub-read-border);box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1.5px 0 rgba(255,255,255,.9);}
 body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.theme-aurora .mr.s .bub.bub-read,body.theme-midnight .mr.s .bub.bub-read{background:linear-gradient(160deg,var(--theme-bub-read1),var(--theme-bub-read2));color:#d0ccec;box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.06);}
-.mr.r .bub{background:var(--theme-bub-other);color:var(--theme-bub-other-text);border-bottom-left-radius:5px;box-shadow:0 2px 10px var(--theme-bub-shadow);font-size:16px;line-height:1.5;}
+.mr.r .bub{background:var(--cs-recv-bg,var(--theme-bub-other));color:var(--cs-recv-text,var(--theme-bub-other-text));border-bottom-left-radius:5px;box-shadow:0 2px 10px var(--cs-recv-shadow,var(--theme-bub-shadow));font-size:16px;line-height:1.5;}
 .mt{font-size:11px;color:#8e8e93;margin-top:2px;padding:0 4px;}
 .msg-tick{margin-left:4px;font-size:13px;display:inline-block;vertical-align:middle;}
 .msg-paw{display:inline-block;font-size:16px;vertical-align:middle;margin-left:6px;opacity:.85;}
@@ -1263,6 +1283,11 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
           <div style="font-size:13px;color:#8e8e93;margin-top:1px;" id="curLangShow">中文简体</div>
         </div>
         <span style="color:#c7c7cc;font-size:18px;">›</span>
+      </div>
+      <!-- 聊天气泡风格 -->
+      <div style="border-top:1px solid var(--theme-border);padding:14px 16px 12px;">
+        <div style="font-size:15px;font-weight:600;color:var(--theme-text);margin-bottom:10px;">聊天气泡风格</div>
+        <div id="chatStyleGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
       </div>
     </div>
 
@@ -3337,6 +3362,47 @@ function pickTheme(name){
   if(g)g._built=false;
 }
 applyTheme(lg('theme')||'');
+
+// ── 聊天气泡风格 ──
+var _CS_STYLES=[
+  {id:'default', name:'经典',  sent:'#ff8c5a',recv:'#ffffff',bg:'#f5f0fb'},
+  {id:'warm',    name:'暖阳',  sent:'#ff7a30',recv:'#fff9f5',bg:'#fff8f0'},
+  {id:'rose',    name:'玫瑰',  sent:'#e91e8c',recv:'#fff8fc',bg:'#fff5f8'},
+  {id:'sky',     name:'天蓝',  sent:'#1e88e5',recv:'#f8fcff',bg:'#f5f9ff'},
+  {id:'matcha',  name:'抹茶',  sent:'#43a047',recv:'#f8fdf8',bg:'#f5fdf5'},
+  {id:'lavender',name:'薰衣草',sent:'#8e24aa',recv:'#fdf8ff',bg:'#f8f5ff'},
+  {id:'night',   name:'星夜',  sent:'#7c4dff',recv:'#1e2438',bg:'#141a2e'},
+  {id:'coral',   name:'珊瑚',  sent:'#f4511e',recv:'#fff8f5',bg:'#fff5f3'}
+];
+function applyChatStyle(id){
+  var chat=document.getElementById('chat');
+  if(!chat)return;
+  _CS_STYLES.forEach(function(s){chat.classList.remove('cs-'+s.id);});
+  if(id&&id!=='default')chat.classList.add('cs-'+id);
+  ls('chatStyle',id||'default');
+  _buildChatStyleGrid();
+}
+function _buildChatStyleGrid(){
+  var g=document.getElementById('chatStyleGrid');
+  if(!g)return;
+  var cur=lg('chatStyle')||'default';
+  g.innerHTML='';
+  _CS_STYLES.forEach(function(s){
+    var sel=s.id===cur;
+    var d=document.createElement('div');
+    d.style.cssText='cursor:pointer;border-radius:12px;overflow:hidden;border:2.5px solid '+(sel?'var(--theme-accent1)':'rgba(0,0,0,.08)')+';box-shadow:0 2px 8px rgba(0,0,0,.10);transition:border-color .2s;-webkit-tap-highlight-color:transparent;';
+    d.innerHTML=
+      '<div style="background:'+s.bg+';padding:7px 8px 5px;display:flex;flex-direction:column;gap:4px;">'+
+        '<div style="height:11px;border-radius:6px 6px 2px 6px;background:'+s.sent+';margin-left:auto;width:62%;"></div>'+
+        '<div style="height:11px;border-radius:6px 6px 6px 2px;background:'+s.recv+';margin-right:auto;width:54%;border:1px solid rgba(0,0,0,.07);"></div>'+
+      '</div>'+
+      '<div style="text-align:center;font-size:10.5px;padding:4px 2px 5px;background:var(--theme-card);color:var(--theme-text);font-weight:'+(sel?'700':'400')+';letter-spacing:.2px;">'+s.name+'</div>';
+    (function(sid){d.onclick=function(){applyChatStyle(sid);};})(s.id);
+    g.appendChild(d);
+  });
+}
+(function(){var _c=lg('chatStyle');if(_c&&_c!=='default'){var _ce=document.getElementById('chat');if(_ce)_ce.classList.add('cs-'+_c);}})();
+
 function gt(){var d=new Date();return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();}
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function makeRC(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';for(var i=0;i<12;i++){if(i>0&&i%4===0)s+='-';s+=c[Math.floor(Math.random()*c.length)];}return s;}
@@ -3373,7 +3439,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.75';
+var CORE_VERSION='v1.76';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -3891,7 +3957,8 @@ function _startMain(){
   ls('gatePassedPersist','1');
   sessionStorage.setItem('testGatePassed','1');
   window._gcDisguiseMode=false;
-  if(!window._gcFastBoot){show('main');} // 已由 DOMContentLoaded 快速启动则跳过重复show
+  if(!window._gcFastBoot){show('main');}
+  (function(){var _c=lg('chatStyle');if(_c&&_c!=='default'){var _ce=document.getElementById('chat');if(_ce){_CS_STYLES.forEach(function(s){_ce.classList.remove('cs-'+s.id);});_ce.classList.add('cs-'+_c);}}})();
   _appWasActive=true;
   // 非关键初始化全部异步，不阻塞UI
   Promise.resolve().then(function(){
@@ -4573,7 +4640,7 @@ function show(id){
     var stack=new Error().stack||'no stack';
     _logDiag('show(reg) called from: '+stack.split('\n').slice(1,4).join(' | '));
     console.warn('[DIAG] show(reg) triggered:',stack);
-  }document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});var el=document.getElementById(id);if(el)el.classList.add('active');if(id==='dweather')initWeather();if(id==='dnote')initNotes();if(id==='settings'){initBarkUI();initQuickToggles();_updateThemeHeader(lg('theme')||'');_initPwaBindStatus();_initPwaAppNameInput();_initShortcutInput();_refreshEmailBindStatus();refreshAdminEntry();AdManager._updateConsentUI();}
+  }document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});var el=document.getElementById(id);if(el)el.classList.add('active');if(id==='dweather')initWeather();if(id==='dnote')initNotes();if(id==='settings'){initBarkUI();initQuickToggles();_updateThemeHeader(lg('theme')||'');_initPwaBindStatus();_initPwaAppNameInput();_initShortcutInput();_refreshEmailBindStatus();refreshAdminEntry();AdManager._updateConsentUI();_buildChatStyleGrid();}
 if(id==='dcalc'){var en=document.getElementById('cNum');if(en&&!CALC.buf&&CALC.result==null)en.textContent='0';setTimeout(initCalcEvents,0);}}
 
 // ═══ 注册/登录 ═══
