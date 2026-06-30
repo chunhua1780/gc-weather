@@ -569,14 +569,16 @@ textarea.field-input{resize:none;line-height:1.5;}
 .cbg{min-height:0;-webkit-overflow-scrolling:touch;flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 16px;display:flex;flex-direction:column;gap:6px;background:linear-gradient(160deg,var(--cs-bg1,var(--theme-bg)),var(--cs-bg2,var(--theme-bg2)));overscroll-behavior:none;}`n.cbg .chat-spacer{flex:1;min-height:80px;pointer-events:none;}`n.cbg .chat-sentinel{text-align:center;color:#c7c7cc;font-size:12px;padding:4px 0 6px;flex-shrink:0;letter-spacing:.3px;}
 .mr{display:flex;flex-direction:column;margin-bottom:2px;}
 .mr.s{align-items:flex-end;}.mr.r{align-items:flex-start;}
-.bub{max-width:72%;padding:10px 15px;border-radius:22px;font-size:15.5px;line-height:1.5;word-break:break-word;position:relative;}
-.mr.s .bub{background:var(--cs-sent-unread,linear-gradient(138deg,#f4badc 0%,#c8b4f0 100%));color:var(--cs-sent-text,#3a1048);border-bottom-right-radius:6px;font-weight:500;border:none;box-shadow:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);transition:background .5s,color .4s;}
-.mr.s .bub.bub-read{background:linear-gradient(138deg,var(--theme-bub-read1,#fce4ee) 0%,var(--theme-bub-read2,#e8d8ff) 100%);color:var(--theme-bub-read-text,#6c2e66);font-weight:400;border:none;box-shadow:0 1px 3px rgba(0,0,0,.04);}
-body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.theme-aurora .mr.s .bub.bub-read,body.theme-midnight .mr.s .bub.bub-read{background:linear-gradient(138deg,var(--theme-bub-read1),var(--theme-bub-read2));color:var(--theme-bub-read-text);border:none;box-shadow:0 2px 8px rgba(0,0,0,.22);}
-.mr.r .bub{background:var(--cs-recv-bg,rgba(255,252,254,0.97));color:var(--cs-recv-text,#2a2030);border-bottom-left-radius:6px;border:1px solid var(--cs-recv-border,rgba(220,200,230,.38));box-shadow:0 1px 3px rgba(172,145,192,.05),0 2px 8px rgba(172,145,192,.04);font-size:15.5px;line-height:1.5;}
+.bub{max-width:72%;padding:10px 15px;border-radius:22px;font-size:15.5px;line-height:1.5;word-break:break-word;position:relative;transition:background .45s ease,color .35s ease,box-shadow .3s ease,opacity .25s ease;}
+.mr.s .bub{background:var(--cs-sent-unread,linear-gradient(145deg,#f7c2e0 0%,#d6b4f8 50%,#b8a8f8 100%));color:var(--cs-sent-text,#3a1048);border-bottom-right-radius:6px;font-weight:500;border:none;box-shadow:0 2px 8px rgba(180,130,210,.18),0 4px 18px rgba(180,130,210,.12),0 1px 2px rgba(0,0,0,.06);}
+.mr.s .bub.bub-read{background:linear-gradient(145deg,var(--theme-bub-read1,#fde8f2) 0%,var(--theme-bub-read2,#e8d8ff) 100%);color:var(--theme-bub-read-text,#6c2e66);font-weight:400;border:none;box-shadow:0 1px 4px rgba(0,0,0,.05),0 2px 10px rgba(0,0,0,.04);}
+body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.theme-aurora .mr.s .bub.bub-read,body.theme-midnight .mr.s .bub.bub-read{background:linear-gradient(145deg,var(--theme-bub-read1),var(--theme-bub-read2));color:var(--theme-bub-read-text);border:none;box-shadow:0 2px 10px rgba(0,0,0,.25);}
+.mr.r .bub{background:var(--cs-recv-bg,rgba(255,252,254,0.97));color:var(--cs-recv-text,#2a2030);border-bottom-left-radius:6px;border:1px solid var(--cs-recv-border,rgba(220,200,230,.38));box-shadow:0 2px 6px rgba(172,145,192,.08),0 4px 16px rgba(172,145,192,.06);font-size:15.5px;line-height:1.5;}
 .mt{font-size:11px;color:#8e8e93;margin-top:2px;padding:0 4px;}
 .msg-tick{margin-left:4px;font-size:13px;display:inline-block;vertical-align:middle;}
-.msg-paw{display:inline-block;font-size:16px;vertical-align:middle;margin-left:6px;opacity:.85;}
+.msg-paw{display:inline-block;font-size:15px;vertical-align:middle;margin-left:5px;opacity:.9;transform-origin:center;}
+@keyframes catSpin{0%{transform:rotate(0deg) scale(1);}40%{transform:rotate(160deg) scale(1.12);}70%{transform:rotate(340deg) scale(1.05);}100%{transform:rotate(360deg) scale(1);}}
+.msg-cat-spin{display:inline-block;animation:catSpin 2.4s ease-in-out infinite;transform-origin:center;}
 .typing-dots span{display:inline-block;animation:typingBounce 1.2s infinite;}
 .typing-dots span:nth-child(2){animation-delay:.2s;}
 .typing-dots span:nth-child(3){animation-delay:.4s;}
@@ -6761,69 +6763,95 @@ function retrySendText(el){
   retryFailedMsgs();
 }
 
+function _oneMsgHtml(m){
+  var s=m.sent;
+  var b='';
+  if(m.type==='recalled'){
+    return '<div style="text-align:center;color:#aaa;font-size:12px;margin:6px 0;">'+(s?'你撤回了一条消息':'对方撤回了一条消息')+'</div>';
+  }
+  if(m.type==='image'){
+    if(m.loading&&!m.src){b='<div style="width:160px;height:120px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.8;">📷 处理中...</div>';}
+    else if(m.loading){b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" loading="lazy" src="'+m.src+'" style="opacity:.6;"><div style="font-size:12px;opacity:.7;">发送中...</div></div>';}
+    else if(m.failed){b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" loading="lazy" src="'+m.src+'" style="opacity:.5;" onclick="openImgViewer(this.src)"><div style="font-size:12px;color:#ff3b30;">⚠️ 发送失败</div></div>';}
+    else if(m.src&&m.src.length>4){
+      if(m.thumb&&!s){b='<img class="msg-img" loading="lazy" src="'+m.thumb+'" style="filter:blur(3px);transition:filter .3s;" data-full="'+m.src+'" onload="upgradeImg(this)" onclick="openImgViewer(this.dataset.full||this.src)">';}
+      else{b='<img class="msg-img" loading="lazy" src="'+m.src+'" onclick="openImgViewer(this.src)">';}
+    }
+    else{b='<div>📷 Image</div>';}
+  }else if(m.type==='voice'){
+    if(m.src&&(m.src.startsWith('http')||m.src.startsWith('blob'))){
+      var vdur=m.dur||'?';
+      var barW=Math.min(120,Math.max(40,parseInt(vdur)*8||40));
+      b='<div onclick="playAudio(this)" data-src="'+m.src+'" style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:'+(barW+60)+'px;"><span class="play-icon" style="font-size:18px;">▶️</span><div style="flex:1;height:3px;background:rgba(255,255,255,.4);border-radius:2px;min-width:'+barW+'px;"></div><span style="font-size:12px;opacity:.8;">'+vdur+'″</span></div>';
+    }
+  }else if(m.type==='location'){
+    var mapUrl=m.mapUrl||('https://maps.google.com/?q='+(m.addr||''));
+    b='<div>📍 <a href="'+mapUrl+'" target="_blank" style="color:inherit;text-decoration:underline;">'+(m.addr||'Location')+'</a></div>';
+  }else if(m.type==='contact'){
+    var ccName=m.cname||('User '+m.cid);
+    b='<div onclick="openContactCard(\''+esc(String(m.cid||''))+'\',\''+esc(ccName).replace(/'/g,"\\'")+'\')" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:160px;">'
+      +'<div style="width:40px;height:40px;border-radius:50%;background:#a18cd1;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;">'+esc(ccName[0].toUpperCase())+'</div>'
+      +'<div><div style="font-weight:600;">'+esc(ccName)+'</div><div style="font-size:12px;opacity:.7;">名片 · 点击查看</div></div>'
+      +'</div>';
+  }else if(m.type==='video'){
+    if(m.loading){b='<div style="opacity:.6;font-size:13px;">Sending...</div>';}
+    else if(m.failed){b='<div style="font-size:12px;color:#ff3b30;">⚠️ 视频发送失败</div>';}
+    else if(m.src){b='<video class="msg-img" src="'+m.src+'" controls style="max-width:220px;border-radius:10px;"></video>';}
+    else{b='<div>🎬 Video</div>';}
+  }else if(m.type==='file'){
+    if(m.loading){b='<div style="opacity:.6;font-size:13px;">📄 '+esc(m.fname||'File')+' (Sending...)</div>';}
+    else if(m.failed){b='<div style="font-size:12px;color:#ff3b30;">⚠️ '+esc(m.fname||'File')+' 发送失败</div>';}
+    else if(m.src){b='<a href="'+m.src+'" target="_blank" download style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;min-width:160px;"><span style="font-size:24px;">📄</span><div style="overflow:hidden;"><div style="font-weight:600;word-break:break-all;">'+esc(m.fname||'File')+'</div><div style="font-size:12px;opacity:.7;">点击下载</div></div></a>';}
+    else{b='<div>📄 File</div>';}
+  }else{
+    var txt=m.text||m.content||'';
+    if(txt.length>500)txt='[Message]';
+    b=esc(txt);
+  }
+  var statusTick='';
+  var bubExtra='';
+  if(s){
+    if(m.failed){statusTick='<span style="color:#ff3b30;font-size:11px;margin-left:2px;cursor:pointer;" title="发送失败，点重试" onclick="retrySendText(this)">⚠️失败</span>';}
+    else if(m.read&&m.id!=null){bubExtra='<span class="msg-paw" title="对方已读"><span class="msg-cat-spin">🐱</span></span>';}
+  }
+  var bubCls='bub'+(s&&m.read&&m.id!=null?' bub-read':'');
+  var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
+  return '<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+'>'+b+(s&&m.read&&m.id!=null?bubExtra:'')+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
+}
+function loadMoreMsgs(){
+  var c=document.getElementById('chatMsgs');
+  if(!c)return;
+  var allMsgs=G.msgs[G.chat]||[];
+  var prevStart=c._chatStart||0;
+  if(prevStart===0)return;
+  var newStart=Math.max(0,prevStart-30);
+  var prevH=c.scrollHeight;
+  var prevTop=c.scrollTop;
+  var olderHtml='';
+  for(var i=newStart;i<prevStart;i++)olderHtml+=_oneMsgHtml(allMsgs[i]);
+  var sentinel=c.querySelector('.chat-sentinel');
+  if(sentinel){
+    var hasMore=newStart>0;
+    var newSent=hasMore?
+      '<div class="chat-sentinel" onclick="loadMoreMsgs()" style="cursor:pointer;color:var(--theme-accent1,#a18cd1);font-size:13px;">↑ 加载更多消息</div>':
+      '<div class="chat-sentinel">— 没有更多了 —</div>';
+    sentinel.outerHTML=newSent+olderHtml;
+  }
+  c._chatStart=newStart;
+  c._msgCount=(allMsgs.length-newStart);
+  setupRecallLongPress();
+  requestAnimationFrame(function(){c.scrollTop=prevTop+(c.scrollHeight-prevH);});
+}
 function renderMsgs(){
   var c=document.getElementById('chatMsgs');
   if(!c)return;
-  var msgs=G.msgs[G.chat]||[];
+  var allMsgs=G.msgs[G.chat]||[];
+  // 渐进渲染：首次只显示最近30条，滚到顶点击加载更多
+  if(c._firstRender){c._chatStart=Math.max(0,allMsgs.length-30);}
+  if(c._chatStart===undefined)c._chatStart=0;
+  var msgs=allMsgs.slice(c._chatStart);
   var html='';
-  for(var i=0;i<msgs.length;i++){
-    var m=msgs[i];
-    var s=m.sent;
-    var b='';
-    if(m.type==='recalled'){
-      html+='<div style="text-align:center;color:#aaa;font-size:12px;margin:6px 0;">'+(s?'你撤回了一条消息':'对方撤回了一条消息')+'</div>';
-      continue;
-    }
-    if(m.type==='image'){
-      if(m.loading&&!m.src){b='<div style="width:160px;height:120px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.8;">📷 处理中...</div>';}
-      else if(m.loading){b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" src="'+m.src+'" style="opacity:.6;"><div style="font-size:12px;opacity:.7;">发送中...</div></div>';}
-      else if(m.failed){b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" src="'+m.src+'" style="opacity:.5;" onclick="openImgViewer(this.src)"><div style="font-size:12px;color:#ff3b30;">⚠️ 发送失败</div></div>';}
-      else if(m.src&&m.src.length>4){
-        if(m.thumb&&!m.sent){b='<img class="msg-img" src="'+m.thumb+'" style="filter:blur(3px);transition:filter .3s;" data-full="'+m.src+'" onload="upgradeImg(this)" onclick="openImgViewer(this.dataset.full||this.src)">';}
-        else{b='<img class="msg-img" src="'+m.src+'" onclick="openImgViewer(this.src)">';}
-      }
-      else{b='<div>📷 Image</div>';}
-    }else if(m.type==='voice'){
-      if(m.src&&(m.src.startsWith('http')||m.src.startsWith('blob'))){
-        var vdur=m.dur||'?';
-        var barW=Math.min(120,Math.max(40,parseInt(vdur)*8||40));
-        b='<div onclick="playAudio(this)" data-src="'+m.src+'" style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:'+(barW+60)+'px;"><span class="play-icon" style="font-size:18px;">▶️</span><div style="flex:1;height:3px;background:rgba(255,255,255,.4);border-radius:2px;min-width:'+barW+'px;"></div><span style="font-size:12px;opacity:.8;">'+vdur+'″</span></div>';
-      }
-    }else if(m.type==='location'){
-      var mapUrl=m.mapUrl||('https://maps.google.com/?q='+(m.addr||''));
-      b='<div>📍 <a href="'+mapUrl+'" target="_blank" style="color:inherit;text-decoration:underline;">'+(m.addr||'Location')+'</a></div>';
-    }else if(m.type==='contact'){
-      var ccName=m.cname||('User '+m.cid);
-      b='<div onclick="openContactCard(\''+esc(String(m.cid||''))+'\',\''+esc(ccName).replace(/'/g,"\\'")+'\')" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:160px;">'
-        +'<div style="width:40px;height:40px;border-radius:50%;background:#a18cd1;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;">'+esc(ccName[0].toUpperCase())+'</div>'
-        +'<div><div style="font-weight:600;">'+esc(ccName)+'</div><div style="font-size:12px;opacity:.7;">名片 · 点击查看</div></div>'
-        +'</div>';
-    }else if(m.type==='video'){
-      if(m.loading){b='<div style="opacity:.6;font-size:13px;">Sending...</div>';}
-      else if(m.failed){b='<div style="font-size:12px;color:#ff3b30;">⚠️ 视频发送失败</div>';}
-      else if(m.src){b='<video class="msg-img" src="'+m.src+'" controls style="max-width:220px;border-radius:10px;"></video>';}
-      else{b='<div>🎬 Video</div>';}
-    }else if(m.type==='file'){
-      if(m.loading){b='<div style="opacity:.6;font-size:13px;">📄 '+esc(m.fname||'File')+' (Sending...)</div>';}
-      else if(m.failed){b='<div style="font-size:12px;color:#ff3b30;">⚠️ '+esc(m.fname||'File')+' 发送失败</div>';}
-      else if(m.src){b='<a href="'+m.src+'" target="_blank" download style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;min-width:160px;"><span style="font-size:24px;">📄</span><div style="overflow:hidden;"><div style="font-weight:600;word-break:break-all;">'+esc(m.fname||'File')+'</div><div style="font-size:12px;opacity:.7;">点击下载</div></div></a>';}
-      else{b='<div>📄 File</div>';}
-    }else{
-      var txt=m.text||m.content||'';
-      // 防止base64显示
-      if(txt.length>500)txt='[Message]';
-      b=esc(txt);
-    }
-    var statusTick='';
-    var bubExtra='';
-    if(s){
-      if(m.failed){statusTick='<span style="color:#ff3b30;font-size:11px;margin-left:2px;cursor:pointer;" title="发送失败，点重试" onclick="retrySendText(this)">⚠️失败</span>';}
-      else if(m.read&&m.id!=null){bubExtra='<span style="display:inline-block;margin-left:4px;vertical-align:bottom;line-height:1;font-size:10px;filter:sepia(0.5) saturate(0.4) brightness(1.1);opacity:0.62;">🐾</span>';}
-    }
-    var bubCls='bub'+(s&&m.read&&m.id!=null?' bub-read':'');
-    var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
-    html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+'>'+b+(s&&m.read&&m.id!=null?bubExtra:'')+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
-  }
+  for(var i=0;i<msgs.length;i++)html+=_oneMsgHtml(msgs[i]);
   // 在重建DOM前快照滚动状态
   var _atBottom=(c.scrollHeight-c.scrollTop-c.clientHeight)<200;
   var _prevScrollTop=c.scrollTop;
@@ -6835,7 +6863,11 @@ function renderMsgs(){
   // 是否有新消息进来
   var _hasNewMsg=_newMsgCount>_prevMsgCount;
   var _forceBottom=c._forceBottom;c._forceBottom=false;
-  c.innerHTML='<div class="chat-spacer"></div><div class="chat-sentinel">— 没有更多了 —</div>'+html;
+  var _hasOlder=c._chatStart>0;
+  var _sentinel=_hasOlder?
+    '<div class="chat-sentinel" onclick="loadMoreMsgs()" style="cursor:pointer;color:var(--theme-accent1,#a18cd1);font-size:13px;">↑ 加载更多消息</div>':
+    '<div class="chat-sentinel">— 没有更多了 —</div>';
+  c.innerHTML='<div class="chat-spacer"></div>'+_sentinel+html;
   // 双rAF：第一帧让浏览器完成布局，第二帧再读scrollHeight，避免读到旧值
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
