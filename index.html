@@ -3453,7 +3453,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.82';
+var CORE_VERSION='v1.83';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -3988,6 +3988,17 @@ function _startMain(){
   setTimeout(function(){ AdManager.init(); },1500);
 }
 
+function _pinSuccessGo(){
+  if(sessionStorage.getItem('_needsReauth')==='1'){
+    sessionStorage.removeItem('_needsReauth');
+    _tryRefreshToken().then(function(ok){
+      if(ok){if(!_appWasActive){_renderChatListCache();_startMain();}else{show('main');listenForCalls();listenForAllMessages();}}
+      else{show('reg');switchTo('login');}
+    });
+  }else{
+    if(!_appWasActive){_renderChatListCache();_startMain();}else{show('main');listenForCalls();listenForAllMessages();}
+  }
+}
 // ─── 隐身启动辅助 ───
 function _needStartupLock(){
   // 本 session 已解锁过 → 不重复锁
@@ -4035,7 +4046,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if(_freeModeExp){window._gcFastBoot=true;show('main');_renderChatListCache();}
     else{_showStartupStealth();}
     _tryRefreshToken().then(function(ok){
-      if(!ok){['registered','pin','myId','myName','gcDevTok','sessionToken','tokenExpiry'].forEach(function(k){ls(k,'');});myId=null;show('reg');switchTo('login');}
+      if(!ok){ls('sessionToken','');ls('gcDevTok','');ls('tokenExpiry','');sessionStorage.setItem('_needsReauth','1');}
     });
   }else{
     var _qt=setTimeout(function(){show('reg');},50);
@@ -9015,12 +9026,12 @@ function pk(k){
   G.pe+=k;updDots(false);
   // 锁屏密码比登录密码短时，提前在它的长度上做一次匹配
   if(altPin&&altPin.length<G.pin.length&&G.pe.length===altPin.length&&G.pe===altPin){
-    setTimeout(function(){G.wrongN=0;closePIN();sessionStorage.setItem('testGatePassed','1');ls('gatePassedPersist','1');if(!_appWasActive){_renderChatListCache();_startMain();}else{show('main');listenForCalls();listenForAllMessages();}},80);
+    setTimeout(function(){G.wrongN=0;closePIN();sessionStorage.setItem('testGatePassed','1');ls('gatePassedPersist','1');_pinSuccessGo();},80);
     return;
   }
   if(G.pe.length===maxLen||G.pe.length===G.pin.length){
     setTimeout(function(){
-      if(G.pe===G.pin||(altPin&&G.pe===altPin)){G.wrongN=0;closePIN();sessionStorage.setItem('testGatePassed','1');ls('gatePassedPersist','1');if(!_appWasActive){_renderChatListCache();_startMain();}else{show('main');listenForCalls();listenForAllMessages();}}
+      if(G.pe===G.pin||(altPin&&G.pe===altPin)){G.wrongN=0;closePIN();sessionStorage.setItem('testGatePassed','1');ls('gatePassedPersist','1');_pinSuccessGo();}
       else if(G.dpin&&G.pe===G.dpin){doDestruct();}
       else{
         G.wrongN++;
