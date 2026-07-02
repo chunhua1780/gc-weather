@@ -504,9 +504,10 @@ body{
 /* chat页：cbg填满，ibar底部固定 */
 #chat{display:none;flex-direction:column;position:fixed;inset:0;}
 #chat.active{display:flex;}
-#chat > .nav-bar{flex-shrink:0;}
+#chat > .nav-bar{flex-shrink:0;padding-top:max(6px,calc(env(safe-area-inset-top,0px) + 2px));padding-bottom:5px;}
 #chat > .cbg{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;}
 #chat > .ibar{flex-shrink:0;width:100%;}
+#chat > .ibar .irow{padding-top:6px;padding-bottom:6px;}
 .dp-head{flex-shrink:0;position:relative;z-index:2;}
 .dp-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:2;}
 .dp-body::after{content:'';display:block;min-height:24px;pointer-events:none;}
@@ -1307,10 +1308,18 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         </div>
         <span style="color:#c7c7cc;font-size:18px;">›</span>
       </div>
-      <!-- 聊天气泡风格 -->
-      <div style="border-top:1px solid var(--theme-border);padding:14px 16px 12px;">
-        <div style="font-size:15px;font-weight:600;color:var(--theme-text);margin-bottom:10px;">聊天气泡风格</div>
-        <div id="chatStyleGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
+      <!-- 聊天气泡风格（折叠） -->
+      <div style="border-top:1px solid var(--theme-border);">
+        <div onclick="toggleChatStyleDrawer()" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+          <div style="flex:1;">
+            <div style="font-size:17px;">聊天气泡风格</div>
+            <div style="font-size:13px;color:#8e8e93;margin-top:1px;" id="chatStyleCurrentName">经典</div>
+          </div>
+          <span style="color:#c7c7cc;font-size:14px;transition:transform .2s;" id="chatStyleDrawerArrow">›</span>
+        </div>
+        <div id="chatStyleDrawer" style="display:none;padding:0 8px 14px;">
+          <div id="chatStyleGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
+        </div>
       </div>
     </div>
 
@@ -2102,6 +2111,28 @@ function urlBase64ToUint8Array(b64){
   return arr;
 }
 
+function updatePushToggleUI(enabled){
+  var t=document.getElementById('pushDirectToggle');
+  if(t)t.className='tog'+(enabled?' on':'');
+  var st=document.getElementById('pwaBindStatus');
+  if(st){
+    if(enabled){st.textContent='✅ 已开启 · 点通知直接打开App';st.style.color='#34c759';}
+    else{st.textContent='收到消息时推送通知';st.style.color='';}
+  }
+}
+function togglePushDirect(){
+  if(lg('pushEnabled')==='1'){
+    localStorage.setItem('pushEnabled','0');
+    updatePushToggleUI(false);
+    if(navigator.serviceWorker&&'PushManager' in window){
+      navigator.serviceWorker.ready.then(function(reg){return reg.pushManager.getSubscription();})
+        .then(function(sub){if(sub)return sub.unsubscribe();})
+        .catch(function(e){console.log('[Push] unsubscribe failed:',e&&e.message);});
+    }
+  }else{
+    subscribePush();
+  }
+}
 async function subscribePush(){
   try{
     if(typeof Notification==='undefined'){alert('此浏览器不支持推送通知');return;}
@@ -3411,6 +3442,26 @@ function applyChatStyle(id){
   if(id&&id!=='default')chat.classList.add('cs-'+id);
   ls('chatStyle',id||'default');
   _buildChatStyleGrid();
+  _updateChatStyleHeader(id||'default');
+  // 选完自动收起抽屉
+  var d=document.getElementById('chatStyleDrawer');
+  var a=document.getElementById('chatStyleDrawerArrow');
+  if(d)d.style.display='none';
+  if(a)a.style.transform='';
+}
+function _updateChatStyleHeader(id){
+  var s=_CS_STYLES.filter(function(x){return x.id===id;})[0]||_CS_STYLES[0];
+  var nm=document.getElementById('chatStyleCurrentName');
+  if(nm)nm.textContent=s.name;
+}
+function toggleChatStyleDrawer(){
+  var d=document.getElementById('chatStyleDrawer');
+  var a=document.getElementById('chatStyleDrawerArrow');
+  if(!d)return;
+  var open=d.style.display==='none';
+  if(open)_buildChatStyleGrid();
+  d.style.display=open?'block':'none';
+  if(a)a.style.transform=open?'rotate(90deg)':'';
 }
 function _buildChatStyleGrid(){
   var g=document.getElementById('chatStyleGrid');
@@ -3469,7 +3520,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.84';
+var CORE_VERSION='v1.85';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -4686,7 +4737,7 @@ function show(id){
     var stack=new Error().stack||'no stack';
     _logDiag('show(reg) called from: '+stack.split('\n').slice(1,4).join(' | '));
     console.warn('[DIAG] show(reg) triggered:',stack);
-  }document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});var el=document.getElementById(id);if(el)el.classList.add('active');if(id==='dweather')initWeather();if(id==='dnote')initNotes();if(id==='settings'){initBarkUI();initQuickToggles();_updateThemeHeader(lg('theme')||'');_initPwaBindStatus();_initPwaAppNameInput();_initShortcutInput();_refreshEmailBindStatus();refreshAdminEntry();AdManager._updateConsentUI();_buildChatStyleGrid();}
+  }document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});var el=document.getElementById(id);if(el)el.classList.add('active');if(id==='dweather')initWeather();if(id==='dnote')initNotes();if(id==='settings'){initBarkUI();initQuickToggles();_updateThemeHeader(lg('theme')||'');_initPwaBindStatus();_initPwaAppNameInput();_initShortcutInput();_refreshEmailBindStatus();refreshAdminEntry();AdManager._updateConsentUI();_updateChatStyleHeader(lg('chatStyle')||'default');}
 if(id==='dcalc'){var en=document.getElementById('cNum');if(en&&!CALC.buf&&CALC.result==null)en.textContent='0';setTimeout(initCalcEvents,0);}}
 
 // ═══ 注册/登录 ═══
