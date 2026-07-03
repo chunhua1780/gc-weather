@@ -1,5 +1,6 @@
 ﻿// GhostChat Service Worker v2.0 — stale-while-revalidate + push
-const CACHE = 'gc-v1.84';
+const CACHE = 'gc-v1.86';
+const GC_BASE_URL = self.location.origin + self.location.pathname.replace(/[^/]*$/, '');
 
 // ── Install: pre-cache shell ──
 self.addEventListener('install', function(e){
@@ -49,14 +50,14 @@ self.addEventListener('fetch', function(e){
 // ── Notification click ──
 self.addEventListener('notificationclick', function(e){
   e.notification.close();
-  var targetUrl = 'https://chunhua1780.github.io/ghostchat/';
+  var targetUrl = GC_BASE_URL;
   if(e.notification.data && e.notification.data.url) targetUrl = e.notification.data.url;
   if(e.notification.launchURL) targetUrl = e.notification.launchURL;
   e.waitUntil(
     self.clients.matchAll({type:'window',includeUncontrolled:true}).then(function(clients){
       for(var i=0;i<clients.length;i++){
         var c=clients[i];
-        if(c.url.indexOf('chunhua1780.github.io/ghostchat') >= 0 && 'focus' in c){
+        if(c.url.indexOf(self.location.origin) >= 0 && 'focus' in c){
           c.postMessage({type:'deeplink',url:targetUrl});
           return c.focus();
         }
@@ -76,7 +77,7 @@ self.addEventListener('push', function(e){
       body: data.body||'你收到了一条新消息',
       icon: './icon192.png', badge: './icon192.png',
       tag: data.tag||'gc-msg', renotify: true, silent: false,
-      requireInteraction: false, data: {url: data.url||'https://chunhua1780.github.io/ghostchat/'}
+      requireInteraction: false, data: {url: data.url||GC_BASE_URL}
     })
   );
 });

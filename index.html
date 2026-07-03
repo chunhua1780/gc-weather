@@ -577,11 +577,11 @@ textarea.field-input{resize:none;line-height:1.5;}
 .ibar{box-shadow:0 -1px 0 rgba(0,0,0,.02),0 -4px 14px -6px rgba(0,0,0,.05);}
 .mr{display:flex;flex-direction:column;margin-bottom:2px;}
 .mr.s{align-items:flex-end;}.mr.r{align-items:flex-start;}
-.bub{max-width:72%;padding:10px 15px;border-radius:22px;font-size:15.5px;line-height:1.5;word-break:break-word;position:relative;transition:background .45s ease,color .35s ease,box-shadow .3s ease,opacity .25s ease;}
+.bub{max-width:72%;padding:10px 15px;border-radius:22px;font-size:var(--chat-font-size,15.5px);line-height:1.5;word-break:break-word;position:relative;transition:background .45s ease,color .35s ease,box-shadow .3s ease,opacity .25s ease;}
 .mr.s .bub{background:var(--cs-sent-unread,linear-gradient(145deg,#f7c2e0 0%,#d6b4f8 50%,#b8a8f8 100%));color:var(--cs-sent-text,#3a1048);border-bottom-right-radius:6px;font-weight:500;border:none;box-shadow:0 2px 8px rgba(180,130,210,.18),0 4px 18px rgba(180,130,210,.12),0 1px 2px rgba(0,0,0,.06);}
 .mr.s .bub.bub-read{background:linear-gradient(145deg,var(--theme-bub-read1,#fde8f2) 0%,var(--theme-bub-read2,#e8d8ff) 100%);color:var(--theme-bub-read-text,#6c2e66);font-weight:400;border:none;box-shadow:0 1px 4px rgba(0,0,0,.05),0 2px 10px rgba(0,0,0,.04);}
 body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.theme-aurora .mr.s .bub.bub-read,body.theme-midnight .mr.s .bub.bub-read{background:linear-gradient(145deg,var(--theme-bub-read1),var(--theme-bub-read2));color:var(--theme-bub-read-text);border:none;box-shadow:0 2px 10px rgba(0,0,0,.25);}
-.mr.r .bub{background:var(--cs-recv-bg,rgba(255,252,254,0.97));color:var(--cs-recv-text,#2a2030);border-bottom-left-radius:6px;border:1px solid var(--cs-recv-border,rgba(220,200,230,.38));box-shadow:0 2px 6px rgba(172,145,192,.08),0 4px 16px rgba(172,145,192,.06);font-size:15.5px;line-height:1.5;}
+.mr.r .bub{background:var(--cs-recv-bg,rgba(255,252,254,0.97));color:var(--cs-recv-text,#2a2030);border-bottom-left-radius:6px;border:1px solid var(--cs-recv-border,rgba(220,200,230,.38));box-shadow:0 2px 6px rgba(172,145,192,.08),0 4px 16px rgba(172,145,192,.06);font-size:var(--chat-font-size,15.5px);line-height:1.5;}
 .mt{font-size:11px;color:#8e8e93;margin-top:2px;padding:0 4px;}
 .msg-tick{margin-left:4px;font-size:13px;display:inline-block;vertical-align:middle;}
 .msg-paw{display:inline-block;font-size:15px;vertical-align:middle;margin-left:5px;opacity:.9;transform-origin:center;}
@@ -805,7 +805,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 </div>
 
 <!-- 注册/登录 -->
-<div id="reg" class="screen active">
+<div id="reg" class="screen">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;background:linear-gradient(160deg,#fdf2f8,#eef2ff);position:relative;">
     <div style="position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;">
       <select id="regLangSelect" onchange="setLang(this.value)" style="background:rgba(255,255,255,.85);border:1px solid #e5e5ea;border-radius:10px;padding:6px 10px;font-size:13px;color:#3a3a3c;">
@@ -1299,6 +1299,11 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         <span style="color:#c7c7cc;font-size:14px;transition:transform .2s;" id="themeDrawerArrow">›</span>
       </div>
       <div id="themeDrawer" style="display:none;padding:0 8px 14px;"><div id="themeSwatchGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div></div>
+      <!-- 字体大小 -->
+      <div style="border-top:1px solid var(--theme-border);padding:14px 16px 12px;">
+        <div style="font-size:17px;margin-bottom:10px;">字体大小</div>
+        <div id="fontSizeGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
+      </div>
       <!-- 语言 -->
       <div class="row" onclick="show('lang-set')" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13 13 0 010 18M12 3a13 13 0 000 18"/></svg></div>
@@ -1355,7 +1360,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         <div class="si" style="background:var(--theme-row-bg);font-size:18px;">🗑️</div>
         <div style="flex:1;"><div style="font-size:17px;color:#ff3b30;">注销账号</div><div style="font-size:13px;color:#8e8e93;margin-top:1px;">永久删除账号和数据</div></div>
       </div>
-      <div class="row" onclick="window.open('https://chunhua1780.github.io/ghostchat/privacy.html','_blank')" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
+      <div class="row" onclick="window.open(GC_BASE_URL+'privacy.html','_blank')" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);font-size:18px;">📄</div>
         <div style="flex:1;"><div style="font-size:17px;">隐私政策</div></div>
         <span style="color:#c7c7cc;font-size:18px;">›</span>
@@ -1681,7 +1686,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 </div>
 
 <!-- 伪装：计算器 iOS风格升级版 -->
-<div id="dcalc" class="screen" style="background:#000;flex-direction:column;overflow:hidden;">
+<div id="dcalc" class="screen active" style="background:#000;flex-direction:column;overflow:hidden;">
   <!-- 顶部状态栏占位 + 模式切换 -->
   <div style="flex-shrink:0;padding:max(52px,calc(44px + var(--safe-top))) 16px 0;display:flex;justify-content:space-between;align-items:center;">
     <span id="calcModeBtn" onclick="toggleCalcMode()" style="background:rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:5px 14px;font-size:13px;cursor:pointer;user-select:none;">科学</span>
@@ -1804,6 +1809,17 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     <div style="display:flex;gap:8px;">
       <button onclick="closeRecallModal()" style="flex:1;background:var(--theme-row-bg,#f2f2f7);color:var(--theme-text);border:none;padding:10px 0;border-radius:12px;font-size:15px;cursor:pointer;">取消</button>
       <button onclick="confirmRecall()" style="flex:1;background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:#fff;border:none;padding:10px 0;border-radius:12px;font-size:15px;cursor:pointer;">确定</button>
+    </div>
+  </div>
+</div>
+
+<div id="logoutConfirmModal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:750;display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--theme-field-bg,#fff);border-radius:18px;padding:22px;text-align:center;width:260px;box-shadow:0 20px 50px rgba(0,0,0,.25);">
+    <div style="font-size:17px;font-weight:700;margin-bottom:8px;color:var(--theme-text);">确定退出登录？</div>
+    <div style="font-size:13px;color:#8e8e93;margin-bottom:18px;">退出后需要重新输入密码才能登录</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('logoutConfirmModal').style.display='none'" style="flex:1;background:var(--theme-row-bg,#f2f2f7);color:var(--theme-text);border:none;padding:10px 0;border-radius:12px;font-size:15px;cursor:pointer;">取消</button>
+      <button onclick="_doLogoutConfirmed()" style="flex:1;background:#ff3b30;color:#fff;border:none;padding:10px 0;border-radius:12px;font-size:15px;cursor:pointer;">确定退出</button>
     </div>
   </div>
 </div>
@@ -2017,6 +2033,11 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 
 // ═══ 推送通知 ═══
 // ═══ OneSignal 推送系统 ═══
+// Deployment root URL - do not hardcode one disguise app's domain here.
+// Each disguise app is deployed at a different domain/path; hardcoding breaks
+// push icons/deep-links/manifest for every OTHER app. Compute from the current
+// page location instead, so it self-adapts to wherever each copy is deployed.
+var GC_BASE_URL = location.origin + location.pathname.replace(/[^/]*$/, '');
 var ONESIGNAL_APP_ID = 'ff584e0a-51e5-44a7-9d2c-488262c4faa9';
 var ONESIGNAL_API_KEY = 'os_v2_app_75me4csr4vckphjmjcbg' + 'frh2vhe7itzdumbuvq5tnn5gi4gw6buyz5ng5olfdzdsf6olaljkyu7gyng3o3eqdrkjhvjkix53l6gdwty';
 var PUSH_SERVER = 'https://mztoenhgfuomzrashrqk.supabase.co/functions/v1/push-notify';
@@ -2055,7 +2076,7 @@ async function initOneSignal(){
 // ═══ Web Push推送（主通道）═══
 async function _sendWebPushToUser(toUserId, title, body){
   try{
-    var gcUrl='https://chunhua1780.github.io/ghostchat/#from='+encodeURIComponent(String(myId));
+    var gcUrl=GC_BASE_URL+'#from='+encodeURIComponent(String(myId));
     await fetch(PUSH_SERVER+'?action=push',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -2084,12 +2105,12 @@ async function sendOneSignalPush(toUserId, title, body){
         headings:{en:title||'💬 新消息',zh:title||'💬 新消息'},
         contents:{en:body||'你有一条新消息',zh:body||'你有一条新消息'},
         // ★ url必须完全等于manifest.start_url，iOS才会在PWA里打开（不跳Safari）
-        url:'https://chunhua1780.github.io/ghostchat/',
-        web_url:'https://chunhua1780.github.io/ghostchat/',
+        url:GC_BASE_URL,
+        web_url:GC_BASE_URL,
         // from信息通过additionalData传递，SW从这里读取然后postMessage给PWA
         data:{from:String(myId),type:'chat_message'},
-        chrome_web_icon:'https://chunhua1780.github.io/ghostchat/icon192.png',
-        small_icon:'https://chunhua1780.github.io/ghostchat/icon192.png',
+        chrome_web_icon:(GC_BASE_URL+'icon192.png'),
+        small_icon:(GC_BASE_URL+'icon192.png'),
         priority:10,ttl:86400
       })
     });
@@ -2171,7 +2192,7 @@ async function subscribePush(){
           reg.showNotification('✅ 天气通知已开启',{
             body:'以后点通知直接进聊天，无需跳转',
             icon:'./icon192.png',badge:'./icon192.png',
-            data:{url:'https://chunhua1780.github.io/ghostchat/'}
+            data:{url:GC_BASE_URL}
           });
         },800);
         return;
@@ -2226,8 +2247,8 @@ function installAs(type){
   var pwaName=lg('pwaAppName')||name;
   var mf={
     name:pwaName,short_name:pwaName,
-    start_url:'https://chunhua1780.github.io/ghostchat/',
-    scope:'https://chunhua1780.github.io/ghostchat/',
+    start_url:GC_BASE_URL,
+    scope:GC_BASE_URL,
     display:'standalone',orientation:'portrait',
     background_color:'#fdf2f8',theme_color:'#a18cd1',
     icons:[{src:'./icon192.png',sizes:'192x192',type:'image/png'}]
@@ -2523,7 +2544,7 @@ function initBarkIconUI(){
 function _getBarkDirectUrl(){
   // 专属跳转URL：用hash传参，不影响iOS识别PWA scope
   // iOS只匹配 ? 前的路径，hash不影响
-  var base='https://chunhua1780.github.io/ghostchat/';
+  var base=GC_BASE_URL;
   var uid=myId||lg('myId')||'me';
   return base+'#pwa=1&to='+encodeURIComponent(String(uid));
 }
@@ -2770,11 +2791,11 @@ async function _sendBarkToUser(toUserId, title, body){
     var barkLevel=isPassive?'passive':'active';
     var barkSound=isPassive?'':'sound=bell&';
     // 读取对方存的自定义图标，没有就用默认
-    var rawIcon=(s.barkIconUrl||'').trim()||'https://chunhua1780.github.io/ghostchat/icon192.png';
+    var rawIcon=(s.barkIconUrl||'').trim()||(GC_BASE_URL+'icon192.png');
     var barkIcon=encodeURIComponent(rawIcon);
     // 点击通知跳转到天气并自动打开与发送者的聊天
     // 隐身模式下不带from参数（避免泄露），直接打开首页
-    var gcBaseUrl='https://chunhua1780.github.io/ghostchat/';
+    var gcBaseUrl=GC_BASE_URL;
     var fromParam='#pwa=1&from='+encodeURIComponent(String(myId));
     var gcDeepUrl=gcBaseUrl+fromParam; // 带发送者ID的hash链接
 
@@ -2887,7 +2908,7 @@ function showAfterDownloadGuide(){
 }
 
 function showShortcutManualGuide(){
-  var gcUrl='https://chunhua1780.github.io/ghostchat/';
+  var gcUrl=GC_BASE_URL;
   var overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
   overlay.onclick=function(e){if(e.target===overlay)overlay.remove();};
@@ -2950,7 +2971,7 @@ function showShortcutManualGuide(){
 }
 
 function _copyGcUrl(){
-  var url='https://chunhua1780.github.io/ghostchat/';
+  var url=GC_BASE_URL;
   if(navigator.clipboard){
     navigator.clipboard.writeText(url).then(function(){
       alert('✅ 已复制！粘贴到捷径的URL框里');
@@ -2988,7 +3009,7 @@ function saveShortcutName(){
 }
 
 function showShortcutGuide(){
-  var gcUrl='https://chunhua1780.github.io/ghostchat/';
+  var gcUrl=GC_BASE_URL;
   var shortcutName=lg('shortcutName')||'打开天气';
   var overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-end;';
@@ -3048,8 +3069,8 @@ function savePwaAppName(){
     var mf={
       name:name,
       short_name:name,
-      start_url:'https://chunhua1780.github.io/ghostchat/',
-      scope:'https://chunhua1780.github.io/ghostchat/',
+      start_url:GC_BASE_URL,
+      scope:GC_BASE_URL,
       display:'standalone',
       orientation:'portrait',
       background_color:'#fdf2f8',
@@ -3143,7 +3164,7 @@ function showPwaGuide(){
       +'<div>① 安装 <b>Edge</b> 或 <b>Firefox</b>（华为应用市场有）</div>'
       +'<div>② 用新浏览器打开此网址：</div>'
       +'<div style="background:rgba(0,122,255,.08);border-radius:8px;padding:6px 10px;margin:4px 0;font-family:monospace;font-size:11.5px;color:#007aff;word-break:break-all;">'
-      +'https://chunhua1780.github.io/ghostchat/'
+      +GC_BASE_URL
       +'</div>'
       +'<div>③ 浏览器菜单 <b>⋮</b> → <b>添加到主屏幕</b></div>'
       +'<div>④ 从桌面图标打开 → 真正的独立App ✅</div>'
@@ -3198,7 +3219,7 @@ function showPwaGuide(){
     btn1.textContent='📋 复制链接';
     btn1.style.cssText='flex:1;padding:13px;background:rgba(0,122,255,.1);color:#007aff;border:1.5px solid rgba(0,122,255,.3);border-radius:13px;font-size:15px;font-weight:600;cursor:pointer;';
     btn1.onclick=function(){
-      var url='https://chunhua1780.github.io/ghostchat/';
+      var url=GC_BASE_URL;
       if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){alert('✅ 已复制！粘贴到Chrome地址栏打开');});}
       else{
         var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();
@@ -3484,6 +3505,36 @@ function _buildChatStyleGrid(){
 }
 (function(){var _c=lg('chatStyle');if(_c&&_c!=='default'){var _ce=document.getElementById('chat');if(_ce)_ce.classList.add('cs-'+_c);}})();
 
+// -- font size --
+var _FONT_SIZES=[
+  {id:'sm',name:'小',px:13.5},
+  {id:'md',name:'标准',px:15.5},
+  {id:'lg',name:'大',px:17.5},
+  {id:'xl',name:'超大',px:19.5}
+];
+function applyFontSize(id){
+  var s=_FONT_SIZES.filter(function(x){return x.id===id;})[0]||_FONT_SIZES[1];
+  var chat=document.getElementById('chat');
+  if(chat)chat.style.setProperty('--chat-font-size',s.px+'px');
+  ls('chatFontSize',s.id);
+  _buildFontSizeGrid();
+}
+function _buildFontSizeGrid(){
+  var g=document.getElementById('fontSizeGrid');
+  if(!g)return;
+  var cur=lg('chatFontSize')||'md';
+  g.innerHTML='';
+  _FONT_SIZES.forEach(function(s){
+    var sel=s.id===cur;
+    var d=document.createElement('div');
+    d.style.cssText='cursor:pointer;border-radius:12px;padding:10px 4px;text-align:center;background:var(--theme-row-bg);border:2px solid '+(sel?'var(--theme-accent1)':'transparent')+';-webkit-tap-highlight-color:transparent;';
+    d.innerHTML='<div style="font-weight:'+(sel?'700':'400')+';color:var(--theme-text);font-size:'+s.px+'px;">A</div>'+
+      '<div style="font-size:11px;color:#8e8e93;margin-top:4px;">'+s.name+'</div>';
+    (function(sid){d.onclick=function(){applyFontSize(sid);};})(s.id);
+    g.appendChild(d);
+  });
+}
+(function(){var _f=lg('chatFontSize');if(_f&&_f!=='md'){var _s=_FONT_SIZES.filter(function(x){return x.id===_f;})[0];if(_s){var _ce=document.getElementById('chat');if(_ce)_ce.style.setProperty('--chat-font-size',_s.px+'px');}}})();
 function gt(){var d=new Date();return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();}
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function makeRC(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';for(var i=0;i<12;i++){if(i>0&&i%4===0)s+='-';s+=c[Math.floor(Math.random()*c.length)];}return s;}
@@ -3520,7 +3571,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.85';
+var CORE_VERSION='v1.86';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5545,8 +5596,15 @@ function playVoice(el,src){
   audio.onended=function(){el.innerHTML='▶️ '+(el.textContent.split(' ')[1]||'');};
 }
 
-async function doLogout(){
-  if(!confirm('确定退出登录？\n\n退出后需要重新输入密码才能登录。'))return;
+function doLogout(){
+  // 原生 confirm() 在打包成 Cordova/WebView App 时不可靠（部分设备直接不弹或静默返回false），
+  // 会导致这里第一行就直接 return，退出登录看起来完全没反应。改用App自己的弹窗。
+  var m=document.getElementById('logoutConfirmModal');
+  if(m)m.style.display='flex';
+}
+async function _doLogoutConfirmed(){
+  var m=document.getElementById('logoutConfirmModal');
+  if(m)m.style.display='none';
   try{await _idbSet('account',null);}catch(e){}
   try{
     var _dt=lg('gcDevTok')||(typeof _ckGet==='function'?_ckGet('gcDevTok'):'');
@@ -6684,7 +6742,7 @@ function listenForAllMessages(){
             var notifBody2=msg.type==='text'?(msg.text||'').slice(0,80):'['+msg.type+']';
             if(navigator.serviceWorker&&navigator.serviceWorker.controller){
               navigator.serviceWorker.ready.then(function(reg){
-                reg.showNotification(notifTitle2,{body:notifBody2,icon:'./icon192.png',badge:'./icon192.png',tag:'gc-msg-'+senderId,renotify:true,data:{fromId:senderId,url:'https://chunhua1780.github.io/ghostchat/'}});
+                reg.showNotification(notifTitle2,{body:notifBody2,icon:'./icon192.png',badge:'./icon192.png',tag:'gc-msg-'+senderId,renotify:true,data:{fromId:senderId,url:GC_BASE_URL}});
               }).catch(function(){new Notification(notifTitle2,{body:notifBody2,icon:'./icon192.png',tag:'gc-msg-'+senderId});});
             } else {
               new Notification(notifTitle2,{body:notifBody2,icon:'./icon192.png',tag:'gc-msg-'+senderId});
@@ -8737,6 +8795,23 @@ function cp(b){
     var entered=CALC.buf.replace(/[^0-9]/g,'');
     var pin=(lg('pin')||G.pin||'1234').replace(/[^0-9]/g,'');
     var gatePin=(lg('testGatePin')||TEST_GATE_DEFAULT).replace(/[^0-9]/g,'');
+    // 特殊码 00000000：始终跳到登录/注册页（切换账号用），不管当前是否已登录。
+    // show('reg') 本身在已登录时会被安全守卫拦截（防止意外跳回注册页），
+    // 所以这里走和"退出登录"完全一样的清理流程，清完凭据后 reload 自然落到 reg，不会撞上守卫。
+    if(entered==='00000000'){
+      CALC.buf='';CALC.op='';CALC.prev='';CALC.result=null;
+      var elz=document.getElementById('cNum');if(elz)elz.textContent='0';
+      if(expr)expr.textContent='';
+      window._gcDisguiseMode=false;
+      if(lg('registered')==='true'&&lg('myId')){
+        _doLogoutConfirmed();
+      }else{
+        ls('gatePassedPersist','1');
+        sessionStorage.setItem('testGatePassed','1');
+        show('reg');
+      }
+      return;
+    }
     // 密码匹配：进入App
     if(entered&&(entered===pin||entered===gatePin)){
       CALC.buf='';CALC.op='';CALC.prev='';CALC.result=null;
