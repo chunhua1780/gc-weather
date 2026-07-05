@@ -832,6 +832,31 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         <button class="btn-blue" id="login-btn" onclick="doLogin()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);" data-i18n="loginBtn">Log In</button>
         <div style="text-align:center;margin-top:14px;font-size:calc(14px * var(--ui-font-scale,1));color:#9b9bb0;"><span data-i18n="newUser">New here?</span> <span style="color:#a18cd1;font-weight:600;cursor:pointer;" onclick="switchTo('reg')" data-i18n="registerLink">Create account</span></div>
         <div style="text-align:center;margin-top:10px;"><span style="font-size:calc(13px * var(--ui-font-scale,1));color:#c7c7cc;cursor:pointer;" onclick="switchTo('recovery')" data-i18n="forgotPw">Forgot password?</span></div>
+        <div style="text-align:center;margin-top:10px;"><span id="otpEntryLink" data-i18n="otpEntryLink" style="font-size:calc(13px * var(--ui-font-scale,1));color:#a18cd1;font-weight:600;cursor:pointer;" onclick="switchTo('email-otp')">邮箱验证码登录/注册</span></div>
+      </div>
+      <div id="email-otp-form" style="display:none;">
+        <div id="otpFormTitle" data-i18n="otpFormTitle" style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:600;margin-bottom:18px;text-align:center;">邮箱验证码登录</div>
+        <div id="otp-step-email">
+          <input id="otpEmail" type="email" class="field" placeholder="Email address" autocomplete="email" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <button class="btn-blue" id="otp-send-btn" onclick="sendLoginOtp()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);">发送验证码</button>
+        </div>
+        <div id="otp-step-code" style="display:none;">
+          <input id="otpCode" class="field" placeholder="6位验证码" maxlength="6" inputmode="numeric" style="letter-spacing:6px;text-align:center;" autocomplete="one-time-code">
+          <button class="btn-blue" id="otp-verify-btn" onclick="verifyLoginOtp()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);">验证</button>
+        </div>
+        <div id="otp-step-newuser" style="display:none;">
+          <input id="otpRegName" class="field" placeholder="Nickname" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <input id="otpRegPin" type="password" class="field" placeholder="Password (4-8 digits)" maxlength="8" style="letter-spacing:4px;text-align:center;" autocomplete="new-password">
+          <input id="otpRegPin2" type="password" class="field" placeholder="Confirm password" maxlength="8" style="letter-spacing:4px;text-align:center;" autocomplete="new-password">
+          <button class="btn-blue" id="otp-finish-reg-btn" onclick="finishOtpRegister()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);">Create Account</button>
+        </div>
+        <div id="otp-step-existuser" style="display:none;">
+          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#9b9bb0;margin-bottom:10px;text-align:center;">设置本机解锁密码</div>
+          <input id="otpLoginPin" type="password" class="field" placeholder="Password (4-8 digits)" maxlength="8" style="letter-spacing:4px;text-align:center;" autocomplete="new-password">
+          <input id="otpLoginPin2" type="password" class="field" placeholder="Confirm password" maxlength="8" style="letter-spacing:4px;text-align:center;" autocomplete="new-password">
+          <button class="btn-blue" id="otp-finish-login-btn" onclick="finishOtpLogin()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);">Log In</button>
+        </div>
+        <div style="text-align:center;margin-top:14px;font-size:calc(14px * var(--ui-font-scale,1));color:#9b9bb0;"><span style="color:#a18cd1;font-weight:600;cursor:pointer;" onclick="switchTo('login')">← 返回登录</span></div>
       </div>
       <div id="reg-form" style="display:none;">
         <div style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:600;margin-bottom:18px;text-align:center;" data-i18n="createAccount">Create your account</div>
@@ -855,9 +880,16 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
           <button class="btn-blue" onclick="doRecovery()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);" data-i18n="verifyPayBtn">Verify</button>
         </div>
         <div id="rec-panel-email" style="display:none;">
-          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#9b9bb0;margin-bottom:16px;line-height:1.5;text-align:center;">输入注册时绑定的邮箱，我们会发送密码重置链接</div>
-          <input id="recoveryEmail" type="email" class="field" placeholder="Email address" autocomplete="email" autocorrect="off" autocapitalize="off" spellcheck="false">
-          <button id="emailRecoveryBtn" class="btn-blue" onclick="doEmailRecovery()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);">发送重置邮件</button>
+          <div id="rec-email-step1">
+            <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#9b9bb0;margin-bottom:16px;line-height:1.5;text-align:center;">输入注册时绑定的邮箱，我们会发送验证码</div>
+            <input id="recoveryEmail" type="email" class="field" placeholder="Email address" autocomplete="email" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <button id="emailRecoveryBtn" class="btn-blue" onclick="doEmailRecovery()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);">发送验证码</button>
+          </div>
+          <div id="rec-email-step2" style="display:none;">
+            <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#9b9bb0;margin-bottom:16px;line-height:1.5;text-align:center;">输入邮箱收到的验证码</div>
+            <input id="recoveryEmailCode" class="field" placeholder="6位验证码" maxlength="6" inputmode="numeric" style="letter-spacing:6px;text-align:center;" autocomplete="one-time-code">
+            <button id="recEmailVerifyBtn" class="btn-blue" onclick="verifyRecoveryOtp()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);">验证</button>
+          </div>
         </div>
         <div style="text-align:center;margin-top:10px;"><span style="font-size:calc(14px * var(--ui-font-scale,1));color:#a18cd1;font-weight:600;cursor:pointer;" onclick="switchTo('login')" data-i18n="backToLogin">← Back to Login</span></div>
       </div>
@@ -3575,8 +3607,8 @@ var curLang=lg('lang')||'zh-CN';
 // 查不到当前语言的词条时永远回退英文，绝不回退中文——切到任何非中文语言都不会
 // 再看到残留的中文文案。
 var I18N_DICT={
-  "en":{"app":"天气","tag":"Private · Encrypted · Untraceable","msg":"Messages","set":"Settings","nick":"Nickname","pwd":"Password (4-8 digits)","cpwd":"Confirm password","create":"Create Account","haveAcct":"Already have account?","newUser":"New here?","forgot":"Forgot password?","hideMode":"Hide Mode","notEnabled":"Not enabled","secretNotif":"Secret Notification","destroyMethod":"Destroy Method","e2e":"End-to-End Encryption","destroyNow":"Destroy Now","subscribe":"Subscribe","logout":"Logout","lang":"Language","privacy":"Privacy & Security","flashlight":"Flashlight","calculator":"Calculator","clock":"Clock","notes":"Notes","calling":"Calling...","mute":"Mute","end":"End","speaker":"Speaker","incoming":"Incoming call...","decline":"Decline","accept":"Accept","enterPwd":"Enter Password","cancel":"Cancel","release":"Release to send","enableHide":"Enable Hide Mode","disableHide":"Disable Hide Mode","save":"Save","appearance":"Appearance","themeDefault":"Pink Dream","themeBusiness":"Business","themeDark":"Dark","themeOcean":"Ocean","themeForest":"Forest","themeNeon":"Neon","appName":"SecretTalk","appTagline":"A cozy private chat space","welcomeBack":"Welcome back!","loginIdPh":"Your ID","passwordPh":"Password","loginBtn":"Log In","registerLink":"Create account","forgotPw":"Forgot password?","createAccount":"Create your account","nicknamePh":"Nickname","customIdPh":"Custom ID (optional)","passwordPh2":"Password (4-8 digits)","confirmPwPh":"Confirm password","createBtn":"Create Account","haveAccount":"Already have an account?","loginLink":"Log in","recoveryTitle":"Account Recovery","recoveryDesc":"Enter your rescue code.","verifyPayBtn":"Verify","backToLogin":"← Back to Login","installTitle":"Install Weather","installDesc":"Add to Home Screen for notifications","installBtn":"Install","msgImage":"[Photo]","msgVoice":"[Voice]","msgVideo":"[Video]","msgFile":"[File]","msgLocation":"[Location]","msgContact":"[Contact]","youPrefix":"You: ","typingNow":"typing","sendFailed":"Send failed","sendFailedShort":"⚠️ Failed","sendFailedRetryHint":"Send failed, tap to retry","recallFailed":"Recall failed: ","videoSendFailed":"⚠️ Video failed to send","fileSendFailed":"⚠️ Failed to send: ","blockedSendMsg":"This user has blocked you. Unblock them in Contacts first.","sendingEllipsis":"Sending...","wd0":"Sun","wd1":"Mon","wd2":"Tue","wd3":"Wed","wd4":"Thu","wd5":"Fri","wd6":"Sat","youRecalled":"You recalled a message","theyRecalled":"They recalled a message","processingEllipsis":"Processing...","contactCardHint":"Contact card · Tap to view","tapToDownload":"Tap to download","loadingEllipsis":"Loading…","noChatsYet":"No chats yet","addFriendsHint":"Add friends in Contacts to start chatting","micCamError":"Could not access microphone/camera: ","answerCallError":"Could not answer: ","inCallTimer":"In call 00:00","incomingCallConfirm":"is calling, answer?","connecting":"Connecting...","callFallbackName":"Call","themeRowTitle":"Theme","chatStyleRowTitle":"Chat Bubble Style","fontSizeRowTitle":"Font Size","accountSectionHd":"Account","accountSettingsRowTitle":"Account Settings","loginDevicesRowTitle":"Login Devices","loginDevicesDesc":"View and manage login devices","bindEmailRowTitle":"Bind Email","deleteAccountRowTitle":"Delete Account","deleteAccountRowDesc":"Permanently delete account and data"},
-  "zh-CN":{"app":"天气","tag":"私密 · 加密 · 无痕","msg":"消息","set":"设置","nick":"昵称","pwd":"密码（4-8位）","cpwd":"确认密码","create":"创建账号","haveAcct":"已有账号？","newUser":"还没有账号？","forgot":"忘记密码？","hideMode":"隐藏模式","notEnabled":"未开启","secretNotif":"隐秘通知","destroyMethod":"销毁方式","e2e":"端对端加密","destroyNow":"立即销毁","subscribe":"订阅会员","logout":"退出登录","lang":"语言","privacy":"隐私与安全","flashlight":"手电筒","calculator":"计算器","clock":"时钟","notes":"备忘录","calling":"正在呼叫...","mute":"静音","end":"挂断","speaker":"扬声器","incoming":"来电...","decline":"拒接","accept":"接听","enterPwd":"输入密码","cancel":"取消","release":"松开发送","enableHide":"开启隐藏模式","disableHide":"关闭隐藏模式","save":"保存","appearance":"外观","themeDefault":"默认粉紫","themeBusiness":"商务简约","themeDark":"深夜暗黑","themeOcean":"静谧蓝海","themeForest":"森系绿意","themeNeon":"赛博霓虹","appName":"私语","appTagline":"一个温馨私密的聊天空间","welcomeBack":"欢迎回来！","loginIdPh":"你的ID","passwordPh":"密码","loginBtn":"登录","registerLink":"立即注册","forgotPw":"忘记密码？","createAccount":"创建账号","nicknamePh":"昵称","customIdPh":"自定义ID（可选）","passwordPh2":"密码（4-8位数字）","confirmPwPh":"确认密码","createBtn":"创建账号","haveAccount":"已有账号？","loginLink":"去登录","recoveryTitle":"账号找回","recoveryDesc":"请输入您的找回码。","verifyPayBtn":"验证","backToLogin":"← 返回登录","installTitle":"安装 天气","installDesc":"添加到桌面，收发推送通知","installBtn":"安装","msgImage":"[图片]","msgVoice":"[语音]","msgVideo":"[视频]","msgFile":"[文件]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在输入","sendFailed":"发送失败","sendFailedShort":"⚠️失败","sendFailedRetryHint":"发送失败，点重试","recallFailed":"撤回失败: ","videoSendFailed":"⚠️ 视频发送失败","fileSendFailed":"⚠️ 发送失败: ","blockedSendMsg":"对方已被你拉黑，请先在通讯录中解除拉黑","sendingEllipsis":"发送中...","wd0":"周日","wd1":"周一","wd2":"周二","wd3":"周三","wd4":"周四","wd5":"周五","wd6":"周六","youRecalled":"你撤回了一条消息","theyRecalled":"对方撤回了一条消息","processingEllipsis":"处理中...","contactCardHint":"名片 · 点击查看","tapToDownload":"点击下载","loadingEllipsis":"加载中…","noChatsYet":"暂无聊天","addFriendsHint":"在通讯录添加好友后开始聊天","micCamError":"无法访问麦克风/摄像头：","answerCallError":"无法接听：","inCallTimer":"通话中 00:00","incomingCallConfirm":"来电，接听？","connecting":"正在连接...","callFallbackName":"通话","themeRowTitle":"主题外观","chatStyleRowTitle":"聊天气泡风格","fontSizeRowTitle":"字体大小","accountSectionHd":"账号","accountSettingsRowTitle":"账号设置","loginDevicesRowTitle":"登录设备","loginDevicesDesc":"查看并管理登录设备","bindEmailRowTitle":"绑定邮箱","deleteAccountRowTitle":"注销账号","deleteAccountRowDesc":"永久删除账号和数据"},
+  "en":{"app":"天气","tag":"Private · Encrypted · Untraceable","msg":"Messages","set":"Settings","nick":"Nickname","pwd":"Password (4-8 digits)","cpwd":"Confirm password","create":"Create Account","haveAcct":"Already have account?","newUser":"New here?","forgot":"Forgot password?","hideMode":"Hide Mode","notEnabled":"Not enabled","secretNotif":"Secret Notification","destroyMethod":"Destroy Method","e2e":"End-to-End Encryption","destroyNow":"Destroy Now","subscribe":"Subscribe","logout":"Logout","lang":"Language","privacy":"Privacy & Security","flashlight":"Flashlight","calculator":"Calculator","clock":"Clock","notes":"Notes","calling":"Calling...","mute":"Mute","end":"End","speaker":"Speaker","incoming":"Incoming call...","decline":"Decline","accept":"Accept","enterPwd":"Enter Password","cancel":"Cancel","release":"Release to send","enableHide":"Enable Hide Mode","disableHide":"Disable Hide Mode","save":"Save","appearance":"Appearance","themeDefault":"Pink Dream","themeBusiness":"Business","themeDark":"Dark","themeOcean":"Ocean","themeForest":"Forest","themeNeon":"Neon","appName":"SecretTalk","appTagline":"A cozy private chat space","welcomeBack":"Welcome back!","loginIdPh":"Your ID","passwordPh":"Password","loginBtn":"Log In","registerLink":"Create account","forgotPw":"Forgot password?","createAccount":"Create your account","nicknamePh":"Nickname","customIdPh":"Custom ID (optional)","passwordPh2":"Password (4-8 digits)","confirmPwPh":"Confirm password","createBtn":"Create Account","haveAccount":"Already have an account?","loginLink":"Log in","recoveryTitle":"Account Recovery","recoveryDesc":"Enter your rescue code.","verifyPayBtn":"Verify","backToLogin":"← Back to Login","installTitle":"Install Weather","installDesc":"Add to Home Screen for notifications","installBtn":"Install","msgImage":"[Photo]","msgVoice":"[Voice]","msgVideo":"[Video]","msgFile":"[File]","msgLocation":"[Location]","msgContact":"[Contact]","youPrefix":"You: ","typingNow":"typing","sendFailed":"Send failed","sendFailedShort":"⚠️ Failed","sendFailedRetryHint":"Send failed, tap to retry","recallFailed":"Recall failed: ","videoSendFailed":"⚠️ Video failed to send","fileSendFailed":"⚠️ Failed to send: ","blockedSendMsg":"This user has blocked you. Unblock them in Contacts first.","sendingEllipsis":"Sending...","wd0":"Sun","wd1":"Mon","wd2":"Tue","wd3":"Wed","wd4":"Thu","wd5":"Fri","wd6":"Sat","youRecalled":"You recalled a message","theyRecalled":"They recalled a message","processingEllipsis":"Processing...","contactCardHint":"Contact card · Tap to view","tapToDownload":"Tap to download","loadingEllipsis":"Loading…","noChatsYet":"No chats yet","addFriendsHint":"Add friends in Contacts to start chatting","micCamError":"Could not access microphone/camera: ","answerCallError":"Could not answer: ","inCallTimer":"In call 00:00","incomingCallConfirm":"is calling, answer?","connecting":"Connecting...","callFallbackName":"Call","themeRowTitle":"Theme","chatStyleRowTitle":"Chat Bubble Style","fontSizeRowTitle":"Font Size","accountSectionHd":"Account","accountSettingsRowTitle":"Account Settings","loginDevicesRowTitle":"Login Devices","loginDevicesDesc":"View and manage login devices","bindEmailRowTitle":"Bind Email","deleteAccountRowTitle":"Delete Account","deleteAccountRowDesc":"Permanently delete account and data","otpEntryLink":"Log in / sign up with email code","otpFormTitle":"Email code login"},
+  "zh-CN":{"app":"天气","tag":"私密 · 加密 · 无痕","msg":"消息","set":"设置","nick":"昵称","pwd":"密码（4-8位）","cpwd":"确认密码","create":"创建账号","haveAcct":"已有账号？","newUser":"还没有账号？","forgot":"忘记密码？","hideMode":"隐藏模式","notEnabled":"未开启","secretNotif":"隐秘通知","destroyMethod":"销毁方式","e2e":"端对端加密","destroyNow":"立即销毁","subscribe":"订阅会员","logout":"退出登录","lang":"语言","privacy":"隐私与安全","flashlight":"手电筒","calculator":"计算器","clock":"时钟","notes":"备忘录","calling":"正在呼叫...","mute":"静音","end":"挂断","speaker":"扬声器","incoming":"来电...","decline":"拒接","accept":"接听","enterPwd":"输入密码","cancel":"取消","release":"松开发送","enableHide":"开启隐藏模式","disableHide":"关闭隐藏模式","save":"保存","appearance":"外观","themeDefault":"默认粉紫","themeBusiness":"商务简约","themeDark":"深夜暗黑","themeOcean":"静谧蓝海","themeForest":"森系绿意","themeNeon":"赛博霓虹","appName":"私语","appTagline":"一个温馨私密的聊天空间","welcomeBack":"欢迎回来！","loginIdPh":"你的ID","passwordPh":"密码","loginBtn":"登录","registerLink":"立即注册","forgotPw":"忘记密码？","createAccount":"创建账号","nicknamePh":"昵称","customIdPh":"自定义ID（可选）","passwordPh2":"密码（4-8位数字）","confirmPwPh":"确认密码","createBtn":"创建账号","haveAccount":"已有账号？","loginLink":"去登录","recoveryTitle":"账号找回","recoveryDesc":"请输入您的找回码。","verifyPayBtn":"验证","backToLogin":"← 返回登录","installTitle":"安装 天气","installDesc":"添加到桌面，收发推送通知","installBtn":"安装","msgImage":"[图片]","msgVoice":"[语音]","msgVideo":"[视频]","msgFile":"[文件]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在输入","sendFailed":"发送失败","sendFailedShort":"⚠️失败","sendFailedRetryHint":"发送失败，点重试","recallFailed":"撤回失败: ","videoSendFailed":"⚠️ 视频发送失败","fileSendFailed":"⚠️ 发送失败: ","blockedSendMsg":"对方已被你拉黑，请先在通讯录中解除拉黑","sendingEllipsis":"发送中...","wd0":"周日","wd1":"周一","wd2":"周二","wd3":"周三","wd4":"周四","wd5":"周五","wd6":"周六","youRecalled":"你撤回了一条消息","theyRecalled":"对方撤回了一条消息","processingEllipsis":"处理中...","contactCardHint":"名片 · 点击查看","tapToDownload":"点击下载","loadingEllipsis":"加载中…","noChatsYet":"暂无聊天","addFriendsHint":"在通讯录添加好友后开始聊天","micCamError":"无法访问麦克风/摄像头：","answerCallError":"无法接听：","inCallTimer":"通话中 00:00","incomingCallConfirm":"来电，接听？","connecting":"正在连接...","callFallbackName":"通话","themeRowTitle":"主题外观","chatStyleRowTitle":"聊天气泡风格","fontSizeRowTitle":"字体大小","accountSectionHd":"账号","accountSettingsRowTitle":"账号设置","loginDevicesRowTitle":"登录设备","loginDevicesDesc":"查看并管理登录设备","bindEmailRowTitle":"绑定邮箱","deleteAccountRowTitle":"注销账号","deleteAccountRowDesc":"永久删除账号和数据","otpEntryLink":"邮箱验证码登录/注册","otpFormTitle":"邮箱验证码登录"},
   "zh-TW":{"app":"天气","tag":"私密 · 加密 · 無痕","msg":"訊息","set":"設定","nick":"暱稱","pwd":"密碼（4-8位）","cpwd":"確認密碼","create":"建立帳號","haveAcct":"已有帳號？","newUser":"新用戶？","forgot":"忘記密碼？","hideMode":"隱藏模式","notEnabled":"未開啟","secretNotif":"隱密通知","destroyMethod":"銷毀方式","e2e":"端對端加密","destroyNow":"立即銷毀","subscribe":"訂閱會員","logout":"登出","lang":"語言","privacy":"隱私與安全","flashlight":"手電筒","calculator":"計算機","clock":"時鐘","notes":"備忘錄","calling":"撥打中...","mute":"靜音","end":"掛斷","speaker":"擴音","incoming":"來電...","decline":"拒接","accept":"接聽","enterPwd":"輸入密碼","cancel":"取消","release":"放開傳送","enableHide":"開啟隱藏模式","disableHide":"關閉隱藏模式","save":"儲存","installTitle":"安裝 天氣","installDesc":"新增到主畫面，接收推播通知","installBtn":"安裝","msgImage":"[圖片]","msgVoice":"[語音]","msgVideo":"[影片]","msgFile":"[檔案]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在輸入","sendFailed":"傳送失敗","sendFailedShort":"⚠️失敗","sendFailedRetryHint":"傳送失敗，點擊重試","recallFailed":"撤回失敗: ","videoSendFailed":"⚠️ 影片傳送失敗","fileSendFailed":"⚠️ 傳送失敗: ","blockedSendMsg":"對方已將你封鎖，請先在聯絡人中解除封鎖","sendingEllipsis":"傳送中...","wd0":"週日","wd1":"週一","wd2":"週二","wd3":"週三","wd4":"週四","wd5":"週五","wd6":"週六","youRecalled":"你收回了一則訊息","theyRecalled":"對方收回了一則訊息","processingEllipsis":"處理中...","contactCardHint":"名片 · 點擊查看","tapToDownload":"點擊下載","loadingEllipsis":"載入中…","noChatsYet":"暫無聊天","addFriendsHint":"在聯絡人中新增好友後開始聊天","micCamError":"無法存取麥克風/相機：","answerCallError":"無法接聽：","inCallTimer":"通話中 00:00","incomingCallConfirm":"來電，接聽？","connecting":"正在連線...","callFallbackName":"通話"},
   "es":{"app":"天气","tag":"Privado · Cifrado · Sin rastro","msg":"Mensajes","set":"Ajustes","nick":"Apodo","pwd":"Contraseña (4-8 dígitos)","cpwd":"Confirmar contraseña","create":"Crear cuenta","haveAcct":"¿Ya tienes cuenta?","newUser":"¿Nuevo usuario?","forgot":"¿Olvidaste la contraseña?","hideMode":"Modo oculto","notEnabled":"No activado","secretNotif":"Notif. secreta","destroyMethod":"Destrucción","e2e":"Cifrado E2E","destroyNow":"Destruir ahora","subscribe":"Suscribirse","logout":"Cerrar sesión","lang":"Idioma","privacy":"Privacidad","flashlight":"Linterna","calculator":"Calculadora","clock":"Reloj","notes":"Notas","calling":"Llamando...","mute":"Silencio","end":"Colgar","speaker":"Altavoz","incoming":"Llamada entrante...","decline":"Rechazar","accept":"Aceptar","enterPwd":"Contraseña","cancel":"Cancelar","release":"Soltar para enviar","enableHide":"Activar modo oculto","disableHide":"Desactivar","save":"Guardar","installTitle":"Instalar app","installDesc":"Añadir a inicio para recibir notificaciones","installBtn":"Instalar"},
   "fr":{"app":"天气","tag":"Privé · Chiffré · Sans trace","msg":"Messages","set":"Paramètres","nick":"Pseudo","pwd":"Mot de passe (4-8 chiffres)","cpwd":"Confirmer","create":"Créer un compte","haveAcct":"Déjà un compte?","newUser":"Nouvel utilisateur?","forgot":"Mot de passe oublié?","hideMode":"Mode caché","notEnabled":"Non activé","secretNotif":"Notif. secrète","destroyMethod":"Destruction","e2e":"Chiffrement E2E","destroyNow":"Détruire","subscribe":"Abonnement","logout":"Déconnexion","lang":"Langue","privacy":"Confidentialité","flashlight":"Lampe torche","calculator":"Calculatrice","clock":"Horloge","notes":"Notes","calling":"Appel en cours...","mute":"Muet","end":"Raccrocher","speaker":"Haut-parleur","incoming":"Appel entrant...","decline":"Refuser","accept":"Accepter","enterPwd":"Mot de passe","cancel":"Annuler","release":"Relâcher pour envoyer","enableHide":"Activer mode caché","disableHide":"Désactiver","save":"Enregistrer","installTitle":"Installer l'app","installDesc":"Ajouter à l'écran d'accueil pour les notifications","installBtn":"Installer"},
@@ -4915,7 +4947,7 @@ function changePin(){
 }
 
 function switchTo(f){
-  ['reg-form','login-form','recovery-form','resetpw-form'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
+  ['reg-form','login-form','recovery-form','resetpw-form','email-otp-form'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
   var target=document.getElementById(f+'-form');if(target)target.style.display='block';
 }
 async function doRegister(){
@@ -5418,6 +5450,113 @@ async function doLogin(){
   await pullSettings();
   _startMain();
 }
+
+// ═══ 邮箱验证码登录/注册（与ID+密码登录并存的另一条路径）═══
+function _startOtpCooldown(btn,idleLabel){
+  if(!btn)return;
+  var s=60;
+  btn.disabled=true;
+  var iv=setInterval(function(){
+    s--;
+    if(s<=0){clearInterval(iv);btn.disabled=false;btn.textContent=idleLabel;}
+    else btn.textContent=s+'s';
+  },1000);
+}
+async function sendLoginOtp(){
+  var btn=document.getElementById('otp-send-btn');
+  if(btn&&btn.disabled)return;
+  var email=(document.getElementById('otpEmail').value||'').trim().toLowerCase();
+  var emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!email||!emailRe.test(email)){alert('请输入有效的邮箱地址');return;}
+  if(btn){btn.disabled=true;btn.textContent='发送中...';}
+  try{
+    var res=await _sb.auth.signInWithOtp({email:email,options:{shouldCreateUser:true}});
+    if(res.error){alert('发送失败：'+res.error.message);if(btn){btn.disabled=false;btn.textContent='发送验证码';}return;}
+    document.getElementById('otp-step-code').style.display='block';
+    var ci=document.getElementById('otpCode');if(ci){ci.value='';setTimeout(function(){try{ci.focus();}catch(e){}},100);}
+    _startOtpCooldown(btn,'重新发送');
+  }catch(e){
+    alert('发送失败：'+(e&&e.message||e));
+    if(btn){btn.disabled=false;btn.textContent='发送验证码';}
+  }
+}
+async function verifyLoginOtp(){
+  var email=(document.getElementById('otpEmail').value||'').trim().toLowerCase();
+  var code=(document.getElementById('otpCode').value||'').trim();
+  if(!code){alert('请输入验证码');return;}
+  var btn=document.getElementById('otp-verify-btn');
+  if(btn){btn.disabled=true;btn.textContent='验证中...';}
+  try{
+    var res=await _sb.auth.verifyOtp({email:email,token:code,type:'email'});
+    if(res.error){alert('验证码不正确或已过期：'+res.error.message);if(btn){btn.disabled=false;btn.textContent='验证';}return;}
+    var check=await _sb.from('users').select('id,name').eq('email',email).maybeSingle();
+    document.getElementById('otp-step-email').style.display='none';
+    document.getElementById('otp-step-code').style.display='none';
+    if(check.data){
+      window._otpFoundUser=check.data;
+      document.getElementById('otp-step-existuser').style.display='block';
+    }else{
+      window._otpFoundUser=null;
+      document.getElementById('otp-step-newuser').style.display='block';
+    }
+  }catch(e){
+    alert('验证失败：'+(e&&e.message||e));
+    if(btn){btn.disabled=false;btn.textContent='验证';}
+  }
+}
+async function finishOtpLogin(){
+  var p1=(document.getElementById('otpLoginPin').value||'').replace(/[^0-9a-zA-Z]/g,'');
+  var p2=(document.getElementById('otpLoginPin2').value||'').replace(/[^0-9a-zA-Z]/g,'');
+  if(!p1||p1.length<4){alert('密码至少需要4位');return;}
+  if(p1!==p2){alert('两次密码不一致');return;}
+  var row=window._otpFoundUser;
+  if(!row){alert('账号信息丢失，请重新验证');return;}
+  myId=String(row.id);
+  ls('myId',myId);ls('myName',row.name);ls('pin',p1);G.pin=p1;
+  ls('registered','true');
+  ls('myEmail',(document.getElementById('otpEmail').value||'').trim().toLowerCase());
+  ls('tokenExpiry',String(Date.now()+7*24*60*60*1000));
+  await _backupCredentials();
+  _saveDeviceToken(myId);
+  await pullSettings();
+  _startMain();
+}
+async function finishOtpRegister(){
+  var name=(document.getElementById('otpRegName').value||'').trim();
+  var p1=(document.getElementById('otpRegPin').value||'').replace(/[^0-9a-zA-Z]/g,'');
+  var p2=(document.getElementById('otpRegPin2').value||'').replace(/[^0-9a-zA-Z]/g,'');
+  var email=(document.getElementById('otpEmail').value||'').trim().toLowerCase();
+  if(!name){alert('请输入昵称');return;}
+  if(!p1||p1.length<4){alert('密码至少需要4位');return;}
+  if(p1!==p2){alert('两次密码不一致');return;}
+  var btn=document.getElementById('otp-finish-reg-btn');
+  if(btn){btn.disabled=true;btn.textContent='创建中...';}
+  try{
+    var deviceId=lg('deviceId')||('dev_'+Math.random().toString(36).substr(2,16));
+    ls('deviceId',deviceId);
+    var rc=makeRC();
+    G.pin=p1;ls('pin',p1);ls('myName',name);ls('rescueCode',rc);ls('myEmail',email);
+    var res=await _sb.from('users').insert({name:name,device_id:deviceId,email:email}).select().single();
+    if(res.error){
+      if(btn){btn.disabled=false;btn.textContent='Create Account';}
+      alert('注册失败：'+res.error.message);
+      return;
+    }
+    myId=String(res.data.id);
+    ls('myId',myId);ls('registered','true');
+    alert('✅ 注册成功！\n\n你的ID: '+myId+'\n邮箱: '+email+'\n\n🔐 救援码: '+rc+'\n请妥善保存！');
+    ['barkUrl','barkEnabled','barkIconUrl','doNotDisturb','appLockPin','focusMode',
+     'shortcutName','pwaAppName','testGatePin','hide','dis','trig','dest','dpin',
+     'lockTimeout','autoLockLeave'].forEach(function(k){localStorage.removeItem(k);});
+    await _backupCredentials();
+    _saveDeviceToken(myId);
+    pushSettings();
+    _startMain();
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Create Account';}
+    alert('注册失败：'+(e&&e.message||e));
+  }
+}
 function showQR(){
   var modal=document.getElementById('qrModal');
   var img=document.getElementById('qrImg');
@@ -5742,19 +5881,33 @@ async function doEmailRecovery(){
 
   if(btn){btn.disabled=true;btn.style.opacity='0.6';btn.textContent='发送中...';}
   try{
-    var res=await _sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + window.location.pathname + '?reset=1'
-    });
+    var res=await _sb.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});
     if(res.error){
-      if(btn){btn.disabled=false;btn.style.opacity='';btn.textContent='发送重置邮件';}
+      if(btn){btn.disabled=false;btn.style.opacity='';btn.textContent='发送验证码';}
       alert('发送失败：'+res.error.message);
       return;
     }
-    alert('✅ 重置邮件已发送！\n\n请查收邮箱 '+email+'\n链接 5 分钟内有效。\n\n（60 秒后可再次发送，如未收到请查垃圾邮件）');
-    _startEmailRecoveryCooldown();
+    document.getElementById('rec-email-step1').style.display='none';
+    document.getElementById('rec-email-step2').style.display='block';
+    var ci=document.getElementById('recoveryEmailCode');if(ci){ci.value='';setTimeout(function(){try{ci.focus();}catch(e){}},100);}
   }catch(e){
-    if(btn){btn.disabled=false;btn.style.opacity='';btn.textContent='发送重置邮件';}
+    if(btn){btn.disabled=false;btn.style.opacity='';btn.textContent='发送验证码';}
     alert('发送失败：'+(e&&e.message||e));
+  }
+}
+async function verifyRecoveryOtp(){
+  var email=(document.getElementById('recoveryEmail').value||'').trim().toLowerCase();
+  var code=(document.getElementById('recoveryEmailCode').value||'').trim();
+  if(!code){alert('请输入验证码');return;}
+  var btn=document.getElementById('recEmailVerifyBtn');
+  if(btn){btn.disabled=true;btn.textContent='验证中...';}
+  try{
+    var res=await _sb.auth.verifyOtp({email:email,token:code,type:'email'});
+    if(res.error){alert('验证码不正确或已过期：'+res.error.message);if(btn){btn.disabled=false;btn.textContent='验证';}return;}
+    switchTo('resetpw');
+  }catch(e){
+    alert('验证失败：'+(e&&e.message||e));
+    if(btn){btn.disabled=false;btn.textContent='验证';}
   }
 }
 
