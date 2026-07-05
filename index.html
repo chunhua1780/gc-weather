@@ -507,6 +507,12 @@ body{
 #chat > .nav-bar{flex-shrink:0;padding-top:max(6px,calc(env(safe-area-inset-top,0px) + 2px));padding-bottom:5px;}
 #chat > .cbg{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;}
 #chat > .ibar{flex-shrink:0;width:100%;}
+/* desktop: this mobile-first UI should render as a centered "phone frame" on
+   wide browser windows, not stretch full-width (an instant disguise giveaway) */
+@media (min-width:560px){
+  .screen,#chat{left:50%;right:auto;width:420px;transform:translateX(-50%);box-shadow:0 0 0 1px rgba(0,0,0,.06),0 20px 60px rgba(0,0,0,.18);}
+  #installBanner,#huaweiBanner{left:50%;right:auto;width:420px;transform:translateX(-50%);}
+}
 #chat > .ibar .irow{padding-top:6px;padding-bottom:6px;}
 .dp-head{flex-shrink:0;position:relative;z-index:2;}
 .dp-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:2;}
@@ -3571,7 +3577,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.86';
+var CORE_VERSION='v1.87';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
