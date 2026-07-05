@@ -1299,7 +1299,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
       <div onclick="toggleThemeDrawer()" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
         <div id="themeCurrentDot" style="width:28px;height:28px;border-radius:8px;flex-shrink:0;margin-right:12px;background:linear-gradient(135deg,#ff9a9e,#a18cd1);"></div>
         <div style="flex:1;">
-          <div style="font-size:calc(17px * var(--ui-font-scale,1));">主题外观</div>
+          <div id="themeRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));">主题外观</div>
           <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="themeCurrentName">粉紫</div>
         </div>
         <span style="color:#c7c7cc;font-size:calc(14px * var(--ui-font-scale,1));transition:transform .2s;" id="themeDrawerArrow">›</span>
@@ -1307,7 +1307,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
       <div id="themeDrawer" style="display:none;padding:0 8px 14px;"><div id="themeSwatchGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div></div>
       <!-- 字体大小 -->
       <div style="border-top:1px solid var(--theme-border);padding:14px 16px 12px;">
-        <div style="font-size:calc(17px * var(--ui-font-scale,1));margin-bottom:10px;">字体大小</div>
+        <div id="fontSizeRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));margin-bottom:10px;">字体大小</div>
         <div id="fontSizeGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
       </div>
       <!-- 语言 -->
@@ -1323,7 +1323,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
       <div style="border-top:1px solid var(--theme-border);">
         <div onclick="toggleChatStyleDrawer()" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
           <div style="flex:1;">
-            <div style="font-size:calc(17px * var(--ui-font-scale,1));">聊天气泡风格</div>
+            <div id="chatStyleRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));">聊天气泡风格</div>
             <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="chatStyleCurrentName">经典</div>
           </div>
           <span style="color:#c7c7cc;font-size:calc(14px * var(--ui-font-scale,1));transition:transform .2s;" id="chatStyleDrawerArrow">›</span>
@@ -1335,17 +1335,17 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     </div>
 
     <!-- ─── 账号操作 ─── -->
-    <div style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">账号</div>
+    <div id="accountSectionHd" style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">账号</div>
     <div class="card" style="padding:0;">
       <div class="row" onclick="show('account-set')" style="padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">账号设置</div></div>
+        <div style="flex:1;"><div id="accountSettingsRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));">账号设置</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
       <div class="row" onclick="showDeviceManager()" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></div>
         <div style="flex:1;">
-          <div style="font-size:calc(17px * var(--ui-font-scale,1));">登录设备</div>
+          <div id="loginDevicesRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));">登录设备</div>
           <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="deviceCountTxt">查看并管理登录设备</div>
         </div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
@@ -1353,7 +1353,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
       <div class="row" id="bindEmailRow" onclick="bindEmailToAccount()" style="border-top:1px solid var(--theme-border);">
         <div class="si" style="background:var(--theme-row-bg);">📧</div>
         <div style="flex:1;">
-          <div style="font-size:calc(17px * var(--ui-font-scale,1));">绑定邮箱</div>
+          <div id="bindEmailRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));">绑定邮箱</div>
           <div class="row-sub" style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">用于找回密码，可选</div>
         </div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
@@ -1364,7 +1364,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
       </div>
       <div class="row" onclick="deleteAccount()" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">🗑️</div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));color:#ff3b30;">注销账号</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">永久删除账号和数据</div></div>
+        <div style="flex:1;"><div id="deleteAccountRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));color:#ff3b30;">注销账号</div><div id="deleteAccountRowDesc" style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">永久删除账号和数据</div></div>
       </div>
       <div class="row" onclick="window.open(GC_BASE_URL+'privacy.html','_blank')" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">📄</div>
@@ -1952,6 +1952,14 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 // ═══ PWA: Service Worker 注册 ═══
 (function(){
   if('serviceWorker' in navigator){
+    // 新版本SW接管后自动刷新一次，否则长时间不关闭App的用户会一直跑旧代码，
+    // 之前修复的bug对他们来说"看起来没生效"。只刷新一次，避免死循环。
+    var _swRefreshing=false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(_swRefreshing)return;
+      _swRefreshing=true;
+      location.reload();
+    });
     window.addEventListener('load', function(){
       navigator.serviceWorker.register('./sw.js', {scope: './'}).then(function(reg){
         console.log('[PWA] SW registered, scope:', reg.scope);
@@ -3530,16 +3538,22 @@ function _buildFontSizeGrid(){
   var g=document.getElementById('fontSizeGrid');
   if(!g)return;
   var cur=lg('uiFontSize')||lg('chatFontSize')||'md';
-  g.innerHTML='';
-  _FONT_SIZES.forEach(function(s){
-    var sel=s.id===cur;
-    var d=document.createElement('div');
-    d.style.cssText='cursor:pointer;border-radius:12px;padding:10px 4px;text-align:center;background:var(--theme-row-bg);border:2px solid '+(sel?'var(--theme-accent1)':'transparent')+';-webkit-tap-highlight-color:transparent;';
-    d.innerHTML='<div style="font-weight:'+(sel?'700':'400')+';color:var(--theme-text);font-size:'+s.px+'px;">A</div>'+
-      '<div style="font-size:calc(11px * var(--ui-font-scale,1));color:#8e8e93;margin-top:4px;">'+s.name+'</div>';
-    (function(sid){d.onclick=function(){applyFontSize(sid);};})(s.id);
-    g.appendChild(d);
-  });
+  var idx=_FONT_SIZES.map(function(x){return x.id;}).indexOf(cur);
+  if(idx<0)idx=1;
+  g.innerHTML='<div style="display:flex;align-items:center;gap:10px;">'+
+    '<span style="font-size:13px;color:#8e8e93;flex-shrink:0;">A</span>'+
+    '<input type="range" id="fontSizeSlider" min="0" max="'+(_FONT_SIZES.length-1)+'" step="1" value="'+idx+'" style="flex:1;-webkit-tap-highlight-color:transparent;">'+
+    '<span style="font-size:22px;color:#8e8e93;flex-shrink:0;">A</span>'+
+    '</div>'+
+    '<div id="fontSizeLabel" style="text-align:center;font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-top:6px;">'+_FONT_SIZES[idx].name+'</div>';
+  var sl=document.getElementById('fontSizeSlider');
+  // 拖动时实时预览，松手(change)才落盘+同步，避免拖动过程中疯狂写存储/同步
+  sl.oninput=function(){
+    var s=_FONT_SIZES[parseInt(sl.value,10)];
+    document.documentElement.style.setProperty('--ui-font-scale',(s.px/_FONT_BASE_PX));
+    var lbl=document.getElementById('fontSizeLabel');if(lbl)lbl.textContent=s.name;
+  };
+  sl.onchange=function(){applyFontSize(_FONT_SIZES[parseInt(sl.value,10)].id);};
 }
 (function(){
   var _f=lg('uiFontSize')||lg('chatFontSize');
@@ -3561,8 +3575,8 @@ var curLang=lg('lang')||'zh-CN';
 // 查不到当前语言的词条时永远回退英文，绝不回退中文——切到任何非中文语言都不会
 // 再看到残留的中文文案。
 var I18N_DICT={
-  "en":{"app":"天气","tag":"Private · Encrypted · Untraceable","msg":"Messages","set":"Settings","nick":"Nickname","pwd":"Password (4-8 digits)","cpwd":"Confirm password","create":"Create Account","haveAcct":"Already have account?","newUser":"New here?","forgot":"Forgot password?","hideMode":"Hide Mode","notEnabled":"Not enabled","secretNotif":"Secret Notification","destroyMethod":"Destroy Method","e2e":"End-to-End Encryption","destroyNow":"Destroy Now","subscribe":"Subscribe","logout":"Logout","lang":"Language","privacy":"Privacy & Security","flashlight":"Flashlight","calculator":"Calculator","clock":"Clock","notes":"Notes","calling":"Calling...","mute":"Mute","end":"End","speaker":"Speaker","incoming":"Incoming call...","decline":"Decline","accept":"Accept","enterPwd":"Enter Password","cancel":"Cancel","release":"Release to send","enableHide":"Enable Hide Mode","disableHide":"Disable Hide Mode","save":"Save","appearance":"Appearance","themeDefault":"Pink Dream","themeBusiness":"Business","themeDark":"Dark","themeOcean":"Ocean","themeForest":"Forest","themeNeon":"Neon","appName":"SecretTalk","appTagline":"A cozy private chat space","welcomeBack":"Welcome back!","loginIdPh":"Your ID","passwordPh":"Password","loginBtn":"Log In","registerLink":"Create account","forgotPw":"Forgot password?","createAccount":"Create your account","nicknamePh":"Nickname","customIdPh":"Custom ID (optional)","passwordPh2":"Password (4-8 digits)","confirmPwPh":"Confirm password","createBtn":"Create Account","haveAccount":"Already have an account?","loginLink":"Log in","recoveryTitle":"Account Recovery","recoveryDesc":"Enter your rescue code.","verifyPayBtn":"Verify","backToLogin":"← Back to Login","installTitle":"Install Weather","installDesc":"Add to Home Screen for notifications","installBtn":"Install","msgImage":"[Photo]","msgVoice":"[Voice]","msgVideo":"[Video]","msgFile":"[File]","msgLocation":"[Location]","msgContact":"[Contact]","youPrefix":"You: ","typingNow":"typing","sendFailed":"Send failed","sendFailedShort":"⚠️ Failed","sendFailedRetryHint":"Send failed, tap to retry","recallFailed":"Recall failed: ","videoSendFailed":"⚠️ Video failed to send","fileSendFailed":"⚠️ Failed to send: ","blockedSendMsg":"This user has blocked you. Unblock them in Contacts first.","sendingEllipsis":"Sending...","wd0":"Sun","wd1":"Mon","wd2":"Tue","wd3":"Wed","wd4":"Thu","wd5":"Fri","wd6":"Sat","youRecalled":"You recalled a message","theyRecalled":"They recalled a message","processingEllipsis":"Processing...","contactCardHint":"Contact card · Tap to view","tapToDownload":"Tap to download","loadingEllipsis":"Loading…","noChatsYet":"No chats yet","addFriendsHint":"Add friends in Contacts to start chatting","micCamError":"Could not access microphone/camera: ","answerCallError":"Could not answer: ","inCallTimer":"In call 00:00","incomingCallConfirm":"is calling, answer?","connecting":"Connecting...","callFallbackName":"Call"},
-  "zh-CN":{"app":"天气","tag":"私密 · 加密 · 无痕","msg":"消息","set":"设置","nick":"昵称","pwd":"密码（4-8位）","cpwd":"确认密码","create":"创建账号","haveAcct":"已有账号？","newUser":"还没有账号？","forgot":"忘记密码？","hideMode":"隐藏模式","notEnabled":"未开启","secretNotif":"隐秘通知","destroyMethod":"销毁方式","e2e":"端对端加密","destroyNow":"立即销毁","subscribe":"订阅会员","logout":"退出登录","lang":"语言","privacy":"隐私与安全","flashlight":"手电筒","calculator":"计算器","clock":"时钟","notes":"备忘录","calling":"正在呼叫...","mute":"静音","end":"挂断","speaker":"扬声器","incoming":"来电...","decline":"拒接","accept":"接听","enterPwd":"输入密码","cancel":"取消","release":"松开发送","enableHide":"开启隐藏模式","disableHide":"关闭隐藏模式","save":"保存","appearance":"外观","themeDefault":"默认粉紫","themeBusiness":"商务简约","themeDark":"深夜暗黑","themeOcean":"静谧蓝海","themeForest":"森系绿意","themeNeon":"赛博霓虹","appName":"私语","appTagline":"一个温馨私密的聊天空间","welcomeBack":"欢迎回来！","loginIdPh":"你的ID","passwordPh":"密码","loginBtn":"登录","registerLink":"立即注册","forgotPw":"忘记密码？","createAccount":"创建账号","nicknamePh":"昵称","customIdPh":"自定义ID（可选）","passwordPh2":"密码（4-8位数字）","confirmPwPh":"确认密码","createBtn":"创建账号","haveAccount":"已有账号？","loginLink":"去登录","recoveryTitle":"账号找回","recoveryDesc":"请输入您的找回码。","verifyPayBtn":"验证","backToLogin":"← 返回登录","installTitle":"安装 天气","installDesc":"添加到桌面，收发推送通知","installBtn":"安装","msgImage":"[图片]","msgVoice":"[语音]","msgVideo":"[视频]","msgFile":"[文件]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在输入","sendFailed":"发送失败","sendFailedShort":"⚠️失败","sendFailedRetryHint":"发送失败，点重试","recallFailed":"撤回失败: ","videoSendFailed":"⚠️ 视频发送失败","fileSendFailed":"⚠️ 发送失败: ","blockedSendMsg":"对方已被你拉黑，请先在通讯录中解除拉黑","sendingEllipsis":"发送中...","wd0":"周日","wd1":"周一","wd2":"周二","wd3":"周三","wd4":"周四","wd5":"周五","wd6":"周六","youRecalled":"你撤回了一条消息","theyRecalled":"对方撤回了一条消息","processingEllipsis":"处理中...","contactCardHint":"名片 · 点击查看","tapToDownload":"点击下载","loadingEllipsis":"加载中…","noChatsYet":"暂无聊天","addFriendsHint":"在通讯录添加好友后开始聊天","micCamError":"无法访问麦克风/摄像头：","answerCallError":"无法接听：","inCallTimer":"通话中 00:00","incomingCallConfirm":"来电，接听？","connecting":"正在连接...","callFallbackName":"通话"},
+  "en":{"app":"天气","tag":"Private · Encrypted · Untraceable","msg":"Messages","set":"Settings","nick":"Nickname","pwd":"Password (4-8 digits)","cpwd":"Confirm password","create":"Create Account","haveAcct":"Already have account?","newUser":"New here?","forgot":"Forgot password?","hideMode":"Hide Mode","notEnabled":"Not enabled","secretNotif":"Secret Notification","destroyMethod":"Destroy Method","e2e":"End-to-End Encryption","destroyNow":"Destroy Now","subscribe":"Subscribe","logout":"Logout","lang":"Language","privacy":"Privacy & Security","flashlight":"Flashlight","calculator":"Calculator","clock":"Clock","notes":"Notes","calling":"Calling...","mute":"Mute","end":"End","speaker":"Speaker","incoming":"Incoming call...","decline":"Decline","accept":"Accept","enterPwd":"Enter Password","cancel":"Cancel","release":"Release to send","enableHide":"Enable Hide Mode","disableHide":"Disable Hide Mode","save":"Save","appearance":"Appearance","themeDefault":"Pink Dream","themeBusiness":"Business","themeDark":"Dark","themeOcean":"Ocean","themeForest":"Forest","themeNeon":"Neon","appName":"SecretTalk","appTagline":"A cozy private chat space","welcomeBack":"Welcome back!","loginIdPh":"Your ID","passwordPh":"Password","loginBtn":"Log In","registerLink":"Create account","forgotPw":"Forgot password?","createAccount":"Create your account","nicknamePh":"Nickname","customIdPh":"Custom ID (optional)","passwordPh2":"Password (4-8 digits)","confirmPwPh":"Confirm password","createBtn":"Create Account","haveAccount":"Already have an account?","loginLink":"Log in","recoveryTitle":"Account Recovery","recoveryDesc":"Enter your rescue code.","verifyPayBtn":"Verify","backToLogin":"← Back to Login","installTitle":"Install Weather","installDesc":"Add to Home Screen for notifications","installBtn":"Install","msgImage":"[Photo]","msgVoice":"[Voice]","msgVideo":"[Video]","msgFile":"[File]","msgLocation":"[Location]","msgContact":"[Contact]","youPrefix":"You: ","typingNow":"typing","sendFailed":"Send failed","sendFailedShort":"⚠️ Failed","sendFailedRetryHint":"Send failed, tap to retry","recallFailed":"Recall failed: ","videoSendFailed":"⚠️ Video failed to send","fileSendFailed":"⚠️ Failed to send: ","blockedSendMsg":"This user has blocked you. Unblock them in Contacts first.","sendingEllipsis":"Sending...","wd0":"Sun","wd1":"Mon","wd2":"Tue","wd3":"Wed","wd4":"Thu","wd5":"Fri","wd6":"Sat","youRecalled":"You recalled a message","theyRecalled":"They recalled a message","processingEllipsis":"Processing...","contactCardHint":"Contact card · Tap to view","tapToDownload":"Tap to download","loadingEllipsis":"Loading…","noChatsYet":"No chats yet","addFriendsHint":"Add friends in Contacts to start chatting","micCamError":"Could not access microphone/camera: ","answerCallError":"Could not answer: ","inCallTimer":"In call 00:00","incomingCallConfirm":"is calling, answer?","connecting":"Connecting...","callFallbackName":"Call","themeRowTitle":"Theme","chatStyleRowTitle":"Chat Bubble Style","fontSizeRowTitle":"Font Size","accountSectionHd":"Account","accountSettingsRowTitle":"Account Settings","loginDevicesRowTitle":"Login Devices","loginDevicesDesc":"View and manage login devices","bindEmailRowTitle":"Bind Email","deleteAccountRowTitle":"Delete Account","deleteAccountRowDesc":"Permanently delete account and data"},
+  "zh-CN":{"app":"天气","tag":"私密 · 加密 · 无痕","msg":"消息","set":"设置","nick":"昵称","pwd":"密码（4-8位）","cpwd":"确认密码","create":"创建账号","haveAcct":"已有账号？","newUser":"还没有账号？","forgot":"忘记密码？","hideMode":"隐藏模式","notEnabled":"未开启","secretNotif":"隐秘通知","destroyMethod":"销毁方式","e2e":"端对端加密","destroyNow":"立即销毁","subscribe":"订阅会员","logout":"退出登录","lang":"语言","privacy":"隐私与安全","flashlight":"手电筒","calculator":"计算器","clock":"时钟","notes":"备忘录","calling":"正在呼叫...","mute":"静音","end":"挂断","speaker":"扬声器","incoming":"来电...","decline":"拒接","accept":"接听","enterPwd":"输入密码","cancel":"取消","release":"松开发送","enableHide":"开启隐藏模式","disableHide":"关闭隐藏模式","save":"保存","appearance":"外观","themeDefault":"默认粉紫","themeBusiness":"商务简约","themeDark":"深夜暗黑","themeOcean":"静谧蓝海","themeForest":"森系绿意","themeNeon":"赛博霓虹","appName":"私语","appTagline":"一个温馨私密的聊天空间","welcomeBack":"欢迎回来！","loginIdPh":"你的ID","passwordPh":"密码","loginBtn":"登录","registerLink":"立即注册","forgotPw":"忘记密码？","createAccount":"创建账号","nicknamePh":"昵称","customIdPh":"自定义ID（可选）","passwordPh2":"密码（4-8位数字）","confirmPwPh":"确认密码","createBtn":"创建账号","haveAccount":"已有账号？","loginLink":"去登录","recoveryTitle":"账号找回","recoveryDesc":"请输入您的找回码。","verifyPayBtn":"验证","backToLogin":"← 返回登录","installTitle":"安装 天气","installDesc":"添加到桌面，收发推送通知","installBtn":"安装","msgImage":"[图片]","msgVoice":"[语音]","msgVideo":"[视频]","msgFile":"[文件]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在输入","sendFailed":"发送失败","sendFailedShort":"⚠️失败","sendFailedRetryHint":"发送失败，点重试","recallFailed":"撤回失败: ","videoSendFailed":"⚠️ 视频发送失败","fileSendFailed":"⚠️ 发送失败: ","blockedSendMsg":"对方已被你拉黑，请先在通讯录中解除拉黑","sendingEllipsis":"发送中...","wd0":"周日","wd1":"周一","wd2":"周二","wd3":"周三","wd4":"周四","wd5":"周五","wd6":"周六","youRecalled":"你撤回了一条消息","theyRecalled":"对方撤回了一条消息","processingEllipsis":"处理中...","contactCardHint":"名片 · 点击查看","tapToDownload":"点击下载","loadingEllipsis":"加载中…","noChatsYet":"暂无聊天","addFriendsHint":"在通讯录添加好友后开始聊天","micCamError":"无法访问麦克风/摄像头：","answerCallError":"无法接听：","inCallTimer":"通话中 00:00","incomingCallConfirm":"来电，接听？","connecting":"正在连接...","callFallbackName":"通话","themeRowTitle":"主题外观","chatStyleRowTitle":"聊天气泡风格","fontSizeRowTitle":"字体大小","accountSectionHd":"账号","accountSettingsRowTitle":"账号设置","loginDevicesRowTitle":"登录设备","loginDevicesDesc":"查看并管理登录设备","bindEmailRowTitle":"绑定邮箱","deleteAccountRowTitle":"注销账号","deleteAccountRowDesc":"永久删除账号和数据"},
   "zh-TW":{"app":"天气","tag":"私密 · 加密 · 無痕","msg":"訊息","set":"設定","nick":"暱稱","pwd":"密碼（4-8位）","cpwd":"確認密碼","create":"建立帳號","haveAcct":"已有帳號？","newUser":"新用戶？","forgot":"忘記密碼？","hideMode":"隱藏模式","notEnabled":"未開啟","secretNotif":"隱密通知","destroyMethod":"銷毀方式","e2e":"端對端加密","destroyNow":"立即銷毀","subscribe":"訂閱會員","logout":"登出","lang":"語言","privacy":"隱私與安全","flashlight":"手電筒","calculator":"計算機","clock":"時鐘","notes":"備忘錄","calling":"撥打中...","mute":"靜音","end":"掛斷","speaker":"擴音","incoming":"來電...","decline":"拒接","accept":"接聽","enterPwd":"輸入密碼","cancel":"取消","release":"放開傳送","enableHide":"開啟隱藏模式","disableHide":"關閉隱藏模式","save":"儲存","installTitle":"安裝 天氣","installDesc":"新增到主畫面，接收推播通知","installBtn":"安裝","msgImage":"[圖片]","msgVoice":"[語音]","msgVideo":"[影片]","msgFile":"[檔案]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在輸入","sendFailed":"傳送失敗","sendFailedShort":"⚠️失敗","sendFailedRetryHint":"傳送失敗，點擊重試","recallFailed":"撤回失敗: ","videoSendFailed":"⚠️ 影片傳送失敗","fileSendFailed":"⚠️ 傳送失敗: ","blockedSendMsg":"對方已將你封鎖，請先在聯絡人中解除封鎖","sendingEllipsis":"傳送中...","wd0":"週日","wd1":"週一","wd2":"週二","wd3":"週三","wd4":"週四","wd5":"週五","wd6":"週六","youRecalled":"你收回了一則訊息","theyRecalled":"對方收回了一則訊息","processingEllipsis":"處理中...","contactCardHint":"名片 · 點擊查看","tapToDownload":"點擊下載","loadingEllipsis":"載入中…","noChatsYet":"暫無聊天","addFriendsHint":"在聯絡人中新增好友後開始聊天","micCamError":"無法存取麥克風/相機：","answerCallError":"無法接聽：","inCallTimer":"通話中 00:00","incomingCallConfirm":"來電，接聽？","connecting":"正在連線...","callFallbackName":"通話"},
   "es":{"app":"天气","tag":"Privado · Cifrado · Sin rastro","msg":"Mensajes","set":"Ajustes","nick":"Apodo","pwd":"Contraseña (4-8 dígitos)","cpwd":"Confirmar contraseña","create":"Crear cuenta","haveAcct":"¿Ya tienes cuenta?","newUser":"¿Nuevo usuario?","forgot":"¿Olvidaste la contraseña?","hideMode":"Modo oculto","notEnabled":"No activado","secretNotif":"Notif. secreta","destroyMethod":"Destrucción","e2e":"Cifrado E2E","destroyNow":"Destruir ahora","subscribe":"Suscribirse","logout":"Cerrar sesión","lang":"Idioma","privacy":"Privacidad","flashlight":"Linterna","calculator":"Calculadora","clock":"Reloj","notes":"Notas","calling":"Llamando...","mute":"Silencio","end":"Colgar","speaker":"Altavoz","incoming":"Llamada entrante...","decline":"Rechazar","accept":"Aceptar","enterPwd":"Contraseña","cancel":"Cancelar","release":"Soltar para enviar","enableHide":"Activar modo oculto","disableHide":"Desactivar","save":"Guardar","installTitle":"Instalar app","installDesc":"Añadir a inicio para recibir notificaciones","installBtn":"Instalar"},
   "fr":{"app":"天气","tag":"Privé · Chiffré · Sans trace","msg":"Messages","set":"Paramètres","nick":"Pseudo","pwd":"Mot de passe (4-8 chiffres)","cpwd":"Confirmer","create":"Créer un compte","haveAcct":"Déjà un compte?","newUser":"Nouvel utilisateur?","forgot":"Mot de passe oublié?","hideMode":"Mode caché","notEnabled":"Non activé","secretNotif":"Notif. secrète","destroyMethod":"Destruction","e2e":"Chiffrement E2E","destroyNow":"Détruire","subscribe":"Abonnement","logout":"Déconnexion","lang":"Langue","privacy":"Confidentialité","flashlight":"Lampe torche","calculator":"Calculatrice","clock":"Horloge","notes":"Notes","calling":"Appel en cours...","mute":"Muet","end":"Raccrocher","speaker":"Haut-parleur","incoming":"Appel entrant...","decline":"Refuser","accept":"Accepter","enterPwd":"Mot de passe","cancel":"Annuler","release":"Relâcher pour envoyer","enableHide":"Activer mode caché","disableHide":"Désactiver","save":"Enregistrer","installTitle":"Installer l'app","installDesc":"Ajouter à l'écran d'accueil pour les notifications","installBtn":"Installer"},
@@ -5885,6 +5899,11 @@ function applyLang(){
   T('set-destroyNow','destroyNow');T('set-subscribe','subscribe');
   T('set-logout','logout');T('set-lang','lang');
   T('set-privacy-hd','privacy');
+  T('themeRowTitle','themeRowTitle');T('chatStyleRowTitle','chatStyleRowTitle');
+  T('fontSizeRowTitle','fontSizeRowTitle');T('accountSectionHd','accountSectionHd');
+  T('accountSettingsRowTitle','accountSettingsRowTitle');T('loginDevicesRowTitle','loginDevicesRowTitle');
+  T('deviceCountTxt','loginDevicesDesc');T('bindEmailRowTitle','bindEmailRowTitle');
+  T('deleteAccountRowTitle','deleteAccountRowTitle');T('deleteAccountRowDesc','deleteAccountRowDesc');
   // 隐藏设置
   T('d-calc-name','calculator');
   T('d-clk-name','clock');T('d-note-name','notes');
