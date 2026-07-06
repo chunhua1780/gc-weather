@@ -2457,7 +2457,7 @@ function toggleHideMode(){
   } else {
     // 开启：需要有密码
     if(!lg('appLockPin')&&!confirm('还没有锁屏密码，开启隐藏模式将使用登录密码解锁。\n要继续吗？'))return;
-    var dis=lg('dis')||G.dis||'calculator';
+    var dis=lg('dis')||G.dis||'weather';
     G.hide=true;G.dis=dis;ls('hide','true');updHide();
     if(typeof pushSettings==='function')pushSettings();
     initQuickToggles();
@@ -4074,7 +4074,7 @@ ls('myId',myId);
 var G={
   chat:'',msgs:{},
   pin:lg('pin')||'',
-  dis:lg('dis')||'calculator',trig:lg('trig')||'pin',
+  dis:lg('dis')||'weather',trig:lg('trig')||'pin',
   hide:lg('hide')==='true',
   dest:lg('dest')||'wrong',dpin:lg('dpin')||'',
   notifSym:lg('notifSym')||'dot',notifTxt:lg('notifTxt')||'sys',
@@ -4199,7 +4199,7 @@ function _showStartupStealth(){
   var hideOn=lg('hide')==='true';
   var hasPin=!!lg('appLockPin');
   if(!hideOn&&!hasPin){hideOn=true;}
-  G.hide=hideOn;G.dis=lg('dis')||'calculator';
+  G.hide=hideOn;G.dis=lg('dis')||'weather';
   window._gcDisguiseMode=true;
   if(hideOn){
     var dm={weather:'dweather',calculator:'dcalc',clock:'dclk',note:'dnote'};
