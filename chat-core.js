@@ -442,7 +442,7 @@ function listenForAllMessages(){
           else{_lastContactsLoad=0;loadContacts();}
           sendNotif();
           if(!chatOpenNow){
-            if('serviceWorker' in navigator&&Notification.permission==='granted'){
+            if('serviceWorker' in navigator&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
               navigator.serviceWorker.ready.then(function(reg){
                 var sn=G.friends&&G.friends[senderId]?G.friends[senderId].name:('用户'+senderId);
                 var body=msg.type==='text'?msg.text:msg.type==='image'?'[图片]':msg.type==='voice'?'[语音]':msg.type==='video'?'[视频]':'[消息]';

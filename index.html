@@ -6,34 +6,38 @@
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "ff584e0a-51e5-44a7-9d2c-488262c4faa9",
-      safari_web_id: "web.onesignal.auto.40adfb09-7751-41be-9e4d-5711eb8f35a8",
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true,
-      promptOptions: {
-        slidedown: {
-          prompts: [{
-            type: "push",
-            autoPrompt: true,
-            text: {
-              actionMessage: "天气 需要通知权限才能收到新消息提醒",
-              acceptButton: "允许",
-              cancelButton: "以后再说"
-            },
-            delay: { pageViews: 1, timeDelay: 3 }
-          }]
-        }
-      }
-    });
-    // 初始化完立即请求权限
     try {
-      var permission = await OneSignal.Notifications.permission;
-      if (!permission) {
-        await OneSignal.Slidedown.promptPush();
+      await OneSignal.init({
+        appId: "ff584e0a-51e5-44a7-9d2c-488262c4faa9",
+        safari_web_id: "web.onesignal.auto.40adfb09-7751-41be-9e4d-5711eb8f35a8",
+        notifyButton: { enable: false },
+        allowLocalhostAsSecureOrigin: true,
+        promptOptions: {
+          slidedown: {
+            prompts: [{
+              type: "push",
+              autoPrompt: true,
+              text: {
+                actionMessage: "天气 需要通知权限才能收到新消息提醒",
+                acceptButton: "允许",
+                cancelButton: "以后再说"
+              },
+              delay: { pageViews: 1, timeDelay: 3 }
+            }]
+          }
+        }
+      });
+      // 初始化完立即请求权限
+      try {
+        var permission = await OneSignal.Notifications.permission;
+        if (!permission) {
+          await OneSignal.Slidedown.promptPush();
+        }
+      } catch(e) {
+        try { await OneSignal.Notifications.requestPermission(); } catch(e2) {}
       }
-    } catch(e) {
-      try { await OneSignal.Notifications.requestPermission(); } catch(e2) {}
+    } catch(initErr) {
+      console.warn('[OneSignal] init failed (domain mismatch or unsupported browser), continuing without push:', initErr && initErr.message);
     }
   });
 </script>
@@ -6997,7 +7001,7 @@ function listenForAllMessages(){
         sendNotif();
         // ── 系统级弹窗通知 ──
         if(!chatOpenNow){
-          if('serviceWorker' in navigator && Notification.permission==='granted'){
+          if('serviceWorker' in navigator && typeof Notification!=='undefined' && Notification.permission==='granted'){
             navigator.serviceWorker.ready.then(function(reg){
               var sname=G.friends&&G.friends[senderId]?G.friends[senderId].name:('用户'+senderId);
               var body=msg.type==='text'?msg.text:msg.type==='image'?'[图片]':msg.type==='voice'?'[语音]':msg.type==='video'?'[视频]':'[消息]';
