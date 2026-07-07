@@ -2420,18 +2420,18 @@ var FOCUS_MODES = {
           bark:true,  dnd:true,  hide:false, lock:true,  disguise:false},
   // 🏠 回家模式：锁屏 + 隐身(天气) + Bark伪装成天气通知
   home:  {label:'回家模式', labelEn:'Home', emoji:'🏠',
-          desc:'有锁屏 · 伪装天气APP · 通知显示为天气提醒',
-          descEn:'Lock screen on · Disguised as weather app · Notifications show as weather alerts',
+          desc:'有锁屏 · 伪装模式 · 通知显示为普通提醒',
+          descEn:'Lock screen on · Disguise mode on · Notifications show as ordinary alerts',
           bark:true,  dnd:false, hide:true,  lock:true,  disguise:true},
   // 🌙 回家②：同回家但通知只有角标，不震动不弹窗
   home2: {label:'回家②',   labelEn:'Home 2', emoji:'🌙',
-          desc:'有锁屏 · 伪装天气APP · 只有角标 不震动不弹窗',
-          descEn:'Lock screen on · Disguised as weather app · Badge only, no vibration or popup',
+          desc:'有锁屏 · 伪装模式 · 只有角标 不震动不弹窗',
+          descEn:'Lock screen on · Disguise mode on · Badge only, no vibration or popup',
           bark:true,  dnd:true,  hide:true,  lock:true,  disguise:true},
   // 👻 完全隐身：锁屏 + 隐身(天气) + 关闭所有通知
   ghost: {label:'完全隐身', labelEn:'Ghost', emoji:'👻',
-          desc:'有锁屏 · 伪装天气APP · 无任何通知',
-          descEn:'Lock screen on · Disguised as weather app · No notifications at all',
+          desc:'有锁屏 · 伪装模式 · 无任何通知',
+          descEn:'Lock screen on · Disguise mode on · No notifications at all',
           bark:false, dnd:false, hide:true,  lock:true,  disguise:true}
 };
 // 与 _themeDispName 同一约定：中文简体显示中文，其它语言回退英文
@@ -2458,12 +2458,10 @@ function setFocusMode(mode){
   ls('doNotDisturb',cfg.dnd?'true':'false');
   ls('autoLockLeave',cfg.lock?'true':'false');
 
-  // 隐身模式：强制用weather伪装（回家/隐身模式）
+  // 隐身模式：用当前App自身的伪装皮肤（不再写死weather，各App有各自的强制身份锁定）
   if(cfg.hide){
     G.hide=true;
-    G.dis='weather';
     ls('hide','true');
-    ls('dis','weather');
     updHide();
     if(typeof pushSettings==='function')pushSettings();
   } else if(G.hide){
