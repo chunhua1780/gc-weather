@@ -1051,56 +1051,56 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 
 <!-- 设置 -->
 <div id="account-set" class="screen">
-  <div class="nav-bar nav-sm"><span class="nav-btn" onclick="show('settings')">‹ 设置</span><span class="t">账号</span><span></span></div>
+  <div class="nav-bar nav-sm"><span class="nav-btn" onclick="show('settings')" data-i18n="backToSettingsBtn">‹ 设置</span><span class="t" data-i18n="accountSectionHd">账号</span><span></span></div>
   <div class="scroll">
     <div style="height:8px;"></div>
     <div style="display:flex;flex-direction:column;align-items:center;padding:20px;">
       <div onclick="editAvatar()" style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#007aff,#5ac8fa);display:flex;align-items:center;justify-content:center;font-size:calc(32px * var(--ui-font-scale,1));color:#fff;font-weight:700;cursor:pointer;overflow:hidden;position:relative;" id="avatarDisplay2">?</div>
-      <div style="font-size:calc(13px * var(--ui-font-scale,1));color:var(--theme-accent2);margin-top:8px;cursor:pointer;" onclick="editAvatar()">✏️ 更换头像</div>
+      <div style="font-size:calc(13px * var(--ui-font-scale,1));color:var(--theme-accent2);margin-top:8px;cursor:pointer;" onclick="editAvatar()" data-i18n="changeAvatarBtn">✏️ 更换头像</div>
     </div>
     <div class="card">
       <div class="row" onclick="editNickname()">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">昵称</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="nickShow2">-</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="nick">昵称</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="nickShow2">-</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
       <div class="row" onclick="changePin()">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">修改密码</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="changePasswordRowTitle">修改密码</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
       <div class="row" onclick="setAppLockPin()">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">🐰</div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">锁屏密码</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">空闲后/隐藏模式解锁都用这个</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="appLockPinRowTitle">锁屏密码</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" data-i18n="appLockPinRowDesc">空闲后/隐藏模式解锁都用这个</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
       <div class="row" onclick="setTestGatePin()">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">🔐</div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">访问密码</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">网站密码门，默认跟锁屏密码一致</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="testGatePinRowTitle">访问密码</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" data-i18n="testGatePinRowDesc">网站密码门，默认跟锁屏密码一致</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
       <div class="row" onclick="setLockTimeout()">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">⏰</div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">自动锁屏时间</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="lockTimeoutShow">-</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="lockTimeoutRowTitle">自动锁屏时间</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="lockTimeoutShow">-</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
       <div class="row">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">🔒</div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">离开APP自动锁屏</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">切到其他软件或锁屏后，回来需要输入锁屏密码</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="autoLockLeaveRowTitle">离开APP自动锁屏</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" data-i18n="autoLockLeaveRowDesc">切到其他软件或锁屏后，回来需要输入锁屏密码</div></div>
         <div class="tog" id="autoLockToggle" onclick="toggleAutoLockLeave()"><div class="td"></div></div>
       </div>
       <div class="row" onclick="showQR()">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="21" y2="14"/><line x1="14" y1="21" x2="21" y2="21"/><line x1="17.5" y1="14" x2="17.5" y2="21"/></svg></div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">我的二维码</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="myQrRowTitle">我的二维码</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
       <div class="row">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">我的ID</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="idShow2">-</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="myIdRowTitle">我的ID</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="idShow2">-</div></div>
       </div>
       <div class="row" onclick="showSetSecQ()" style="border-top:1px solid var(--theme-border);">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">❓</div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">安全问题</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="secQShow">未设置（用于忘记密码时恢复）</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="secQRowTitle">安全问题</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="secQShow" data-i18n="secQNotSet">未设置（用于忘记密码时恢复）</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
     </div>
@@ -1119,9 +1119,9 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     <div style="height:8px;"></div>
   </div>
   <div class="tabs">
-    <div class="tab" onclick="show('main')"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>消息</div>
-    <div class="tab on"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>通讯录</div>
-    <div class="tab" onclick="show('settings')"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>设置</div>
+    <div class="tab" onclick="show('main')"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span data-i18n="msg">消息</span></div>
+    <div class="tab on"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-i18n="contactsTab">通讯录</span></div>
+    <div class="tab" onclick="show('settings')"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-i18n="set">设置</span></div>
   </div>
 </div>
 <div id="applock" class="screen">
@@ -1179,43 +1179,43 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     </div>
 
     <!-- ─── 场景模式 ─── -->
-    <div style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">场景模式</div>
+    <div data-i18n="focusModeSectionHd" style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">场景模式</div>
     <div class="card" style="padding:0;">
       <div class="focus-wheel">
         <div class="focus-mode" id="fm-free" onclick="setFocusMode('free')">
           <div class="focus-ring">🆓</div>
-          <div class="fm-label">自由</div>
+          <div class="fm-label" data-i18n="fmLabelFree">自由</div>
         </div>
         <div class="focus-mode" id="fm-work" onclick="setFocusMode('work')">
           <div class="focus-ring">💼</div>
-          <div class="fm-label">工作</div>
+          <div class="fm-label" data-i18n="fmLabelWork">工作</div>
         </div>
         <div class="focus-mode" id="fm-home" onclick="setFocusMode('home')">
           <div class="focus-ring">🏠</div>
-          <div class="fm-label">回家</div>
+          <div class="fm-label" data-i18n="fmLabelHome">回家</div>
         </div>
         <div class="focus-mode" id="fm-home2" onclick="setFocusMode('home2')">
           <div class="focus-ring">🌙</div>
-          <div class="fm-label">回家②</div>
+          <div class="fm-label" data-i18n="fmLabelHome2">回家②</div>
         </div>
         <div class="focus-mode" id="fm-ghost" onclick="setFocusMode('ghost')">
           <div class="focus-ring">👻</div>
-          <div class="fm-label">隐身</div>
+          <div class="fm-label" data-i18n="fmLabelGhost">隐身</div>
         </div>
       </div>
       <div id="focusModeDesc" style="font-size:calc(12.5px * var(--ui-font-scale,1));color:#8e8e93;padding:0 16px 12px;text-align:center;"></div>
     </div>
 
     <!-- ─── 通知与推送 ─── -->
-    <div style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">通知与推送</div>
+    <div data-i18n="notifSectionHd" style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">通知与推送</div>
     <div class="card" style="padding:0;">
 
       <!-- 系统推送开关 -->
       <div class="row" onclick="togglePushDirect()" style="padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
         <div style="flex:1;">
-          <div style="font-size:calc(17px * var(--ui-font-scale,1));">消息推送通知</div>
-          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="pwaBindStatus">收到消息时推送通知</div>
+          <div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="pushDirectRowTitle">消息推送通知</div>
+          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="pwaBindStatus" data-i18n="pushNotifSubtitleOff">收到消息时推送通知</div>
         </div>
         <div class="tog" id="pushDirectToggle" onclick="event.stopPropagation();togglePushDirect()"><div class="td"></div></div>
       </div>
@@ -1227,24 +1227,24 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         <div onclick="toggleBarkDrawer()" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
           <div class="si" style="background:var(--theme-row-bg);font-size:calc(16px * var(--ui-font-scale,1));display:flex;align-items:center;justify-content:center;">🌿</div>
           <div style="flex:1;margin-left:12px;">
-            <div style="font-size:calc(17px * var(--ui-font-scale,1));">Bark 推送</div>
-            <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="barkUrlPreview">点击配置</div>
+            <div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="barkRowTitle">Bark 推送</div>
+            <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="barkUrlPreview" data-i18n="barkUrlPreviewDefault">点击配置</div>
           </div>
           <span style="color:#c7c7cc;font-size:calc(14px * var(--ui-font-scale,1));transition:transform .2s;" id="barkDrawerArrow">›</span>
         </div>
         <div id="barkDrawer" style="display:none;padding:0 16px 14px;">
-          <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:6px;">Bark推送地址</div>
+          <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:6px;" data-i18n="barkUrlLabel">Bark推送地址</div>
           <div style="display:flex;gap:8px;">
             <input id="barkUrlInput" type="url" inputmode="url" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-              placeholder="https://api.day.app/你的Key/"
+              placeholder="https://api.day.app/你的Key/" data-i18n-ph="barkUrlPh"
               style="flex:1;padding:10px 12px;border:1.5px solid var(--theme-field-border);border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));background:var(--theme-field-bg);color:var(--theme-text);outline:none;font-family:monospace;min-width:0;">
-            <button onclick="saveBarkUrl()" style="padding:10px 14px;background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:#fff;border:none;border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));font-weight:700;cursor:pointer;flex-shrink:0;">保存</button>
+            <button onclick="saveBarkUrl()" data-i18n="save" style="padding:10px 14px;background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:#fff;border:none;border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));font-weight:700;cursor:pointer;flex-shrink:0;">保存</button>
           </div>
           <!-- 图标选择 -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px;">
-            <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;">推送图标</div>
+            <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="barkIconLabel">推送图标</div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:calc(11px * var(--ui-font-scale,1));color:#8e8e93;" id="barkIconSelName">未选择</span>
+              <span style="font-size:calc(11px * var(--ui-font-scale,1));color:#8e8e93;" id="barkIconSelName" data-i18n="barkIconNotSelected">未选择</span>
               <div id="barkIconPreviewWrap" style="width:32px;height:32px;border-radius:8px;border:2px solid var(--theme-accent1);overflow:hidden;background:var(--theme-field-bg);display:flex;align-items:center;justify-content:center;">
                 <img id="barkIconPreview" src="" style="width:100%;height:100%;object-fit:cover;display:none;" onerror="this.style.display='none';document.getElementById('barkIconFallback').style.display='flex'">
                 <span id="barkIconFallback" style="font-size:calc(18px * var(--ui-font-scale,1));display:flex;">🌿</span>
@@ -1253,17 +1253,17 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
           </div>
           <div id="barkIconGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
           <div style="margin-top:6px;">
-            <button onclick="toggleCustomIconInput()" style="font-size:calc(11px * var(--ui-font-scale,1));color:#8e8e93;background:none;border:none;cursor:pointer;padding:0;">自定义图标URL ›</button>
+            <button onclick="toggleCustomIconInput()" data-i18n="barkCustomIconBtn" style="font-size:calc(11px * var(--ui-font-scale,1));color:#8e8e93;background:none;border:none;cursor:pointer;padding:0;">自定义图标URL ›</button>
             <div id="customIconInputWrap" style="display:none;margin-top:6px;">
               <input id="barkIconInput" type="url" inputmode="url" autocomplete="off" spellcheck="false"
-                placeholder="https://... 图片URL"
+                placeholder="https://... 图片URL" data-i18n-ph="barkIconUrlPh"
                 style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--theme-field-border);border-radius:10px;font-size:calc(12px * var(--ui-font-scale,1));background:var(--theme-field-bg);color:var(--theme-text);outline:none;font-family:monospace;">
             </div>
           </div>
-          <button onclick="saveBarkIcon()" style="margin-top:8px;width:100%;padding:9px;background:var(--theme-ep-active);color:var(--theme-link);border:1.5px solid var(--theme-field-border);border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;">✓ 保存图标</button>
+          <button onclick="saveBarkIcon()" data-i18n="barkSaveIconBtn" style="margin-top:8px;width:100%;padding:9px;background:var(--theme-ep-active);color:var(--theme-link);border:1.5px solid var(--theme-field-border);border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;">✓ 保存图标</button>
           <div id="barkActionRow" style="margin-top:8px;display:none;gap:8px;flex-wrap:wrap;">
-            <button onclick="testBarkPush()" style="flex:1;padding:9px;background:var(--theme-ep-active);color:var(--theme-link);border:1.5px solid var(--theme-field-border);border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;">📲 测试推送</button>
-            <button onclick="clearBarkUrl()" style="padding:9px 14px;background:none;color:#ff3b30;border:1.5px solid rgba(255,59,48,.25);border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));cursor:pointer;">删除</button>
+            <button onclick="testBarkPush()" data-i18n="barkTestPushBtn" style="flex:1;padding:9px;background:var(--theme-ep-active);color:var(--theme-link);border:1.5px solid var(--theme-field-border);border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;">📲 测试推送</button>
+            <button onclick="clearBarkUrl()" data-i18n="barkDeleteBtn" style="padding:9px 14px;background:none;color:#ff3b30;border:1.5px solid rgba(255,59,48,.25);border-radius:10px;font-size:calc(13px * var(--ui-font-scale,1));cursor:pointer;">删除</button>
           </div>
           <div id="barkStatus" style="font-size:calc(12px * var(--ui-font-scale,1));margin-top:6px;min-height:16px;color:#8e8e93;"></div>
         </div>
@@ -1272,13 +1272,13 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
       <!-- 通知直达（Bark点通知打开App）-->
       <div style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div style="font-size:calc(14px * var(--ui-font-scale,1));font-weight:500;color:var(--theme-text);">Bark通知直达桌面App</div>
+          <div style="font-size:calc(14px * var(--ui-font-scale,1));font-weight:500;color:var(--theme-text);" data-i18n="barkDirectTitle">Bark通知直达桌面App</div>
           <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#34c759;" id="shortcutInstallStatus"></div>
         </div>
-        <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:10px;line-height:1.6;">
+        <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:10px;line-height:1.6;" data-i18n="barkDirectDesc">
           只需建一个「打开天气」捷径，之后点Bark通知直接静默打开桌面App，不影响其他App通知。
         </div>
-        <button onclick="autoSetupShortcut()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:#fff;border:none;border-radius:11px;font-size:calc(14px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;">
+        <button onclick="autoSetupShortcut()" data-i18n="barkShortcutBtn" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:#fff;border:none;border-radius:11px;font-size:calc(14px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;">
           ⚡ 30秒创建捷径
         </button>
         <input id="shortcutNameInput" type="hidden" value="">
@@ -1288,13 +1288,13 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     </div>
 
     <!-- ─── 隐私与安全 ─── -->
-    <div style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">隐私与安全</div>
+    <div data-i18n="privacy" style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">隐私与安全</div>
     <div class="card" style="padding:0;">
       <div class="row" onclick="show('hide-set')" style="padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11a5 5 0 00-10 0"/><circle cx="12" cy="16" r="1"/><path d="M3 11h18l-1.5 8a2 2 0 01-2 1.7H6.5a2 2 0 01-2-1.7L3 11z"/></svg></div>
         <div style="flex:1;">
           <div style="font-size:calc(17px * var(--ui-font-scale,1));" id="set-hideMode">隐身伪装</div>
-          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="hideDesc">未开启</div>
+          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="hideDesc" data-i18n="notEnabled">未开启</div>
         </div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
@@ -1302,30 +1302,22 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
         <div style="flex:1;">
           <div style="font-size:calc(17px * var(--ui-font-scale,1));" id="set-secretNotif">隐秘通知</div>
-          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="notifDesc">● 小圆点</div>
+          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="notifDesc" data-i18n="notifDescDot">● 小圆点</div>
         </div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
-      </div>
-      <div class="row" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
-        <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">🔓</div>
-        <div style="flex:1;">
-          <div style="font-size:calc(17px * var(--ui-font-scale,1));">自由模式</div>
-          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">打开APP直接进聊天，跳过伪装界面</div>
-        </div>
-        <div class="tog" id="freeModeToggle" onclick="toggleFreeMode()"><div class="td"></div></div>
       </div>
       <div class="row" onclick="panic()" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 21h20L12 2z"/><path d="M12 9v4"/><circle cx="12" cy="17" r="0.5" fill="#c47a72"/></svg></div>
         <div style="flex:1;">
           <div style="font-size:calc(17px * var(--ui-font-scale,1));color:#ff3b30;" id="set-destroyNow">紧急清除</div>
-          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">立即清除所有记录</div>
+          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" data-i18n="destroyNowRowDesc">立即清除所有记录</div>
         </div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
     </div>
 
     <!-- ─── 外观与语言 ─── -->
-    <div style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">外观与语言</div>
+    <div data-i18n="appearanceLangSectionHd" style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">外观与语言</div>
     <div class="card" style="padding:0;">
       <!-- 主题折叠 -->
       <div onclick="toggleThemeDrawer()" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
@@ -1386,7 +1378,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         <div class="si" style="background:var(--theme-row-bg);">📧</div>
         <div style="flex:1;">
           <div id="bindEmailRowTitle" style="font-size:calc(17px * var(--ui-font-scale,1));">绑定邮箱</div>
-          <div class="row-sub" style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">用于找回密码，可选</div>
+          <div class="row-sub" style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" data-i18n="bindEmailRowDesc">用于找回密码，可选</div>
         </div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
@@ -1400,7 +1392,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
       </div>
       <div class="row" onclick="window.open(GC_BASE_URL+'privacy.html','_blank')" style="border-top:1px solid var(--theme-border);padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">📄</div>
-        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">隐私政策</div></div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="privacyPolicyRowTitle">隐私政策</div></div>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
     </div>
@@ -1418,18 +1410,18 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     </div>
 
     <!-- ─── 广告偏好 ─── -->
-    <div style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">广告</div>
+    <div data-i18n="adsSectionHd" style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">广告</div>
     <div class="card" style="padding:0;">
       <div class="row" style="padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">📢</div>
         <div style="flex:1;">
-          <div style="font-size:calc(17px * var(--ui-font-scale,1));">接受推广信息</div>
-          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="adConsentDesc">未同意</div>
+          <div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="adConsentRowTitle">接受推广信息</div>
+          <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" id="adConsentDesc" data-i18n="adConsentOff">未同意</div>
         </div>
         <div class="tog" id="adConsentToggle" onclick="AdManager.toggleConsent()"></div>
       </div>
     </div>
-    <div style="padding:6px 16px 0;font-size:calc(12px * var(--ui-font-scale,1));color:#c7c7cc;line-height:1.6;">开启后，聊天列表及推送通知中可能出现推广内容。随时可关闭。</div>
+    <div style="padding:6px 16px 0;font-size:calc(12px * var(--ui-font-scale,1));color:#c7c7cc;line-height:1.6;" data-i18n="adConsentFooter">开启后，聊天列表及推送通知中可能出现推广内容。随时可关闭。</div>
 
     <div style="height:16px;"></div>
     <div id="settingsVerLabel" onclick="showDiagLog()" style="text-align:center;font-size:calc(11px * var(--ui-font-scale,1));color:#c7c7cc;letter-spacing:.5px;padding-bottom:6px;cursor:pointer;"></div>
@@ -1437,9 +1429,9 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     <div style="height:14px;"></div>
   </div>
   <div class="tabs">
-    <div class="tab" onclick="show('main')"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>消息</div>
-    <div class="tab" onclick="show('contacts-list');loadFriendsList();"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>通讯录</div>
-    <div class="tab on"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>设置</div>
+    <div class="tab" onclick="show('main')"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span data-i18n="msg">消息</span></div>
+    <div class="tab" onclick="show('contacts-list');loadFriendsList();"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span data-i18n="contactsTab">通讯录</span></div>
+    <div class="tab on"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-i18n="set">设置</span></div>
   </div>
 </div>
 
@@ -1462,7 +1454,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     <div class="tr2" id="tr-shake" onclick="selT('shake')"><div style="font-size:calc(22px * var(--ui-font-scale,1));width:36px;text-align:center;">📳</div><div><div style="font-size:calc(15px * var(--ui-font-scale,1));font-weight:500;">Shake to activate</div><div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-top:2px;">Shake phone to activate</div></div></div>
     <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin:16px 0 12px;text-transform:uppercase;letter-spacing:.3px;">Entry Password</div>
     <div style="background:#f7f3fa;border-radius:12px;padding:14px 16px;font-size:calc(13.5px * var(--ui-font-scale,1));color:#8e8e93;line-height:1.6;margin-bottom:14px;" id="hidePinNote">
-      解锁伪装界面使用「锁屏密码」。还没设置的话，先去 设置 → 隐私与安全 → 锁屏密码 设置一个。
+      <span data-i18n="hidePinNote">解锁伪装界面使用「锁屏密码」。还没设置的话，先去 设置 → 隐私与安全 → 锁屏密码 设置一个。</span>
     </div>
     <button class="btn-blue" id="enable-hide-btn" onclick="saveHide()">Enable Hide Mode</button>
     <button class="btn-red" id="disable-hide-btn" style="margin-top:10px;" onclick="offHide()">Disable Hide Mode</button>
@@ -1477,16 +1469,16 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
     <p style="font-size:calc(14px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:20px;line-height:1.6;">When you receive a new message, a subtle symbol appears in notifications. Only you know its meaning.</p>
     <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:12px;text-transform:uppercase;letter-spacing:.3px;">Notification Symbol</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
-      <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:10px;line-height:1.5;">选一个你收到消息时通知栏显示的符号，别人看不出含义</div>
+      <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:10px;line-height:1.5;" data-i18n="notifSymHint">选一个你收到消息时通知栏显示的符号，别人看不出含义</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-        <div class="nc on" id="ns-dot" onclick="selN('dot','，')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">，</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">逗号</div></div>
-        <div class="nc" id="ns-period" onclick="selN('period','。')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">。</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">句号</div></div>
-        <div class="nc" id="ns-ellip" onclick="selN('ellip','…')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">…</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">省略号</div></div>
-        <div class="nc" id="ns-mid" onclick="selN('mid','·')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">·</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">间隔号</div></div>
-        <div class="nc" id="ns-space" onclick="selN('space',' ')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;color:#ccc">_</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">空格</div></div>
-        <div class="nc" id="ns-star" onclick="selN('star','✦')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">✦</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">星形</div></div>
-        <div class="nc" id="ns-wave" onclick="selN('wave','～')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">～</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">波浪</div></div>
-        <div class="nc" id="ns-none" onclick="selN('none','')"><div style="font-size:calc(14px * var(--ui-font-scale,1));margin-bottom:2px;color:#ccc;padding-top:4px;">无</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;">不显示</div></div>
+        <div class="nc on" id="ns-dot" onclick="selN('dot','，')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">，</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymComma">逗号</div></div>
+        <div class="nc" id="ns-period" onclick="selN('period','。')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">。</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymPeriod">句号</div></div>
+        <div class="nc" id="ns-ellip" onclick="selN('ellip','…')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">…</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymEllipsis">省略号</div></div>
+        <div class="nc" id="ns-mid" onclick="selN('mid','·')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">·</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymMiddot">间隔号</div></div>
+        <div class="nc" id="ns-space" onclick="selN('space',' ')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;color:#ccc">_</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymSpace">空格</div></div>
+        <div class="nc" id="ns-star" onclick="selN('star','✦')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">✦</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymStar">星形</div></div>
+        <div class="nc" id="ns-wave" onclick="selN('wave','～')"><div style="font-size:calc(22px * var(--ui-font-scale,1));margin-bottom:2px;">～</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymWave">波浪</div></div>
+        <div class="nc" id="ns-none" onclick="selN('none','')"><div style="font-size:calc(14px * var(--ui-font-scale,1));margin-bottom:2px;color:#ccc;padding-top:4px;" data-i18n="notifSymNoneChar">无</div><div style="font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;" data-i18n="notifSymNoneDesc">不显示</div></div>
       </div>
     </div>
     <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:12px;text-transform:uppercase;letter-spacing:.3px;">Notification Text (what others see)</div>
@@ -2183,8 +2175,8 @@ function updatePushToggleUI(enabled){
   if(t)t.className='tog'+(enabled?' on':'');
   var st=document.getElementById('pwaBindStatus');
   if(st){
-    if(enabled){st.textContent='✅ 已开启 · 点通知直接打开App';st.style.color='#34c759';}
-    else{st.textContent='收到消息时推送通知';st.style.color='';}
+    if(enabled){st.textContent=i18nT('pushNotifSubtitleOn');st.style.color='#34c759';}
+    else{st.textContent=i18nT('pushNotifSubtitleOff');st.style.color='';}
   }
 }
 function togglePushDirect(){
@@ -2321,26 +2313,34 @@ function getBarkUrl(){return (localStorage.getItem('barkUrl')||'').trim();}
 // ═══ 专注模式轮盘 ═══
 var FOCUS_MODES = {
   // 🆓 自由模式：无锁屏，真实通知，直接打开
-  free:  {label:'自由模式', emoji:'🆓',
+  free:  {label:'自由模式', labelEn:'Free', emoji:'🆓',
           desc:'无锁屏 · 真实通知 · 直接打开聊天',
+          descEn:'No lock screen · Real notifications · Opens chat directly',
           bark:true,  dnd:false, hide:false, lock:false, disguise:false},
   // 💼 工作模式：锁屏 + 通知只显示角标，不显示内容
-  work:  {label:'工作模式', emoji:'💼',
+  work:  {label:'工作模式', labelEn:'Work', emoji:'💼',
           desc:'有锁屏 · 通知内容隐藏 · 只有角标不震动',
+          descEn:'Lock screen on · Notification content hidden · Badge only, no vibration',
           bark:true,  dnd:true,  hide:false, lock:true,  disguise:false},
   // 🏠 回家模式：锁屏 + 隐身(天气) + Bark伪装成天气通知
-  home:  {label:'回家模式', emoji:'🏠',
+  home:  {label:'回家模式', labelEn:'Home', emoji:'🏠',
           desc:'有锁屏 · 伪装天气APP · 通知显示为天气提醒',
+          descEn:'Lock screen on · Disguised as weather app · Notifications show as weather alerts',
           bark:true,  dnd:false, hide:true,  lock:true,  disguise:true},
   // 🌙 回家②：同回家但通知只有角标，不震动不弹窗
-  home2: {label:'回家②',   emoji:'🌙',
+  home2: {label:'回家②',   labelEn:'Home 2', emoji:'🌙',
           desc:'有锁屏 · 伪装天气APP · 只有角标 不震动不弹窗',
+          descEn:'Lock screen on · Disguised as weather app · Badge only, no vibration or popup',
           bark:true,  dnd:true,  hide:true,  lock:true,  disguise:true},
   // 👻 完全隐身：锁屏 + 隐身(天气) + 关闭所有通知
-  ghost: {label:'完全隐身', emoji:'👻',
+  ghost: {label:'完全隐身', labelEn:'Ghost', emoji:'👻',
           desc:'有锁屏 · 伪装天气APP · 无任何通知',
+          descEn:'Lock screen on · Disguised as weather app · No notifications at all',
           bark:false, dnd:false, hide:true,  lock:true,  disguise:true}
 };
+// 与 _themeDispName 同一约定：中文简体显示中文，其它语言回退英文
+function _fmLabel(cfg){ return (curLang==='zh-CN') ? cfg.label : (cfg.labelEn||cfg.label); }
+function _fmDesc(cfg){ return (curLang==='zh-CN') ? cfg.desc : (cfg.descEn||cfg.desc); }
 
 function setFocusMode(mode){
   var cfg=FOCUS_MODES[mode];
@@ -2379,7 +2379,7 @@ function setFocusMode(mode){
 
   var st=document.getElementById('barkStatus');
   if(st){
-    st.textContent=cfg.emoji+' 已切换至'+cfg.label;
+    st.textContent=cfg.emoji+' '+i18nT('switchedTo')+_fmLabel(cfg);
     setTimeout(function(){if(st)st.textContent='';},2500);
   }
 }
@@ -2393,7 +2393,7 @@ function updateFocusWheelUI(){
   });
   var cfg=FOCUS_MODES[cur];
   var desc=document.getElementById('focusModeDesc');
-  if(desc&&cfg){desc.textContent=(cfg.label||'')+' — '+cfg.desc;}
+  if(desc&&cfg){desc.textContent=_fmLabel(cfg)+' — '+_fmDesc(cfg);}
 }
 
 
@@ -2509,7 +2509,7 @@ function _refreshBarkIconPreview(url, name){
     img.src='';img.style.display='none';
     if(fallback)fallback.style.display='flex';
   }
-  if(selName)selName.textContent=name||(url?'自定义':'未选择');
+  if(selName)selName.textContent=name||(url?i18nT('barkIconCustom'):i18nT('barkIconNotSelected'));
 }
 
 function _renderBarkIconGrid(){
@@ -2533,8 +2533,8 @@ function _renderBarkIconGrid(){
   var none=document.createElement('div');
   var nsel=(cur==='');
   none.style.cssText='display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px;border-radius:10px;border:2px solid '+(nsel?'var(--theme-accent1)':'var(--theme-field-border)')+';background:'+(nsel?'var(--theme-ep-active)':'transparent')+';-webkit-tap-highlight-color:transparent;';
-  none.innerHTML='<div style="width:48px;height:48px;border-radius:10px;background:var(--theme-field-bg);display:flex;align-items:center;justify-content:center;font-size:calc(22px * var(--ui-font-scale,1));">🌿</div><span style="font-size:calc(9.5px * var(--ui-font-scale,1));color:#8e8e93;text-align:center;">默认</span>';
-  none.onclick=function(){_selectedBarkIcon='';_refreshBarkIconPreview('','默认');_renderBarkIconGrid();};
+  none.innerHTML='<div style="width:48px;height:48px;border-radius:10px;background:var(--theme-field-bg);display:flex;align-items:center;justify-content:center;font-size:calc(22px * var(--ui-font-scale,1));">🌿</div><span style="font-size:calc(9.5px * var(--ui-font-scale,1));color:#8e8e93;text-align:center;">'+i18nT('barkIconDefault')+'</span>';
+  none.onclick=function(){_selectedBarkIcon='';_refreshBarkIconPreview('',i18nT('barkIconDefault'));_renderBarkIconGrid();};
   grid.appendChild(none);
 }
 
@@ -2561,7 +2561,7 @@ function saveBarkIcon(){
   var st=document.getElementById('barkStatus');
   if(st){
     st.style.color='#34c759';
-    st.textContent=url?'✅ 图标已保存':'✅ 已设为默认图标';
+    st.textContent=url?i18nT('barkIconSavedStatus'):i18nT('barkIconDefaultSavedStatus');
     setTimeout(function(){if(st){st.textContent='';st.style.color='#8e8e93';}},2000);
   }
 }
@@ -2570,9 +2570,10 @@ function initBarkIconUI(){
   var url=(lg('barkIconUrl')||'').trim();
   _selectedBarkIcon=url;
   // 找到名字
-  var name='默认';
+  var defaultName=i18nT('barkIconDefault');
+  var name=defaultName;
   BARK_PRESET_ICONS.forEach(function(ic){if(ic.url===url)name=ic.name;});
-  if(url&&name==='默认')name='自定义';
+  if(url&&name===defaultName)name=i18nT('barkIconCustom');
   _refreshBarkIconPreview(url,name);
   _renderBarkIconGrid();
   // 自定义输入框
@@ -2580,7 +2581,7 @@ function initBarkIconUI(){
   if(inp){
     if(!inp._iconPreviewBound){
       inp._iconPreviewBound=true;
-      inp.addEventListener('input',function(){_refreshBarkIconPreview(inp.value.trim(),'自定义');});
+      inp.addEventListener('input',function(){_refreshBarkIconPreview(inp.value.trim(),i18nT('barkIconCustom'));});
     }
   }
 }
@@ -2680,10 +2681,10 @@ function _updateBarkPreview(){
   if(url){
     // 只显示 Key 部分，不显示完整URL
     var key=url.replace(/https?:\/\/[^/]+\//,'').replace(/\/$/,'');
-    el.textContent='✅ 已设置 · Key: '+(key.length>16?key.slice(0,16)+'…':key);
+    el.textContent=i18nT('barkUrlPreviewSetPrefix')+(key.length>16?key.slice(0,16)+'…':key);
     el.style.color='#34c759';
   } else {
-    el.textContent='点击设置';
+    el.textContent=i18nT('barkUrlPreviewUnset');
     el.style.color='#8e8e93';
   }
 }
@@ -2711,7 +2712,7 @@ function saveBarkUrl(){
   if(!val){
     localStorage.removeItem('barkUrl');
     if(row)row.style.display='none';
-    if(status){status.style.color='#8e8e93';status.textContent='已清除 Bark 设置';}
+    if(status){status.style.color='#8e8e93';status.textContent=i18nT('barkClearedStatus');}
     pushSettings();
     return;
   }
@@ -2721,7 +2722,7 @@ function saveBarkUrl(){
   localStorage.setItem('barkUrl',val);
   if(inp)inp.value=val;
   if(row)row.style.display='flex';
-  if(status){status.style.color='#34c759';status.textContent='✅ 保存成功！点击"发送测试通知"验证';}
+  if(status){status.style.color='#34c759';status.textContent=i18nT('barkSavedStatus');}
   pushSettings(); // 同步到Supabase，让发消息方能读到
 }
 
@@ -2732,7 +2733,7 @@ function clearBarkUrl(){
   var status=document.getElementById('barkStatus');
   if(inp)inp.value='';
   if(row)row.style.display='none';
-  if(status){status.style.color='#8e8e93';status.textContent='已删除 Bark 设置';}
+  if(status){status.style.color='#8e8e93';status.textContent=i18nT('barkDeletedStatus');}
 }
 
 async function sendBarkPush(title, body, opts){
@@ -2758,11 +2759,11 @@ async function sendBarkPush(title, body, opts){
 
 async function testBarkPush(){
   var status=document.getElementById('barkStatus');
-  if(status){status.style.color='#8e8e93';status.textContent='发送中...';}
+  if(status){status.style.color='#8e8e93';status.textContent=i18nT('sendingEllipsis');}
   var ok=await sendBarkPush('🌿 天气 测试','Bark 推送配置成功！App关闭时也能收到消息通知 ✨');
   if(status){
-    if(ok){status.style.color='#34c759';status.textContent='✅ 测试通知发送成功！检查你的 Bark App';}
-    else{status.style.color='#ff3b30';status.textContent='❌ 发送失败，请检查 Bark URL 是否正确';}
+    if(ok){status.style.color='#34c759';status.textContent=i18nT('barkTestSuccessStatus');}
+    else{status.style.color='#ff3b30';status.textContent=i18nT('barkTestFailStatus');}
   }
 }
 
@@ -2999,7 +3000,7 @@ function showShortcutManualGuide(){
     ls('shortcutName','GC');
     if(typeof pushSettings==='function')pushSettings();
     var scStatus=document.getElementById('shortcutInstallStatus');
-    if(scStatus)scStatus.textContent='✅ 已安装';
+    if(scStatus)scStatus.textContent=i18nT('shortcutInstalledYes');
     overlay.remove();
     alert('✅ 捷径已绑定！之后Bark通知点击会静默打开天气');
   };
@@ -3147,7 +3148,7 @@ function _initPwaAppNameInput(){
   // 捷径安装状态
   var scStatus=document.getElementById('shortcutInstallStatus');
   var scName=lg('shortcutName')||'';
-  if(scStatus)scStatus.textContent=scName?'✅ 已安装':'未安装';
+  if(scStatus)scStatus.textContent=scName?i18nT('shortcutInstalledYes'):i18nT('shortcutInstalledNo');
 }
 
 // 检测设备和浏览器类型
@@ -3306,7 +3307,7 @@ function _initPwaBindStatus(){
   var devCount = Object.keys(_lastDevMap).length;
   var deviceTxt = document.getElementById('deviceCountTxt');
   if(deviceTxt && devCount > 0){
-    deviceTxt.textContent = '当前 ' + devCount + ' 台设备登录中';
+    deviceTxt.textContent = i18nT('deviceCountActivePrefix') + devCount + i18nT('deviceCountActiveSuffix');
     deviceTxt.style.color = devCount > 1 ? '#ff9500' : '#8e8e93';
   }
 
@@ -3316,14 +3317,14 @@ function _initPwaBindStatus(){
   if(tog)tog.className='tog'+(pushOn?' on':'');
   var el=document.getElementById('pwaBindStatus');
   if(el){
-    el.textContent=pushOn?'✅ 已开启 · 点通知直接打开App':'未开启 · 点击授权系统推送通知';
+    el.textContent=pushOn?i18nT('pushNotifSubtitleOn'):i18nT('pushNotifSubtitleUnauth');
     el.style.color=pushOn?'#34c759':'#8e8e93';
   }
   // PWA安装状态
   var isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
   var installEl=document.getElementById('pwaInstallStatus');
   if(installEl){
-    installEl.textContent=isStandalone?'✅ 已安装为桌面App':'尚未安装 · 点击查看步骤';
+    installEl.textContent=isStandalone?i18nT('pwaInstalledYes'):i18nT('pwaInstalledNo');
     installEl.style.color=isStandalone?'#34c759':'#8e8e93';
   }
 }
@@ -3387,52 +3388,54 @@ function ls(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 
 // ═══ 主题元数据（名称+代表色，用于折叠头部预览）═══
 var THEME_META = {
-  '':        {name:'粉紫',    grad:'linear-gradient(135deg,#ff9a9e,#a18cd1)'},
-  'sakura':  {name:'樱花',    grad:'linear-gradient(135deg,#f48fb1,#e91e63)'},
-  'lavender':{name:'薰衣草',  grad:'linear-gradient(135deg,#9e8cfc,#6c47e8)'},
-  'rose':    {name:'玫瑰',    grad:'linear-gradient(135deg,#ef9a82,#d84315)'},
-  'ocean':   {name:'蓝海',    grad:'linear-gradient(135deg,#4facfe,#3b6fd6)'},
-  'mint':    {name:'薄荷',    grad:'linear-gradient(135deg,#4db6ac,#00897b)'},
-  'forest':  {name:'森系',    grad:'linear-gradient(135deg,#8bd3a0,#4f9d6e)'},
-  'sand':    {name:'沙漠',    grad:'linear-gradient(135deg,#d4a96a,#a0724a)'},
-  'ivory':   {name:'象牙金',  grad:'linear-gradient(135deg,#c9a84c,#8a6f2e)'},
-  'business':{name:'商务',    grad:'linear-gradient(135deg,#64748b,#334155)'},
-  'dark':    {name:'暗黑',    grad:'linear-gradient(135deg,#7c5cff,#5b8cff)'},
-  'neon':    {name:'霓虹',    grad:'linear-gradient(135deg,#ff2bd6,#00e5ff)'},
-  'aurora':  {name:'极光',    grad:'linear-gradient(135deg,#00d4aa,#7b2fff)'},
-  'sunset':  {name:'夕阳',    grad:'linear-gradient(135deg,#ff6b35,#f7931e)'},
-  'mist':    {name:'雾霾蓝',  grad:'linear-gradient(135deg,#7aa8d4,#4a7fb0)'},
-  'matcha':  {name:'抹茶',    grad:'linear-gradient(135deg,#7ab870,#4a9040)'},
-  'grape':   {name:'葡萄紫',  grad:'linear-gradient(135deg,#b060e8,#7030c0)'},
-  'midnight':  {name:'午夜金',  grad:'linear-gradient(135deg,#c8a028,#a07818)'},
-  'peach':     {name:'蜜桃橙',  grad:'linear-gradient(135deg,#ff8c55,#e8521a)'},
-  'coral':     {name:'珊瑚红',  grad:'linear-gradient(135deg,#f4635a,#d63028)'},
-  'sky':       {name:'天空蓝',  grad:'linear-gradient(135deg,#54b4f5,#1a7fd4)'},
-  'indigo':    {name:'靛蓝',    grad:'linear-gradient(135deg,#6060ee,#3030cc)'},
-  'emerald':   {name:'翡翠绿',  grad:'linear-gradient(135deg,#34d399,#059669)'},
-  'teal':      {name:'青碧',    grad:'linear-gradient(135deg,#2dd4bf,#0d9488)'},
-  'amber':     {name:'琥珀',    grad:'linear-gradient(135deg,#f59e0b,#d97706)'},
-  'lemon':     {name:'柠檬黄',  grad:'linear-gradient(135deg,#d4d400,#a0a000)'},
-  'wine':      {name:'暗夜酒红',grad:'linear-gradient(135deg,#d4145a,#8b0038)'},
-  'charcoal':  {name:'炭黑',    grad:'linear-gradient(135deg,#8e8e93,#636366)'},
-  'obsidian':  {name:'黑曜石',  grad:'linear-gradient(135deg,#4040ff,#2020cc)'},
-  'rose-gold': {name:'玫瑰金',  grad:'linear-gradient(135deg,#e8799a,#c04070)'},
-  'lilac':     {name:'丁香紫',  grad:'linear-gradient(135deg,#c084fc,#9333ea)'},
-  'arctic':    {name:'北极蓝',  grad:'linear-gradient(135deg,#38bdf8,#0284c7)'},
-  'cybergreen':{name:'赛博绿',  grad:'linear-gradient(135deg,#00ff65,#00cc50)'},
-  'blush':     {name:'嫣红',    grad:'linear-gradient(135deg,#ff70a8,#e0308c)'},
-  'coffee':    {name:'咖啡棕',  grad:'linear-gradient(135deg,#a0673a,#6b3f1e)'},
-  'dusk':      {name:'暮色紫',  grad:'linear-gradient(135deg,#c060ff,#8020e0)'},
-  'bronze':    {name:'古铜',    grad:'linear-gradient(135deg,#cd7f32,#8b5a1a)'},
-  'cyberpink': {name:'赛博粉',  grad:'linear-gradient(135deg,#ff00cc,#cc0099)'},
-  'iceberg':   {name:'冰山',    grad:'linear-gradient(135deg,#5ba8c4,#2878a0)'},
-  'pumpkin':   {name:'南瓜橙',  grad:'linear-gradient(135deg,#f07820,#c05000)'}
+  '':        {name:'粉紫',    nameEn:'Pink Purple',   grad:'linear-gradient(135deg,#ff9a9e,#a18cd1)'},
+  'sakura':  {name:'樱花',    nameEn:'Sakura',        grad:'linear-gradient(135deg,#f48fb1,#e91e63)'},
+  'lavender':{name:'薰衣草',  nameEn:'Lavender',      grad:'linear-gradient(135deg,#9e8cfc,#6c47e8)'},
+  'rose':    {name:'玫瑰',    nameEn:'Rose',          grad:'linear-gradient(135deg,#ef9a82,#d84315)'},
+  'ocean':   {name:'蓝海',    nameEn:'Ocean',         grad:'linear-gradient(135deg,#4facfe,#3b6fd6)'},
+  'mint':    {name:'薄荷',    nameEn:'Mint',          grad:'linear-gradient(135deg,#4db6ac,#00897b)'},
+  'forest':  {name:'森系',    nameEn:'Forest',        grad:'linear-gradient(135deg,#8bd3a0,#4f9d6e)'},
+  'sand':    {name:'沙漠',    nameEn:'Desert',        grad:'linear-gradient(135deg,#d4a96a,#a0724a)'},
+  'ivory':   {name:'象牙金',  nameEn:'Ivory Gold',    grad:'linear-gradient(135deg,#c9a84c,#8a6f2e)'},
+  'business':{name:'商务',    nameEn:'Business',      grad:'linear-gradient(135deg,#64748b,#334155)'},
+  'dark':    {name:'暗黑',    nameEn:'Dark',          grad:'linear-gradient(135deg,#7c5cff,#5b8cff)'},
+  'neon':    {name:'霓虹',    nameEn:'Neon',          grad:'linear-gradient(135deg,#ff2bd6,#00e5ff)'},
+  'aurora':  {name:'极光',    nameEn:'Aurora',        grad:'linear-gradient(135deg,#00d4aa,#7b2fff)'},
+  'sunset':  {name:'夕阳',    nameEn:'Sunset',        grad:'linear-gradient(135deg,#ff6b35,#f7931e)'},
+  'mist':    {name:'雾霾蓝',  nameEn:'Misty Blue',    grad:'linear-gradient(135deg,#7aa8d4,#4a7fb0)'},
+  'matcha':  {name:'抹茶',    nameEn:'Matcha',        grad:'linear-gradient(135deg,#7ab870,#4a9040)'},
+  'grape':   {name:'葡萄紫',  nameEn:'Grape Purple',  grad:'linear-gradient(135deg,#b060e8,#7030c0)'},
+  'midnight':  {name:'午夜金',  nameEn:'Midnight Gold',  grad:'linear-gradient(135deg,#c8a028,#a07818)'},
+  'peach':     {name:'蜜桃橙',  nameEn:'Peach Orange',   grad:'linear-gradient(135deg,#ff8c55,#e8521a)'},
+  'coral':     {name:'珊瑚红',  nameEn:'Coral Red',      grad:'linear-gradient(135deg,#f4635a,#d63028)'},
+  'sky':       {name:'天空蓝',  nameEn:'Sky Blue',       grad:'linear-gradient(135deg,#54b4f5,#1a7fd4)'},
+  'indigo':    {name:'靛蓝',    nameEn:'Indigo',         grad:'linear-gradient(135deg,#6060ee,#3030cc)'},
+  'emerald':   {name:'翡翠绿',  nameEn:'Emerald',        grad:'linear-gradient(135deg,#34d399,#059669)'},
+  'teal':      {name:'青碧',    nameEn:'Teal',           grad:'linear-gradient(135deg,#2dd4bf,#0d9488)'},
+  'amber':     {name:'琥珀',    nameEn:'Amber',          grad:'linear-gradient(135deg,#f59e0b,#d97706)'},
+  'lemon':     {name:'柠檬黄',  nameEn:'Lemon Yellow',   grad:'linear-gradient(135deg,#d4d400,#a0a000)'},
+  'wine':      {name:'暗夜酒红',nameEn:'Wine Red',       grad:'linear-gradient(135deg,#d4145a,#8b0038)'},
+  'charcoal':  {name:'炭黑',    nameEn:'Charcoal',       grad:'linear-gradient(135deg,#8e8e93,#636366)'},
+  'obsidian':  {name:'黑曜石',  nameEn:'Obsidian',       grad:'linear-gradient(135deg,#4040ff,#2020cc)'},
+  'rose-gold': {name:'玫瑰金',  nameEn:'Rose Gold',      grad:'linear-gradient(135deg,#e8799a,#c04070)'},
+  'lilac':     {name:'丁香紫',  nameEn:'Lilac',          grad:'linear-gradient(135deg,#c084fc,#9333ea)'},
+  'arctic':    {name:'北极蓝',  nameEn:'Arctic Blue',    grad:'linear-gradient(135deg,#38bdf8,#0284c7)'},
+  'cybergreen':{name:'赛博绿',  nameEn:'Cyber Green',    grad:'linear-gradient(135deg,#00ff65,#00cc50)'},
+  'blush':     {name:'嫣红',    nameEn:'Blush',          grad:'linear-gradient(135deg,#ff70a8,#e0308c)'},
+  'coffee':    {name:'咖啡棕',  nameEn:'Coffee Brown',   grad:'linear-gradient(135deg,#a0673a,#6b3f1e)'},
+  'dusk':      {name:'暮色紫',  nameEn:'Dusk Purple',    grad:'linear-gradient(135deg,#c060ff,#8020e0)'},
+  'bronze':    {name:'古铜',    nameEn:'Bronze',         grad:'linear-gradient(135deg,#cd7f32,#8b5a1a)'},
+  'cyberpink': {name:'赛博粉',  nameEn:'Cyber Pink',     grad:'linear-gradient(135deg,#ff00cc,#cc0099)'},
+  'iceberg':   {name:'冰山',    nameEn:'Iceberg',        grad:'linear-gradient(135deg,#5ba8c4,#2878a0)'},
+  'pumpkin':   {name:'南瓜橙',  nameEn:'Pumpkin Orange', grad:'linear-gradient(135deg,#f07820,#c05000)'}
 };
 
+function _themeDispName(m){ return (curLang==='zh-CN') ? m.name : (m.nameEn||m.name); }
+
 // ═══ 动态构建主题网格 ═══
-function buildThemeGrid(){
+function buildThemeGrid(force){
   var grid=document.getElementById('themeSwatchGrid');
-  if(!grid||grid._built)return;
+  if(!grid||(grid._built&&!force))return;
   var cur=lg('theme')||'';
   grid.innerHTML='';
   Object.keys(THEME_META).forEach(function(key){
@@ -3442,7 +3445,7 @@ function buildThemeGrid(){
     cell.className='theme-swatch'+(on?' on':'');
     cell.setAttribute('data-theme',key);
     cell.innerHTML='<div class="theme-preview" style="background:'+m.grad+'"></div>'
-      +'<div class="theme-swatch-name">'+m.name+'</div>';
+      +'<div class="theme-swatch-name">'+_themeDispName(m)+'</div>';
     cell.onclick=function(){pickTheme(key);};
     grid.appendChild(cell);
   });
@@ -3465,7 +3468,7 @@ function _updateThemeHeader(name){
   var dot=document.getElementById('themeCurrentDot');
   var nm=document.getElementById('themeCurrentName');
   if(dot)dot.style.background=meta.grad;
-  if(nm)nm.textContent=meta.name;
+  if(nm)nm.textContent=_themeDispName(meta);
 }
 
 var THEME_LIST=['','business','dark','ocean','forest','neon','sakura','sand','mint','lavender','ivory','rose','aurora','sunset','mist','matcha','grape','midnight','peach','coral','sky','indigo','emerald','teal','amber','lemon','wine','charcoal','obsidian','rose-gold','lilac','arctic','cybergreen','blush','coffee','dusk','bronze','cyberpink','iceberg','pumpkin'];
@@ -3493,15 +3496,16 @@ applyTheme(lg('theme')||'');
 
 // ── 聊天气泡风格 ──
 var _CS_STYLES=[
-  {id:'default', name:'经典',  sent:'#ff8c5a',recv:'#ffffff',bg:'#f5f0fb'},
-  {id:'warm',    name:'暖阳',  sent:'#ff7a30',recv:'#fff9f5',bg:'#fff8f0'},
-  {id:'rose',    name:'玫瑰',  sent:'#e91e8c',recv:'#fff8fc',bg:'#fff5f8'},
-  {id:'sky',     name:'天蓝',  sent:'#1e88e5',recv:'#f8fcff',bg:'#f5f9ff'},
-  {id:'matcha',  name:'抹茶',  sent:'#43a047',recv:'#f8fdf8',bg:'#f5fdf5'},
-  {id:'lavender',name:'薰衣草',sent:'#8e24aa',recv:'#fdf8ff',bg:'#f8f5ff'},
-  {id:'night',   name:'星夜',  sent:'#7c4dff',recv:'#1e2438',bg:'#141a2e'},
-  {id:'coral',   name:'珊瑚',  sent:'#f4511e',recv:'#fff8f5',bg:'#fff5f3'}
+  {id:'default', name:'经典',  nameEn:'Classic',      sent:'#ff8c5a',recv:'#ffffff',bg:'#f5f0fb'},
+  {id:'warm',    name:'暖阳',  nameEn:'Warm Sun',     sent:'#ff7a30',recv:'#fff9f5',bg:'#fff8f0'},
+  {id:'rose',    name:'玫瑰',  nameEn:'Rose',         sent:'#e91e8c',recv:'#fff8fc',bg:'#fff5f8'},
+  {id:'sky',     name:'天蓝',  nameEn:'Sky Blue',     sent:'#1e88e5',recv:'#f8fcff',bg:'#f5f9ff'},
+  {id:'matcha',  name:'抹茶',  nameEn:'Matcha',       sent:'#43a047',recv:'#f8fdf8',bg:'#f5fdf5'},
+  {id:'lavender',name:'薰衣草',nameEn:'Lavender',     sent:'#8e24aa',recv:'#fdf8ff',bg:'#f8f5ff'},
+  {id:'night',   name:'星夜',  nameEn:'Starry Night', sent:'#7c4dff',recv:'#1e2438',bg:'#141a2e'},
+  {id:'coral',   name:'珊瑚',  nameEn:'Coral',        sent:'#f4511e',recv:'#fff8f5',bg:'#fff5f3'}
 ];
+function _csDispName(s){ return (curLang==='zh-CN') ? s.name : (s.nameEn||s.name); }
 function applyChatStyle(id){
   var chat=document.getElementById('chat');
   if(!chat)return;
@@ -3519,7 +3523,7 @@ function applyChatStyle(id){
 function _updateChatStyleHeader(id){
   var s=_CS_STYLES.filter(function(x){return x.id===id;})[0]||_CS_STYLES[0];
   var nm=document.getElementById('chatStyleCurrentName');
-  if(nm)nm.textContent=s.name;
+  if(nm)nm.textContent=_csDispName(s);
 }
 function toggleChatStyleDrawer(){
   var d=document.getElementById('chatStyleDrawer');
@@ -3544,7 +3548,7 @@ function _buildChatStyleGrid(){
         '<div style="height:11px;border-radius:6px 6px 2px 6px;background:'+s.sent+';margin-left:auto;width:62%;"></div>'+
         '<div style="height:11px;border-radius:6px 6px 6px 2px;background:'+s.recv+';margin-right:auto;width:54%;border:1px solid rgba(0,0,0,.07);"></div>'+
       '</div>'+
-      '<div style="text-align:center;font-size:calc(10.5px * var(--ui-font-scale,1));padding:4px 2px 5px;background:var(--theme-card);color:var(--theme-text);font-weight:'+(sel?'700':'400')+';letter-spacing:.2px;">'+s.name+'</div>';
+      '<div style="text-align:center;font-size:calc(10.5px * var(--ui-font-scale,1));padding:4px 2px 5px;background:var(--theme-card);color:var(--theme-text);font-weight:'+(sel?'700':'400')+';letter-spacing:.2px;">'+_csDispName(s)+'</div>';
     (function(sid){d.onclick=function(){applyChatStyle(sid);};})(s.id);
     g.appendChild(d);
   });
@@ -3574,24 +3578,24 @@ function _buildFontSizeGrid(){
   if(idx<0)idx=1;
   g.innerHTML='<div style="display:flex;align-items:center;gap:10px;">'+
     '<span style="font-size:13px;color:#8e8e93;flex-shrink:0;">A</span>'+
-    '<input type="range" id="fontSizeSlider" min="0" max="'+(_FONT_SIZES.length-1)+'" step="1" value="'+idx+'" style="flex:1;-webkit-tap-highlight-color:transparent;">'+
+    '<input type="range" id="fontSizeSlider" min="'+_FONT_MIN_PX+'" max="'+_FONT_MAX_PX+'" step="0.1" value="'+px+'" style="flex:1;-webkit-tap-highlight-color:transparent;">'+
     '<span style="font-size:22px;color:#8e8e93;flex-shrink:0;">A</span>'+
     '</div>'+
-    '<div id="fontSizeLabel" style="text-align:center;font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-top:6px;">'+_FONT_SIZES[idx].name+'</div>';
+    '<div id="fontSizeLabel" style="text-align:center;font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-top:6px;">'+pct+'%</div>';
   var sl=document.getElementById('fontSizeSlider');
-  // 拖动时实时预览，松手(change)才落盘+同步，避免拖动过程中疯狂写存储/同步
+  // 拖动时实时预览(无级连续)，松手(change)才落盘+同步，避免拖动过程中疯狂写存储/同步
   sl.oninput=function(){
-    var s=_FONT_SIZES[parseInt(sl.value,10)];
-    document.documentElement.style.setProperty('--ui-font-scale',(s.px/_FONT_BASE_PX));
-    var lbl=document.getElementById('fontSizeLabel');if(lbl)lbl.textContent=s.name;
+    var p=parseFloat(sl.value);
+    document.documentElement.style.setProperty('--ui-font-scale',(p/_FONT_BASE_PX));
+    var lbl=document.getElementById('fontSizeLabel');if(lbl)lbl.textContent=Math.round(p/_FONT_BASE_PX*100)+'%';
   };
-  sl.onchange=function(){applyFontSize(_FONT_SIZES[parseInt(sl.value,10)].id);};
+  sl.onchange=function(){applyFontSize(parseFloat(sl.value));};
 }
 (function(){
   var _f=lg('uiFontSize')||lg('chatFontSize');
-  if(_f&&_f!=='md'){
-    var _s=_FONT_SIZES.filter(function(x){return x.id===_f;})[0];
-    if(_s)document.documentElement.style.setProperty('--ui-font-scale',(_s.px/_FONT_BASE_PX));
+  if(_f){
+    var _px=_resolveFontPx(_f);
+    if(_px!==_FONT_BASE_PX)document.documentElement.style.setProperty('--ui-font-scale',(_px/_FONT_BASE_PX));
   }
 })();
 function gt(){var d=new Date();return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();}
@@ -3607,8 +3611,8 @@ var curLang=lg('lang')||'zh-CN';
 // 查不到当前语言的词条时永远回退英文，绝不回退中文——切到任何非中文语言都不会
 // 再看到残留的中文文案。
 var I18N_DICT={
-  "en":{"app":"天气","tag":"Private · Encrypted · Untraceable","msg":"Messages","set":"Settings","nick":"Nickname","pwd":"Password (4-8 digits)","cpwd":"Confirm password","create":"Create Account","haveAcct":"Already have account?","newUser":"New here?","forgot":"Forgot password?","hideMode":"Hide Mode","notEnabled":"Not enabled","secretNotif":"Secret Notification","destroyMethod":"Destroy Method","e2e":"End-to-End Encryption","destroyNow":"Destroy Now","subscribe":"Subscribe","logout":"Logout","lang":"Language","privacy":"Privacy & Security","flashlight":"Flashlight","calculator":"Calculator","clock":"Clock","notes":"Notes","calling":"Calling...","mute":"Mute","end":"End","speaker":"Speaker","incoming":"Incoming call...","decline":"Decline","accept":"Accept","enterPwd":"Enter Password","cancel":"Cancel","release":"Release to send","enableHide":"Enable Hide Mode","disableHide":"Disable Hide Mode","save":"Save","appearance":"Appearance","themeDefault":"Pink Dream","themeBusiness":"Business","themeDark":"Dark","themeOcean":"Ocean","themeForest":"Forest","themeNeon":"Neon","appName":"SecretTalk","appTagline":"A cozy private chat space","welcomeBack":"Welcome back!","loginIdPh":"Your ID","passwordPh":"Password","loginBtn":"Log In","registerLink":"Create account","forgotPw":"Forgot password?","createAccount":"Create your account","nicknamePh":"Nickname","customIdPh":"Custom ID (optional)","passwordPh2":"Password (4-8 digits)","confirmPwPh":"Confirm password","createBtn":"Create Account","haveAccount":"Already have an account?","loginLink":"Log in","recoveryTitle":"Account Recovery","recoveryDesc":"Enter your rescue code.","verifyPayBtn":"Verify","backToLogin":"← Back to Login","installTitle":"Install Weather","installDesc":"Add to Home Screen for notifications","installBtn":"Install","msgImage":"[Photo]","msgVoice":"[Voice]","msgVideo":"[Video]","msgFile":"[File]","msgLocation":"[Location]","msgContact":"[Contact]","youPrefix":"You: ","typingNow":"typing","sendFailed":"Send failed","sendFailedShort":"⚠️ Failed","sendFailedRetryHint":"Send failed, tap to retry","recallFailed":"Recall failed: ","videoSendFailed":"⚠️ Video failed to send","fileSendFailed":"⚠️ Failed to send: ","blockedSendMsg":"This user has blocked you. Unblock them in Contacts first.","sendingEllipsis":"Sending...","wd0":"Sun","wd1":"Mon","wd2":"Tue","wd3":"Wed","wd4":"Thu","wd5":"Fri","wd6":"Sat","youRecalled":"You recalled a message","theyRecalled":"They recalled a message","processingEllipsis":"Processing...","contactCardHint":"Contact card · Tap to view","tapToDownload":"Tap to download","loadingEllipsis":"Loading…","noChatsYet":"No chats yet","addFriendsHint":"Add friends in Contacts to start chatting","micCamError":"Could not access microphone/camera: ","answerCallError":"Could not answer: ","inCallTimer":"In call 00:00","incomingCallConfirm":"is calling, answer?","connecting":"Connecting...","callFallbackName":"Call","themeRowTitle":"Theme","chatStyleRowTitle":"Chat Bubble Style","fontSizeRowTitle":"Font Size","accountSectionHd":"Account","accountSettingsRowTitle":"Account Settings","loginDevicesRowTitle":"Login Devices","loginDevicesDesc":"View and manage login devices","bindEmailRowTitle":"Bind Email","deleteAccountRowTitle":"Delete Account","deleteAccountRowDesc":"Permanently delete account and data","otpEntryLink":"Log in / sign up with email code","otpFormTitle":"Email code login"},
-  "zh-CN":{"app":"天气","tag":"私密 · 加密 · 无痕","msg":"消息","set":"设置","nick":"昵称","pwd":"密码（4-8位）","cpwd":"确认密码","create":"创建账号","haveAcct":"已有账号？","newUser":"还没有账号？","forgot":"忘记密码？","hideMode":"隐藏模式","notEnabled":"未开启","secretNotif":"隐秘通知","destroyMethod":"销毁方式","e2e":"端对端加密","destroyNow":"立即销毁","subscribe":"订阅会员","logout":"退出登录","lang":"语言","privacy":"隐私与安全","flashlight":"手电筒","calculator":"计算器","clock":"时钟","notes":"备忘录","calling":"正在呼叫...","mute":"静音","end":"挂断","speaker":"扬声器","incoming":"来电...","decline":"拒接","accept":"接听","enterPwd":"输入密码","cancel":"取消","release":"松开发送","enableHide":"开启隐藏模式","disableHide":"关闭隐藏模式","save":"保存","appearance":"外观","themeDefault":"默认粉紫","themeBusiness":"商务简约","themeDark":"深夜暗黑","themeOcean":"静谧蓝海","themeForest":"森系绿意","themeNeon":"赛博霓虹","appName":"私语","appTagline":"一个温馨私密的聊天空间","welcomeBack":"欢迎回来！","loginIdPh":"你的ID","passwordPh":"密码","loginBtn":"登录","registerLink":"立即注册","forgotPw":"忘记密码？","createAccount":"创建账号","nicknamePh":"昵称","customIdPh":"自定义ID（可选）","passwordPh2":"密码（4-8位数字）","confirmPwPh":"确认密码","createBtn":"创建账号","haveAccount":"已有账号？","loginLink":"去登录","recoveryTitle":"账号找回","recoveryDesc":"请输入您的找回码。","verifyPayBtn":"验证","backToLogin":"← 返回登录","installTitle":"安装 天气","installDesc":"添加到桌面，收发推送通知","installBtn":"安装","msgImage":"[图片]","msgVoice":"[语音]","msgVideo":"[视频]","msgFile":"[文件]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在输入","sendFailed":"发送失败","sendFailedShort":"⚠️失败","sendFailedRetryHint":"发送失败，点重试","recallFailed":"撤回失败: ","videoSendFailed":"⚠️ 视频发送失败","fileSendFailed":"⚠️ 发送失败: ","blockedSendMsg":"对方已被你拉黑，请先在通讯录中解除拉黑","sendingEllipsis":"发送中...","wd0":"周日","wd1":"周一","wd2":"周二","wd3":"周三","wd4":"周四","wd5":"周五","wd6":"周六","youRecalled":"你撤回了一条消息","theyRecalled":"对方撤回了一条消息","processingEllipsis":"处理中...","contactCardHint":"名片 · 点击查看","tapToDownload":"点击下载","loadingEllipsis":"加载中…","noChatsYet":"暂无聊天","addFriendsHint":"在通讯录添加好友后开始聊天","micCamError":"无法访问麦克风/摄像头：","answerCallError":"无法接听：","inCallTimer":"通话中 00:00","incomingCallConfirm":"来电，接听？","connecting":"正在连接...","callFallbackName":"通话","themeRowTitle":"主题外观","chatStyleRowTitle":"聊天气泡风格","fontSizeRowTitle":"字体大小","accountSectionHd":"账号","accountSettingsRowTitle":"账号设置","loginDevicesRowTitle":"登录设备","loginDevicesDesc":"查看并管理登录设备","bindEmailRowTitle":"绑定邮箱","deleteAccountRowTitle":"注销账号","deleteAccountRowDesc":"永久删除账号和数据","otpEntryLink":"邮箱验证码登录/注册","otpFormTitle":"邮箱验证码登录"},
+  "en":{"app":"天气","tag":"Private · Encrypted · Untraceable","msg":"Messages","set":"Settings","nick":"Nickname","pwd":"Password (4-8 digits)","cpwd":"Confirm password","create":"Create Account","haveAcct":"Already have account?","newUser":"New here?","forgot":"Forgot password?","hideMode":"Hide Mode","notEnabled":"Not enabled","secretNotif":"Secret Notification","destroyMethod":"Destroy Method","e2e":"End-to-End Encryption","destroyNow":"Destroy Now","subscribe":"Subscribe","logout":"Logout","lang":"Language","privacy":"Privacy & Security","flashlight":"Flashlight","calculator":"Calculator","clock":"Clock","notes":"Notes","calling":"Calling...","mute":"Mute","end":"End","speaker":"Speaker","incoming":"Incoming call...","decline":"Decline","accept":"Accept","enterPwd":"Enter Password","cancel":"Cancel","release":"Release to send","enableHide":"Enable Hide Mode","disableHide":"Disable Hide Mode","save":"Save","appearance":"Appearance","themeDefault":"Pink Dream","themeBusiness":"Business","themeDark":"Dark","themeOcean":"Ocean","themeForest":"Forest","themeNeon":"Neon","appName":"SecretTalk","appTagline":"A cozy private chat space","welcomeBack":"Welcome back!","loginIdPh":"Your ID","passwordPh":"Password","loginBtn":"Log In","registerLink":"Create account","forgotPw":"Forgot password?","createAccount":"Create your account","nicknamePh":"Nickname","customIdPh":"Custom ID (optional)","passwordPh2":"Password (4-8 digits)","confirmPwPh":"Confirm password","createBtn":"Create Account","haveAccount":"Already have an account?","loginLink":"Log in","recoveryTitle":"Account Recovery","recoveryDesc":"Enter your rescue code.","verifyPayBtn":"Verify","backToLogin":"← Back to Login","installTitle":"Install Weather","installDesc":"Add to Home Screen for notifications","installBtn":"Install","msgImage":"[Photo]","msgVoice":"[Voice]","msgVideo":"[Video]","msgFile":"[File]","msgLocation":"[Location]","msgContact":"[Contact]","youPrefix":"You: ","typingNow":"typing","sendFailed":"Send failed","sendFailedShort":"⚠️ Failed","sendFailedRetryHint":"Send failed, tap to retry","recallFailed":"Recall failed: ","videoSendFailed":"⚠️ Video failed to send","fileSendFailed":"⚠️ Failed to send: ","blockedSendMsg":"This user has blocked you. Unblock them in Contacts first.","sendingEllipsis":"Sending...","wd0":"Sun","wd1":"Mon","wd2":"Tue","wd3":"Wed","wd4":"Thu","wd5":"Fri","wd6":"Sat","youRecalled":"You recalled a message","theyRecalled":"They recalled a message","processingEllipsis":"Processing...","contactCardHint":"Contact card · Tap to view","tapToDownload":"Tap to download","loadingEllipsis":"Loading…","noChatsYet":"No chats yet","addFriendsHint":"Add friends in Contacts to start chatting","micCamError":"Could not access microphone/camera: ","answerCallError":"Could not answer: ","inCallTimer":"In call 00:00","incomingCallConfirm":"is calling, answer?","connecting":"Connecting...","callFallbackName":"Call","themeRowTitle":"Theme","chatStyleRowTitle":"Chat Bubble Style","fontSizeRowTitle":"Font Size","accountSectionHd":"Account","accountSettingsRowTitle":"Account Settings","loginDevicesRowTitle":"Login Devices","loginDevicesDesc":"View and manage login devices","bindEmailRowTitle":"Bind Email","deleteAccountRowTitle":"Delete Account","deleteAccountRowDesc":"Permanently delete account and data","otpEntryLink":"Log in / sign up with email code","otpFormTitle":"Email code login","focusModeSectionHd":"Focus Mode","fmLabelFree":"Free","fmLabelWork":"Work","fmLabelHome":"Home","fmLabelHome2":"Home 2","fmLabelGhost":"Ghost","notifSectionHd":"Notifications & Push","pushDirectRowTitle":"Message Push Notifications","pushNotifSubtitleOff":"Push notifications for new messages","pushNotifSubtitleOn":"✅ Enabled · Tap notification to open app directly","pushNotifSubtitleUnauth":"Not enabled · Tap to authorize system push","deviceCountActivePrefix":"Currently ","deviceCountActiveSuffix":" device(s) logged in","pwaInstalledYes":"✅ Installed as desktop app","pwaInstalledNo":"Not installed yet · Tap to see steps","switchedTo":"Switched to ","barkUrlPreviewDefault":"Tap to configure","barkUrlLabel":"Bark Push URL","barkUrlPh":"https://api.day.app/YourKey/","barkIconLabel":"Push Icon","barkIconNotSelected":"Not selected","barkCustomIconBtn":"Custom icon URL ›","barkIconUrlPh":"https://... image URL","barkSaveIconBtn":"✓ Save Icon","barkTestPushBtn":"📲 Test Push","barkDeleteBtn":"Delete","barkDirectTitle":"Bark Notification → Desktop App","barkDirectDesc":"Just create an \"Open Weather\" shortcut once, then tapping a Bark notification silently opens the desktop app, without affecting other apps' notifications.","barkShortcutBtn":"⚡ Create Shortcut (30s)","barkIconCustom":"Custom","barkIconDefault":"Default","barkClearedStatus":"Bark settings cleared","barkSavedStatus":"✅ Saved! Tap \"Test Push\" to verify","barkDeletedStatus":"Bark settings deleted","barkTestSuccessStatus":"✅ Test notification sent! Check your Bark app","barkTestFailStatus":"❌ Failed to send, please check your Bark URL","barkIconSavedStatus":"✅ Icon saved","barkIconDefaultSavedStatus":"✅ Set as default icon","barkUrlPreviewSetPrefix":"✅ Configured · Key: ","barkUrlPreviewUnset":"Tap to set up","shortcutInstalledYes":"✅ Installed","shortcutInstalledNo":"Not installed","destroyNowRowDesc":"Immediately clear all records","appearanceLangSectionHd":"Appearance & Language","privacyPolicyRowTitle":"Privacy Policy","adsSectionHd":"Ads","adConsentRowTitle":"Accept Promotional Messages","adConsentOn":"Agreed · Can turn off anytime","adConsentOff":"Not agreed","adConsentFooter":"When enabled, promotional content may appear in the chat list and push notifications. You can turn it off anytime.","backToSettingsBtn":"‹ Settings","changeAvatarBtn":"✏️ Change Avatar","changePasswordRowTitle":"Change Password","appLockPinRowTitle":"Lock Screen Password","appLockPinRowDesc":"Used to unlock after idle timeout / in hide mode","testGatePinRowTitle":"Access Password","testGatePinRowDesc":"Website password gate, defaults to same as lock screen password","lockTimeoutRowTitle":"Auto-Lock Timeout","autoLockLeaveRowTitle":"Auto-Lock When Leaving App","autoLockLeaveRowDesc":"Requires the lock screen password when returning after switching apps or screen lock","myQrRowTitle":"My QR Code","myIdRowTitle":"My ID","secQRowTitle":"Security Question","secQNotSet":"Not set (used to recover your password)","hidePinNote":"Unlocking the disguise screen uses the \"Lock Screen Password\". If you haven't set one yet, go to Settings → Privacy & Security → Lock Screen Password to set one.","notifSymHint":"Pick a symbol shown in the notification bar when you receive a message — others won't know what it means","notifSymComma":"Comma","notifSymPeriod":"Period","notifSymEllipsis":"Ellipsis","notifSymMiddot":"Middle dot","notifSymSpace":"Space","notifSymStar":"Star","notifSymWave":"Wave","notifSymNoneDesc":"Not shown","deviceMgrTitle":"Login Device Management","deviceMgrDesc":"You can kick other devices and keep only this device logged in","deviceUnknown":"Unknown device","deviceThisDevice":"This device","deviceTypeMobile":"Mobile","deviceTypeDesktop":"Desktop/Web","deviceKickBtn":"Kick","deviceKickAllBtn":"Kick All Other Devices","deviceCloseBtn":"Close","contactsTab":"Contacts","hideEnabledPrefix":"Enabled · ","notifDescDot":"● Dot","notifDescLine":"| Line","notifDescStar":"✦ Star","notifDescTri":"▲ Triangle","notifDescDia":"◆ Diamond","notifDescWave":"～ Wave","notifDescSync":"↻ Sync","notifDescMail":"✉ Mail","bindEmailRowDesc":"For password recovery, optional","bindEmailBoundSuffix":"（Bound）","barkRowTitle":"Bark Push","lockTimeoutImmediate":"Lock immediately when leaving the app","lockTimeoutMinutesSuffix":" minutes before locking","notifSymNoneChar":"None","deviceNameAndroidPhone":"Android Phone","deviceNameWindowsPC":"Windows PC","deviceNameMac":"Mac","deviceNameLinuxPC":"Linux PC"},
+  "zh-CN":{"app":"天气","tag":"私密 · 加密 · 无痕","msg":"消息","set":"设置","nick":"昵称","pwd":"密码（4-8位）","cpwd":"确认密码","create":"创建账号","haveAcct":"已有账号？","newUser":"还没有账号？","forgot":"忘记密码？","hideMode":"隐藏模式","notEnabled":"未开启","secretNotif":"隐秘通知","destroyMethod":"销毁方式","e2e":"端对端加密","destroyNow":"立即销毁","subscribe":"订阅会员","logout":"退出登录","lang":"语言","privacy":"隐私与安全","flashlight":"手电筒","calculator":"计算器","clock":"时钟","notes":"备忘录","calling":"正在呼叫...","mute":"静音","end":"挂断","speaker":"扬声器","incoming":"来电...","decline":"拒接","accept":"接听","enterPwd":"输入密码","cancel":"取消","release":"松开发送","enableHide":"开启隐藏模式","disableHide":"关闭隐藏模式","save":"保存","appearance":"外观","themeDefault":"默认粉紫","themeBusiness":"商务简约","themeDark":"深夜暗黑","themeOcean":"静谧蓝海","themeForest":"森系绿意","themeNeon":"赛博霓虹","appName":"私语","appTagline":"一个温馨私密的聊天空间","welcomeBack":"欢迎回来！","loginIdPh":"你的ID","passwordPh":"密码","loginBtn":"登录","registerLink":"立即注册","forgotPw":"忘记密码？","createAccount":"创建账号","nicknamePh":"昵称","customIdPh":"自定义ID（可选）","passwordPh2":"密码（4-8位数字）","confirmPwPh":"确认密码","createBtn":"创建账号","haveAccount":"已有账号？","loginLink":"去登录","recoveryTitle":"账号找回","recoveryDesc":"请输入您的找回码。","verifyPayBtn":"验证","backToLogin":"← 返回登录","installTitle":"安装 天气","installDesc":"添加到桌面，收发推送通知","installBtn":"安装","msgImage":"[图片]","msgVoice":"[语音]","msgVideo":"[视频]","msgFile":"[文件]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在输入","sendFailed":"发送失败","sendFailedShort":"⚠️失败","sendFailedRetryHint":"发送失败，点重试","recallFailed":"撤回失败: ","videoSendFailed":"⚠️ 视频发送失败","fileSendFailed":"⚠️ 发送失败: ","blockedSendMsg":"对方已被你拉黑，请先在通讯录中解除拉黑","sendingEllipsis":"发送中...","wd0":"周日","wd1":"周一","wd2":"周二","wd3":"周三","wd4":"周四","wd5":"周五","wd6":"周六","youRecalled":"你撤回了一条消息","theyRecalled":"对方撤回了一条消息","processingEllipsis":"处理中...","contactCardHint":"名片 · 点击查看","tapToDownload":"点击下载","loadingEllipsis":"加载中…","noChatsYet":"暂无聊天","addFriendsHint":"在通讯录添加好友后开始聊天","micCamError":"无法访问麦克风/摄像头：","answerCallError":"无法接听：","inCallTimer":"通话中 00:00","incomingCallConfirm":"来电，接听？","connecting":"正在连接...","callFallbackName":"通话","themeRowTitle":"主题外观","chatStyleRowTitle":"聊天气泡风格","fontSizeRowTitle":"字体大小","accountSectionHd":"账号","accountSettingsRowTitle":"账号设置","loginDevicesRowTitle":"登录设备","loginDevicesDesc":"查看并管理登录设备","bindEmailRowTitle":"绑定邮箱","deleteAccountRowTitle":"注销账号","deleteAccountRowDesc":"永久删除账号和数据","otpEntryLink":"邮箱验证码登录/注册","otpFormTitle":"邮箱验证码登录","focusModeSectionHd":"场景模式","fmLabelFree":"自由","fmLabelWork":"工作","fmLabelHome":"回家","fmLabelHome2":"回家②","fmLabelGhost":"隐身","notifSectionHd":"通知与推送","pushDirectRowTitle":"消息推送通知","pushNotifSubtitleOff":"收到消息时推送通知","pushNotifSubtitleOn":"✅ 已开启 · 点通知直接打开App","pushNotifSubtitleUnauth":"未开启 · 点击授权系统推送通知","deviceCountActivePrefix":"当前 ","deviceCountActiveSuffix":" 台设备登录中","pwaInstalledYes":"✅ 已安装为桌面App","pwaInstalledNo":"尚未安装 · 点击查看步骤","switchedTo":"已切换至","barkUrlPreviewDefault":"点击配置","barkUrlLabel":"Bark推送地址","barkUrlPh":"https://api.day.app/你的Key/","barkIconLabel":"推送图标","barkIconNotSelected":"未选择","barkCustomIconBtn":"自定义图标URL ›","barkIconUrlPh":"https://... 图片URL","barkSaveIconBtn":"✓ 保存图标","barkTestPushBtn":"📲 测试推送","barkDeleteBtn":"删除","barkDirectTitle":"Bark通知直达桌面App","barkDirectDesc":"只需建一个「打开天气」捷径，之后点Bark通知直接静默打开桌面App，不影响其他App通知。","barkShortcutBtn":"⚡ 30秒创建捷径","barkIconCustom":"自定义","barkIconDefault":"默认","barkClearedStatus":"已清除 Bark 设置","barkSavedStatus":"✅ 保存成功！点击\"发送测试通知\"验证","barkDeletedStatus":"已删除 Bark 设置","barkTestSuccessStatus":"✅ 测试通知发送成功！检查你的 Bark App","barkTestFailStatus":"❌ 发送失败，请检查 Bark URL 是否正确","barkIconSavedStatus":"✅ 图标已保存","barkIconDefaultSavedStatus":"✅ 已设为默认图标","barkUrlPreviewSetPrefix":"✅ 已设置 · Key: ","barkUrlPreviewUnset":"点击设置","shortcutInstalledYes":"✅ 已安装","shortcutInstalledNo":"未安装","destroyNowRowDesc":"立即清除所有记录","appearanceLangSectionHd":"外观与语言","privacyPolicyRowTitle":"隐私政策","adsSectionHd":"广告","adConsentRowTitle":"接受推广信息","adConsentOn":"已同意 · 可随时关闭","adConsentOff":"未同意","adConsentFooter":"开启后，聊天列表及推送通知中可能出现推广内容。随时可关闭。","backToSettingsBtn":"‹ 设置","changeAvatarBtn":"✏️ 更换头像","changePasswordRowTitle":"修改密码","appLockPinRowTitle":"锁屏密码","appLockPinRowDesc":"空闲后/隐藏模式解锁都用这个","testGatePinRowTitle":"访问密码","testGatePinRowDesc":"网站密码门，默认跟锁屏密码一致","lockTimeoutRowTitle":"自动锁屏时间","autoLockLeaveRowTitle":"离开APP自动锁屏","autoLockLeaveRowDesc":"切到其他软件或锁屏后，回来需要输入锁屏密码","myQrRowTitle":"我的二维码","myIdRowTitle":"我的ID","secQRowTitle":"安全问题","secQNotSet":"未设置（用于忘记密码时恢复）","hidePinNote":"解锁伪装界面使用「锁屏密码」。还没设置的话，先去 设置 → 隐私与安全 → 锁屏密码 设置一个。","notifSymHint":"选一个你收到消息时通知栏显示的符号，别人看不出含义","notifSymComma":"逗号","notifSymPeriod":"句号","notifSymEllipsis":"省略号","notifSymMiddot":"间隔号","notifSymSpace":"空格","notifSymStar":"星形","notifSymWave":"波浪","notifSymNoneDesc":"不显示","deviceMgrTitle":"登录设备管理","deviceMgrDesc":"可踢出其他设备，只保留当前设备登录","deviceUnknown":"未知设备","deviceThisDevice":"本机","deviceTypeMobile":"手机端","deviceTypeDesktop":"电脑/网页端","deviceKickBtn":"踢出","deviceKickAllBtn":"踢出所有其他设备","deviceCloseBtn":"关闭","contactsTab":"通讯录","hideEnabledPrefix":"已开启 · ","notifDescDot":"● 小圆点","notifDescLine":"| 竖线","notifDescStar":"✦ 星形","notifDescTri":"▲ 三角","notifDescDia":"◆ 菱形","notifDescWave":"～ 波浪","notifDescSync":"↻ 同步","notifDescMail":"✉ 邮件","bindEmailRowDesc":"用于找回密码，可选","bindEmailBoundSuffix":"（已绑定）","barkRowTitle":"Bark 推送","lockTimeoutImmediate":"离开应用后立即锁定","lockTimeoutMinutesSuffix":" 分钟后锁定","notifSymNoneChar":"无","deviceNameAndroidPhone":"Android手机","deviceNameWindowsPC":"Windows电脑","deviceNameMac":"Mac电脑","deviceNameLinuxPC":"Linux电脑"},
   "zh-TW":{"app":"天气","tag":"私密 · 加密 · 無痕","msg":"訊息","set":"設定","nick":"暱稱","pwd":"密碼（4-8位）","cpwd":"確認密碼","create":"建立帳號","haveAcct":"已有帳號？","newUser":"新用戶？","forgot":"忘記密碼？","hideMode":"隱藏模式","notEnabled":"未開啟","secretNotif":"隱密通知","destroyMethod":"銷毀方式","e2e":"端對端加密","destroyNow":"立即銷毀","subscribe":"訂閱會員","logout":"登出","lang":"語言","privacy":"隱私與安全","flashlight":"手電筒","calculator":"計算機","clock":"時鐘","notes":"備忘錄","calling":"撥打中...","mute":"靜音","end":"掛斷","speaker":"擴音","incoming":"來電...","decline":"拒接","accept":"接聽","enterPwd":"輸入密碼","cancel":"取消","release":"放開傳送","enableHide":"開啟隱藏模式","disableHide":"關閉隱藏模式","save":"儲存","installTitle":"安裝 天氣","installDesc":"新增到主畫面，接收推播通知","installBtn":"安裝","msgImage":"[圖片]","msgVoice":"[語音]","msgVideo":"[影片]","msgFile":"[檔案]","msgLocation":"[位置]","msgContact":"[名片]","youPrefix":"我: ","typingNow":"正在輸入","sendFailed":"傳送失敗","sendFailedShort":"⚠️失敗","sendFailedRetryHint":"傳送失敗，點擊重試","recallFailed":"撤回失敗: ","videoSendFailed":"⚠️ 影片傳送失敗","fileSendFailed":"⚠️ 傳送失敗: ","blockedSendMsg":"對方已將你封鎖，請先在聯絡人中解除封鎖","sendingEllipsis":"傳送中...","wd0":"週日","wd1":"週一","wd2":"週二","wd3":"週三","wd4":"週四","wd5":"週五","wd6":"週六","youRecalled":"你收回了一則訊息","theyRecalled":"對方收回了一則訊息","processingEllipsis":"處理中...","contactCardHint":"名片 · 點擊查看","tapToDownload":"點擊下載","loadingEllipsis":"載入中…","noChatsYet":"暫無聊天","addFriendsHint":"在聯絡人中新增好友後開始聊天","micCamError":"無法存取麥克風/相機：","answerCallError":"無法接聽：","inCallTimer":"通話中 00:00","incomingCallConfirm":"來電，接聽？","connecting":"正在連線...","callFallbackName":"通話"},
   "es":{"app":"天气","tag":"Privado · Cifrado · Sin rastro","msg":"Mensajes","set":"Ajustes","nick":"Apodo","pwd":"Contraseña (4-8 dígitos)","cpwd":"Confirmar contraseña","create":"Crear cuenta","haveAcct":"¿Ya tienes cuenta?","newUser":"¿Nuevo usuario?","forgot":"¿Olvidaste la contraseña?","hideMode":"Modo oculto","notEnabled":"No activado","secretNotif":"Notif. secreta","destroyMethod":"Destrucción","e2e":"Cifrado E2E","destroyNow":"Destruir ahora","subscribe":"Suscribirse","logout":"Cerrar sesión","lang":"Idioma","privacy":"Privacidad","flashlight":"Linterna","calculator":"Calculadora","clock":"Reloj","notes":"Notas","calling":"Llamando...","mute":"Silencio","end":"Colgar","speaker":"Altavoz","incoming":"Llamada entrante...","decline":"Rechazar","accept":"Aceptar","enterPwd":"Contraseña","cancel":"Cancelar","release":"Soltar para enviar","enableHide":"Activar modo oculto","disableHide":"Desactivar","save":"Guardar","installTitle":"Instalar app","installDesc":"Añadir a inicio para recibir notificaciones","installBtn":"Instalar"},
   "fr":{"app":"天气","tag":"Privé · Chiffré · Sans trace","msg":"Messages","set":"Paramètres","nick":"Pseudo","pwd":"Mot de passe (4-8 chiffres)","cpwd":"Confirmer","create":"Créer un compte","haveAcct":"Déjà un compte?","newUser":"Nouvel utilisateur?","forgot":"Mot de passe oublié?","hideMode":"Mode caché","notEnabled":"Non activé","secretNotif":"Notif. secrète","destroyMethod":"Destruction","e2e":"Chiffrement E2E","destroyNow":"Détruire","subscribe":"Abonnement","logout":"Déconnexion","lang":"Langue","privacy":"Confidentialité","flashlight":"Lampe torche","calculator":"Calculatrice","clock":"Horloge","notes":"Notes","calling":"Appel en cours...","mute":"Muet","end":"Raccrocher","speaker":"Haut-parleur","incoming":"Appel entrant...","decline":"Refuser","accept":"Accepter","enterPwd":"Mot de passe","cancel":"Annuler","release":"Relâcher pour envoyer","enableHide":"Activer mode caché","disableHide":"Désactiver","save":"Enregistrer","installTitle":"Installer l'app","installDesc":"Ajouter à l'écran d'accueil pour les notifications","installBtn":"Installer"},
@@ -3636,7 +3640,7 @@ function i18nT(key){
 function setLang(code){
   curLang=code;
   ls('lang',code);
-  applyLang();
+  _ensureLangPack(code,function(){applyLang();});
 }
 
 
@@ -3785,7 +3789,7 @@ var AdManager = {
     var tog = document.getElementById('adConsentToggle');
     var desc = document.getElementById('adConsentDesc');
     if(tog){ tog.className = 'tog' + (on ? ' on' : ''); }
-    if(desc){ desc.textContent = on ? '已同意 · 可随时关闭' : '未同意'; }
+    if(desc){ desc.textContent = on ? i18nT('adConsentOn') : i18nT('adConsentOff'); }
   },
 
   _esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -4224,13 +4228,13 @@ document.addEventListener('DOMContentLoaded', function(){
   var _tokenOk=_tokenExp>Date.now();
   if(_hasLocal&&_tokenOk){
     myId=lg('myId')||'';_fastBootSetName();
-    var _freeMode=lg('freeMode')==='true';
+    var _freeMode=(lg('focusMode')||'free')==='free';
     if(sessionStorage.getItem('testGatePassed')==='1'||_freeMode){window._gcFastBoot=true;show('main');_renderChatListCache();}
     else{_showStartupStealth();}
   }else if(_hasLocal&&!_tokenOk){
     // ★ Token 过期 → 自由模式直接进聊天；否则显示伪装页，后台静默刷新
     myId=lg('myId')||'';_fastBootSetName();
-    var _freeModeExp=lg('freeMode')==='true';
+    var _freeModeExp=(lg('focusMode')||'free')==='free';
     if(_freeModeExp){window._gcFastBoot=true;show('main');_renderChatListCache();}
     else{_showStartupStealth();}
     _tryRefreshToken().then(function(ok){
@@ -4327,7 +4331,7 @@ window.onload=async function(){
       }
     }, 8000);
   })();
-  try{applyLang();var rls=document.getElementById('regLangSelect');if(rls)rls.value=curLang;}catch(e){console.log('i18n err',e);}
+  try{_ensureLangPack(curLang,function(){applyLang();var rls=document.getElementById('regLangSelect');if(rls)rls.value=curLang;});}catch(e){console.log('i18n err',e);}
   try{
     if(lg('registered')){
       var savedName=lg('myName')||'';
@@ -4343,10 +4347,9 @@ window.onload=async function(){
       });
       var n2=document.getElementById('nickShow2');if(n2)n2.textContent=savedName||'-';
       var id2=document.getElementById('idShow2');if(id2)id2.textContent=myId;
-      var sq=document.getElementById('secQShow');if(sq)sq.textContent=lg('secQ')||'未设置（用于忘记密码时恢复）';
+      var sq=document.getElementById('secQShow');if(sq)sq.textContent=lg('secQ')||i18nT('secQNotSet');
       updateLockTimeoutShow();
       updateAutoLockToggle();
-      var _ftog2=document.getElementById('freeModeToggle');if(_ftog2)_ftog2.className='tog'+(lg('freeMode')==='true'?' on':'');
     }
   }catch(e){console.log('avatar load err',e);}
   // 计算器全局事件
@@ -4365,7 +4368,7 @@ window.onload=async function(){
   if(gateBubble){gateBubble.addEventListener('animationend',function(e){if(e.animationName==='gateShake')gateBubble.classList.remove('gate-shake');});}
   var lockBubble=document.getElementById('lockBubble');
   if(lockBubble){lockBubble.addEventListener('animationend',function(e){if(e.animationName==='gateShake')lockBubble.classList.remove('gate-shake');});}
-  applyLang();
+  _ensureLangPack(curLang,function(){applyLang();});
   tickClock();
   var _cv=document.getElementById('coreVerBadge');if(_cv)_cv.textContent=CORE_VERSION;
   var _sv=document.getElementById('settingsVerLabel');if(_sv)_sv.textContent='天气 '+CORE_VERSION;
@@ -5059,11 +5062,11 @@ function getDeviceName(){
   var ua=navigator.userAgent;
   if(/iPhone/i.test(ua))return 'iPhone';
   if(/iPad/i.test(ua))return 'iPad';
-  if(/Android/i.test(ua))return 'Android手机';
-  if(/Windows/i.test(ua))return 'Windows电脑';
-  if(/Mac/i.test(ua))return 'Mac电脑';
-  if(/Linux/i.test(ua))return 'Linux电脑';
-  return '未知设备';
+  if(/Android/i.test(ua))return i18nT('deviceNameAndroidPhone');
+  if(/Windows/i.test(ua))return i18nT('deviceNameWindowsPC');
+  if(/Mac/i.test(ua))return i18nT('deviceNameMac');
+  if(/Linux/i.test(ua))return i18nT('deviceNameLinuxPC');
+  return i18nT('deviceUnknown');
 }
 
 function getDeviceType(){
@@ -5128,8 +5131,8 @@ function showDeviceManager(){
   overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
   var box = document.createElement('div');
   box.style.cssText = 'background:var(--theme-bg);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;box-sizing:border-box;max-height:70vh;overflow-y:auto;';
-  box.innerHTML = '<div style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:700;margin-bottom:4px;color:var(--theme-text);">📱 登录设备管理</div>'
-    + '<div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:16px;">可踢出其他设备，只保留当前设备登录</div>';
+  box.innerHTML = '<div style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:700;margin-bottom:4px;color:var(--theme-text);">📱 ' + i18nT('deviceMgrTitle') + '</div>'
+    + '<div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:16px;">' + i18nT('deviceMgrDesc') + '</div>';
   
   var list = document.createElement('div');
   Object.keys(devMap).forEach(function(did){
@@ -5139,15 +5142,15 @@ function showDeviceManager(){
     row.style.cssText = 'display:flex;align-items:center;padding:12px;background:var(--theme-field-bg);border-radius:12px;margin-bottom:8px;gap:12px;';
     var icon = isMe ? '✅' : '📱';
     var timeStr = dev.time ? new Date(dev.time).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
-    var typeLabel = dev.type==='mobile'?'📱 手机端':'💻 电脑/网页端';
+    var typeLabel = dev.type==='mobile'?('📱 '+i18nT('deviceTypeMobile')):('💻 '+i18nT('deviceTypeDesktop'));
     row.innerHTML = '<div style="font-size:calc(24px * var(--ui-font-scale,1));">' + icon + '</div>'
       + '<div style="flex:1;">'
-      + '<div style="font-size:calc(15px * var(--ui-font-scale,1));font-weight:600;color:var(--theme-text);">' + (dev.name||'未知设备') + (isMe?' <span style="font-size:calc(11px * var(--ui-font-scale,1));color:#34c759;font-weight:400;">（本机）</span>':'') + '</div>'
+      + '<div style="font-size:calc(15px * var(--ui-font-scale,1));font-weight:600;color:var(--theme-text);">' + (dev.name||i18nT('deviceUnknown')) + (isMe?' <span style="font-size:calc(11px * var(--ui-font-scale,1));color:#34c759;font-weight:400;">（' + i18nT('deviceThisDevice') + '）</span>':'') + '</div>'
       + '<div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-top:2px;">' + typeLabel + ' · ' + timeStr + '</div>'
       + '</div>';
     if(!isMe){
       var kickBtn = document.createElement('button');
-      kickBtn.textContent = '踢出';
+      kickBtn.textContent = i18nT('deviceKickBtn');
       kickBtn.style.cssText = 'padding:7px 14px;background:none;color:#ff3b30;border:1.5px solid rgba(255,59,48,.3);border-radius:8px;font-size:calc(13px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;';
       kickBtn.onclick = function(){
         if(confirm('确定要踢出「' + (dev.name||'该设备') + '」的登录吗？')){
@@ -5164,7 +5167,7 @@ function showDeviceManager(){
   var others = Object.keys(devMap).filter(function(d){ return d !== myDid; });
   if(others.length > 0){
     var kickAllBtn = document.createElement('button');
-    kickAllBtn.textContent = '踢出所有其他设备';
+    kickAllBtn.textContent = i18nT('deviceKickAllBtn');
     kickAllBtn.style.cssText = 'width:100%;padding:12px;margin-top:8px;background:none;color:#ff3b30;border:1.5px solid rgba(255,59,48,.3);border-radius:12px;font-size:calc(14px * var(--ui-font-scale,1));font-weight:600;cursor:pointer;';
     kickAllBtn.onclick = function(){
       if(confirm('踢出所有其他设备的登录？')){
@@ -5175,7 +5178,7 @@ function showDeviceManager(){
   }
   
   var closeBtn = document.createElement('button');
-  closeBtn.textContent = '关闭';
+  closeBtn.textContent = i18nT('deviceCloseBtn');
   closeBtn.style.cssText = 'width:100%;padding:12px;margin-top:8px;background:var(--theme-ep-active);color:var(--theme-text);border:none;border-radius:12px;font-size:calc(14px * var(--ui-font-scale,1));cursor:pointer;';
   closeBtn.onclick = function(){ overlay.remove(); };
   box.appendChild(closeBtn);
@@ -5374,7 +5377,7 @@ async function _autoRelogin(){
 function forceLogout(){_onKicked();}
 
 // ═══ 设置同步到中央数据库：锁屏密码/隐藏模式/伪装方式/激活方式/销毁方式 ═══
-var SYNCED_SETTING_KEYS=['appLockPin','hide','dis','trig','dest','dpin','testGatePin','lockTimeout','autoLockLeave','barkUrl','focusMode','barkEnabled','doNotDisturb','barkIconUrl','shortcutName','pwaAppName','freeMode','uiFontSize'];
+var SYNCED_SETTING_KEYS=['appLockPin','hide','dis','trig','dest','dpin','testGatePin','lockTimeout','autoLockLeave','barkUrl','focusMode','barkEnabled','doNotDisturb','barkIconUrl','shortcutName','pwaAppName','uiFontSize'];
 async function pushSettings(){
   if(!lg('registered')||!myId)return;
   var obj={};
@@ -5400,7 +5403,6 @@ async function pullSettings(){
     G.dpin=lg('dpin')||G.dpin;
     updateLockTimeoutShow();
     updateAutoLockToggle();
-    var _ftog=document.getElementById('freeModeToggle');if(_ftog)_ftog.className='tog'+(lg('freeMode')==='true'?' on':'');
     if(lg('uiFontSize'))applyFontSize(lg('uiFontSize'));
   }catch(e){console.log('pullSettings failed',e);}
   _settingsPulled=true;
@@ -5967,9 +5969,9 @@ function _refreshEmailBindStatus(){
   if(!sub)return;
   var email=lg('myEmail');
   if(email){
-    sub.textContent=email+'（已绑定）';
+    sub.textContent=email+i18nT('bindEmailBoundSuffix');
   }else{
-    sub.textContent='用于找回密码，可选';
+    sub.textContent=i18nT('bindEmailRowDesc');
   }
 }
 async function bindEmailToAccount(){
@@ -6022,6 +6024,43 @@ function buildLangBtns(){
 function buildLangList(){
   var ll=document.getElementById('langList');if(!ll)return;
   ll.innerHTML='<div style="height:8px;"></div><div style="background:#fff;border-radius:12px;margin:0 16px;overflow:hidden;">'+Object.keys(LANGS).map(function(c){var l=LANGS[c];var sel=c===curLang;return '<div onclick="pickLang(\''+c+'\')" style="display:flex;align-items:center;padding:14px 16px;border-bottom:0.5px solid rgba(60,60,67,0.18);cursor:pointer;background:'+(sel?'#f0f7ff':'#fff')+'"><span style="font-size:calc(24px * var(--ui-font-scale,1));margin-right:14px;">'+l.flag+'</span><span style="font-size:calc(16px * var(--ui-font-scale,1));flex:1;">'+l.name+'</span>'+(sel?'<span style="color:#007aff;font-size:calc(18px * var(--ui-font-scale,1));">✓</span>':'<span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>')+'</div>';}).join('')+'</div>';
+}
+// ═══ 语言包按需下载：核心只内置中英文，其他语言首次切换时联网下载并缓存到本地 ═══
+var _langPackLoading={};
+function _needsLangPack(code){
+  if(code==='en'||code==='zh-CN')return false;
+  var have=I18N_DICT[code]?Object.keys(I18N_DICT[code]).length:0;
+  var need=Object.keys(I18N_DICT.en).length;
+  return have<need;
+}
+function _ensureLangPack(code,cb){
+  if(!_needsLangPack(code)){cb&&cb();return;}
+  var cacheKey='langPack_'+code;
+  var cached=null;
+  try{cached=localStorage.getItem(cacheKey);}catch(e){}
+  if(cached){
+    try{
+      var data=JSON.parse(cached);
+      I18N_DICT[code]=Object.assign({},I18N_DICT[code]||{},data);
+    }catch(e){}
+    cb&&cb();
+    return;
+  }
+  if(_langPackLoading[code]){cb&&cb();return;}
+  _langPackLoading[code]=true;
+  fetch('./lang/'+code+'.json').then(function(r){
+    if(!r.ok)throw new Error('lang pack fetch failed: '+r.status);
+    return r.json();
+  }).then(function(data){
+    I18N_DICT[code]=Object.assign({},I18N_DICT[code]||{},data);
+    try{localStorage.setItem(cacheKey,JSON.stringify(data));}catch(e){}
+    _langPackLoading[code]=false;
+    cb&&cb();
+  }).catch(function(err){
+    console.log('[i18n] lang pack unavailable for',code,'- falling back to English for missing keys:',err&&err.message);
+    _langPackLoading[code]=false;
+    cb&&cb();
+  });
 }
 function applyLang(){
   document.body.dir=['ar','ur'].includes(curLang)?'rtl':'ltr';
@@ -6078,9 +6117,11 @@ function applyLang(){
 function pickLang(code){
   curLang=code;ls('lang',code);
   document.body.dir=['ar','ur'].includes(code)?'rtl':'ltr';
-  applyLang();
-  buildLangBtns();buildLangList();
-  show('settings');
+  _ensureLangPack(code,function(){
+    applyLang();
+    buildLangBtns();buildLangList();
+    show('settings');
+  });
 }
 
 // ═══ Supabase ═══
@@ -7842,7 +7883,7 @@ function updateLockTimeoutShow(){
   var d=document.getElementById('lockTimeoutShow');
   if(!d)return;
   var t=lg('lockTimeout')||'0';
-  d.textContent=(t==='0')?'离开应用后立即锁定':t+' 分钟后锁定';
+  d.textContent=(t==='0')?i18nT('lockTimeoutImmediate'):t+i18nT('lockTimeoutMinutesSuffix');
 }
 function toggleAutoLockLeave(){
   if(!lg('appLockPin')){alert('请先设置锁屏密码');return;}
@@ -8706,9 +8747,9 @@ function _syncNotifDot(){var total=0;Object.keys(_unread).forEach(function(k){to
 function sendNotif(){var el=_getNotifDot();var symMap={dot:'●',period:'·',tri:'▲',dia:'◆',star:'✦',line:'|',wave:'～',comma:'，'};el.textContent=symMap[lg('notifSym')||'dot']||'●';el.style.opacity='1';}
 
 // ═══ 设置 ═══
-function updHide(){var d=document.getElementById('hideDesc');if(d)d.textContent=G.hide?'Enabled · '+G.dis:'Not enabled';}
+function updHide(){var d=document.getElementById('hideDesc');if(d)d.textContent=G.hide?(i18nT('hideEnabledPrefix')+G.dis):i18nT('notEnabled');}
 function updDest(){var d=document.getElementById('destructDesc');if(d)d.textContent={wrong:'3 wrong passwords',dpin:'Special destroy PIN',shake:'Shake 10 times'}[G.dest]||'';}
-function updNotif(){var d=document.getElementById('notifDesc');if(d)d.textContent=({dot:'● Dot',line:'| Line',star:'✦ Star',tri:'▲ Triangle',dia:'◆ Diamond',wave:'～ Wave',sync:'↻ Sync',mail:'✉ Mail'})[G.notifSym]||'● Dot';}
+function updNotif(){var d=document.getElementById('notifDesc');if(d)d.textContent=i18nT(({dot:'notifDescDot',line:'notifDescLine',star:'notifDescStar',tri:'notifDescTri',dia:'notifDescDia',wave:'notifDescWave',sync:'notifDescSync',mail:'notifDescMail'})[G.notifSym]||'notifDescDot');}
 function selD(t){G.selD2=t;document.querySelectorAll('.oc').forEach(function(c){c.classList.remove('on');});var el=document.getElementById('od-'+t.substring(0,4));if(el)el.classList.add('on');}
 function selT(t){G.selT2=t;document.querySelectorAll('.tr2').forEach(function(c){c.classList.remove('on');});var el=document.getElementById('tr-'+t);if(el)el.classList.add('on');}
 function saveHide(){
@@ -8725,7 +8766,6 @@ function saveHide(){
     );
   }alert('✅ Hide mode enabled!');show('settings');pushSettings();}
 function offHide(){G.hide=false;ls('hide','false');updHide();show('settings');pushSettings();}
-function toggleFreeMode(){var cur=lg('freeMode')==='true';ls('freeMode',cur?'false':'true');var el=document.getElementById('freeModeToggle');if(el)el.className='tog'+(cur?'':' on');if(typeof pushSettings==='function')pushSettings();}
 function selN(id){G.selN2=id;document.querySelectorAll('.nc').forEach(function(c){c.classList.remove('on');});var el=document.getElementById('ns-'+id);if(el)el.classList.add('on');}
 function selNT(t){G.selNT2=t;document.querySelectorAll('#notif-set .tr2').forEach(function(c){c.classList.remove('on');});var el=document.getElementById('nt-'+t);if(el)el.classList.add('on');}
 function saveNotif(){G.notifSym=G.selN2;G.notifTxt=G.selNT2;ls('notifSym',G.notifSym);ls('notifTxt',G.notifTxt);updNotif();sendNotif();alert('✅ Saved!');show('settings');}
