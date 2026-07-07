@@ -1764,7 +1764,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 
   <!-- 今日详情条 -->
   <div style="position:relative;z-index:2;margin:16px;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:16px;">
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px 8px;text-align:center;">
       <div>
         <div style="font-size:calc(18px * var(--ui-font-scale,1));margin-bottom:4px;">💧</div>
         <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#fff;font-weight:600;" id="wxHumidity">--%</div>
@@ -1784,6 +1784,16 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
         <div style="font-size:calc(18px * var(--ui-font-scale,1));margin-bottom:4px;">🌡️</div>
         <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#fff;font-weight:600;" id="wxFeels">--°</div>
         <div style="font-size:calc(11px * var(--ui-font-scale,1));color:rgba(255,255,255,.5);">体感</div>
+      </div>
+      <div>
+        <div style="font-size:calc(18px * var(--ui-font-scale,1));margin-bottom:4px;">🔆</div>
+        <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#fff;font-weight:600;" id="wxUv">--</div>
+        <div style="font-size:calc(11px * var(--ui-font-scale,1));color:rgba(255,255,255,.5);">紫外线</div>
+      </div>
+      <div>
+        <div style="font-size:calc(18px * var(--ui-font-scale,1));margin-bottom:4px;">🌇</div>
+        <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#fff;font-weight:600;" id="wxSun">--:-- / --:--</div>
+        <div style="font-size:calc(11px * var(--ui-font-scale,1));color:rgba(255,255,255,.5);">日出 / 日落</div>
       </div>
     </div>
   </div>
@@ -9310,7 +9320,7 @@ async function loadWeather(lat,lon,name){
   try{
     var url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon
       +'&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,visibility'
-      +'&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min'
+      +'&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,sunrise,sunset'
       +'&timezone=auto&forecast_days=7';
     var r=await fetch(url);
     var d=await r.json();
@@ -9324,6 +9334,17 @@ async function loadWeather(lat,lon,name){
     var wind=document.getElementById('wxWind');if(wind)wind.textContent=Math.round(c.wind_speed_10m)+' km/h';
     var vis=document.getElementById('wxVis');if(vis)vis.textContent=Math.round((c.visibility||10000)/1000)+' km';
     var feels=document.getElementById('wxFeels');if(feels)feels.textContent=Math.round(c.apparent_temperature)+'°';
+    var uvEl=document.getElementById('wxUv');
+    if(uvEl&&d.daily&&d.daily.uv_index_max){
+      var uv=Math.round(d.daily.uv_index_max[0]);
+      var uvLbl=uv>=11?'极高':uv>=8?'很高':uv>=6?'高':uv>=3?'中等':'低';
+      uvEl.textContent=uv+' '+uvLbl;
+    }
+    var sunEl=document.getElementById('wxSun');
+    if(sunEl&&d.daily&&d.daily.sunrise&&d.daily.sunset){
+      var fmtT=function(iso){var dt=new Date(iso);return ('0'+dt.getHours()).slice(-2)+':'+('0'+dt.getMinutes()).slice(-2);};
+      sunEl.textContent=fmtT(d.daily.sunrise[0])+' / '+fmtT(d.daily.sunset[0]);
+    }
     // 24小时预报
     var hourlyBox=document.getElementById('wxHourly');
     if(hourlyBox&&d.hourly){
