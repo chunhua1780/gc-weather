@@ -2,6 +2,80 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<script>
+// ═══ 白屏自救：任何导致首屏渲染失败的错误都会弹出可操作的恢复界面，而不是留给用户一片空白 ═══
+(function(){
+  var booted=false, shown=false;
+  function checkBooted(){
+    try{
+      var active=document.querySelector('.screen.active');
+      if(active && active.offsetParent!==null) booted=true;
+    }catch(e){}
+  }
+  function logDiag(msg){
+    try{
+      var log=[]; try{log=JSON.parse(localStorage.getItem('_diagLog')||'[]');}catch(e){}
+      log.push({t:new Date().toISOString(),msg:msg});
+      if(log.length>20)log=log.slice(-20);
+      localStorage.setItem('_diagLog',JSON.stringify(log));
+    }catch(e){}
+  }
+  function showRecovery(reason){
+    logDiag('[recovery] '+reason);
+    if(shown)return; shown=true;
+    var d=document.createElement('div');
+    d.setAttribute('style','position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;');
+    d.innerHTML=
+      '<div style="font-size:40px;margin-bottom:16px;">⚠️</div>'+
+      '<div style="font-size:17px;color:#111;margin-bottom:8px;font-weight:600;">加载遇到问题</div>'+
+      '<div style="font-size:14px;color:#666;margin-bottom:24px;line-height:1.5;">页面未能正常打开，点击下方按钮清除缓存并重新加载即可恢复。</div>'+
+      '<button id="gcRecoveryBtn" style="padding:12px 28px;border-radius:22px;border:none;background:#007aff;color:#fff;font-size:16px;font-weight:600;">清除缓存并重新加载</button>'+
+      '<div id="gcRecoveryStatus" style="margin-top:14px;font-size:12px;color:#999;"></div>';
+    document.documentElement.appendChild(d);
+    document.getElementById('gcRecoveryBtn').onclick=function(){
+      var status=document.getElementById('gcRecoveryStatus');
+      if(status)status.textContent='正在清除…';
+      var tasks=[];
+      try{
+        if('serviceWorker' in navigator){
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+            return Promise.all(rs.map(function(r){return r.unregister();}));
+          }).catch(function(){}));
+        }
+      }catch(e){}
+      try{
+        if(window.caches&&caches.keys){
+          tasks.push(caches.keys().then(function(ks){
+            return Promise.all(ks.map(function(k){return caches.delete(k);}));
+          }).catch(function(){}));
+        }
+      }catch(e){}
+      Promise.all(tasks).then(function(){location.reload();}).catch(function(){location.reload();});
+      setTimeout(function(){location.reload();},4000);
+    };
+  }
+  window.addEventListener('error',function(e){
+    checkBooted();
+    if(!booted)showRecovery('error: '+(e&&e.message));
+    else logDiag('error (post-boot, not fatal): '+(e&&e.message));
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    checkBooted();
+    var msg=e&&e.reason&&(e.reason.message||String(e.reason));
+    if(!booted)showRecovery('unhandledrejection: '+msg);
+    else logDiag('unhandledrejection (post-boot, not fatal): '+msg);
+  });
+  setTimeout(function(){
+    checkBooted();
+    if(!booted){
+      try{
+        var hasText=document.body&&document.body.innerText&&document.body.innerText.trim().length>0;
+        if(!hasText)showRecovery('watchdog: no visible content after 6s');
+      }catch(e){showRecovery('watchdog eval error: '+e.message);}
+    }
+  },6000);
+})();
+</script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
