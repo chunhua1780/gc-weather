@@ -2052,16 +2052,11 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 
 <script>
 // ═══ PWA: Service Worker 注册 ═══
+// 注：sw.js 现在完全不缓存/拦截 HTML 主页面，每次导航都是浏览器发起的正常网络请求，
+// 拿到的必然是最新代码，所以这里不再需要"SW接管后强制reload一次"的逻辑——
+// 那个逻辑本身在极端情况下（连续检测到"新版本"）会导致反复自动刷新，表现为白屏。
 (function(){
   if('serviceWorker' in navigator){
-    // 新版本SW接管后自动刷新一次，否则长时间不关闭App的用户会一直跑旧代码，
-    // 之前修复的bug对他们来说"看起来没生效"。只刷新一次，避免死循环。
-    var _swRefreshing=false;
-    navigator.serviceWorker.addEventListener('controllerchange', function(){
-      if(_swRefreshing)return;
-      _swRefreshing=true;
-      location.reload();
-    });
     window.addEventListener('load', function(){
       navigator.serviceWorker.register('./sw.js', {scope: './'}).then(function(reg){
         console.log('[PWA] SW registered, scope:', reg.scope);
