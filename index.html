@@ -3,14 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <script>
-// ═══ 白屏自救：任何导致首屏渲染失败的错误都会弹出可操作的恢复界面，而不是留给用户一片空白 ═══
+// ═══ 白屏自救：全自动，不需要用户做任何操作 ═══
+// 首屏渲染失败(报错/6秒无内容)，或者曾经渲染成功后又变白(持续监控)，
+// 一律自动清 Service Worker + Cache Storage 后自我刷新一次；普通用户全程无感知。
+// 只有自动修复一次仍不起作用时，才退化成一个手动"重新加载"按钮兜底，避免死循环刷新。
 (function(){
-  var booted=false, shown=false;
-  function checkBooted(){
+  var booted=false, recovering=false, blankStreak=0;
+  var RETRY_KEY='_gcAutoRecoverTs', RETRY_COOLDOWN=20000;
+  function hasContent(){
     try{
       var active=document.querySelector('.screen.active');
-      if(active && active.offsetParent!==null) booted=true;
-    }catch(e){}
+      var okActive=active && active.offsetParent!==null;
+      var hasText=document.body && document.body.innerText && document.body.innerText.trim().length>0;
+      return !!(okActive || hasText);
+    }catch(e){ return false; }
   }
   function logDiag(msg){
     try{
@@ -20,60 +26,77 @@
       localStorage.setItem('_diagLog',JSON.stringify(log));
     }catch(e){}
   }
-  function showRecovery(reason){
-    logDiag('[recovery] '+reason);
-    if(shown)return; shown=true;
+  function canAutoRetry(){
+    try{ return (Date.now()-parseInt(localStorage.getItem(RETRY_KEY)||'0',10))>RETRY_COOLDOWN; }
+    catch(e){ return true; }
+  }
+  function markAutoRetry(){ try{localStorage.setItem(RETRY_KEY,String(Date.now()));}catch(e){} }
+  function clearSwAndCaches(cb){
+    var done=false; function once(){ if(done)return; done=true; cb(); }
+    var tasks=[];
+    try{
+      if('serviceWorker' in navigator){
+        tasks.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+          return Promise.all(rs.map(function(r){return r.unregister();}));
+        }).catch(function(){}));
+      }
+    }catch(e){}
+    try{
+      if(window.caches&&caches.keys){
+        tasks.push(caches.keys().then(function(ks){
+          return Promise.all(ks.map(function(k){return caches.delete(k);}));
+        }).catch(function(){}));
+      }
+    }catch(e){}
+    Promise.all(tasks).then(once).catch(once);
+    setTimeout(once,3000);
+  }
+  function showManualFallback(reason){
+    logDiag('[recovery-manual] '+reason);
+    if(document.getElementById('gcRecoveryBtn'))return;
     var d=document.createElement('div');
     d.setAttribute('style','position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;');
     d.innerHTML=
       '<div style="font-size:40px;margin-bottom:16px;">⚠️</div>'+
       '<div style="font-size:17px;color:#111;margin-bottom:8px;font-weight:600;">加载遇到问题</div>'+
-      '<div style="font-size:14px;color:#666;margin-bottom:24px;line-height:1.5;">页面未能正常打开，点击下方按钮清除缓存并重新加载即可恢复。</div>'+
-      '<button id="gcRecoveryBtn" style="padding:12px 28px;border-radius:22px;border:none;background:#007aff;color:#fff;font-size:16px;font-weight:600;">清除缓存并重新加载</button>'+
-      '<div id="gcRecoveryStatus" style="margin-top:14px;font-size:12px;color:#999;"></div>';
+      '<div style="font-size:14px;color:#666;margin-bottom:24px;line-height:1.5;">已自动尝试修复，如果仍未恢复，请点击下方按钮重试。</div>'+
+      '<button id="gcRecoveryBtn" style="padding:12px 28px;border-radius:22px;border:none;background:#007aff;color:#fff;font-size:16px;font-weight:600;">重新加载</button>';
     document.documentElement.appendChild(d);
-    document.getElementById('gcRecoveryBtn').onclick=function(){
-      var status=document.getElementById('gcRecoveryStatus');
-      if(status)status.textContent='正在清除…';
-      var tasks=[];
-      try{
-        if('serviceWorker' in navigator){
-          tasks.push(navigator.serviceWorker.getRegistrations().then(function(rs){
-            return Promise.all(rs.map(function(r){return r.unregister();}));
-          }).catch(function(){}));
-        }
-      }catch(e){}
-      try{
-        if(window.caches&&caches.keys){
-          tasks.push(caches.keys().then(function(ks){
-            return Promise.all(ks.map(function(k){return caches.delete(k);}));
-          }).catch(function(){}));
-        }
-      }catch(e){}
-      Promise.all(tasks).then(function(){location.reload();}).catch(function(){location.reload();});
-      setTimeout(function(){location.reload();},4000);
-    };
+    document.getElementById('gcRecoveryBtn').onclick=function(){ clearSwAndCaches(function(){location.reload();}); };
+  }
+  function autoRecover(reason){
+    if(recovering)return;
+    logDiag('[recovery] '+reason);
+    if(!canAutoRetry()){ showManualFallback(reason+' (auto-retry already used)'); return; }
+    recovering=true; markAutoRetry();
+    clearSwAndCaches(function(){ location.reload(); });
+    setTimeout(function(){ try{location.reload();}catch(e){} },5000);
   }
   window.addEventListener('error',function(e){
-    checkBooted();
-    if(!booted)showRecovery('error: '+(e&&e.message));
+    if(hasContent())booted=true;
+    if(!booted)autoRecover('error: '+(e&&e.message));
     else logDiag('error (post-boot, not fatal): '+(e&&e.message));
   });
   window.addEventListener('unhandledrejection',function(e){
-    checkBooted();
+    if(hasContent())booted=true;
     var msg=e&&e.reason&&(e.reason.message||String(e.reason));
-    if(!booted)showRecovery('unhandledrejection: '+msg);
+    if(!booted)autoRecover('unhandledrejection: '+msg);
     else logDiag('unhandledrejection (post-boot, not fatal): '+msg);
   });
-  setTimeout(function(){
-    checkBooted();
+  // 持续监控（不是只测一次）：首次6秒必须出内容；出现过内容之后，如果连续两次(约5秒)又检测不到内容了，
+  // 说明"能显示几秒又白"，同样自动修复。
+  var checks=0;
+  var timer=setInterval(function(){
+    checks++;
+    var ok=hasContent();
+    if(ok){ booted=true; blankStreak=0; return; }
     if(!booted){
-      try{
-        var hasText=document.body&&document.body.innerText&&document.body.innerText.trim().length>0;
-        if(!hasText)showRecovery('watchdog: no visible content after 6s');
-      }catch(e){showRecovery('watchdog eval error: '+e.message);}
+      if(checks>=3){ clearInterval(timer); autoRecover('watchdog: no visible content after ~6s'); }
+      return;
     }
-  },6000);
+    blankStreak++;
+    if(blankStreak>=2){ clearInterval(timer); autoRecover('watchdog: content disappeared after successful boot'); }
+  },2000);
 })();
 </script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
