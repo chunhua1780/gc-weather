@@ -22,9 +22,11 @@ jobs:
       run: |
         cordova create app com.gc.weather "天气"
         cp index.html app/www/index.html
+        mkdir -p app/res
+        cp icon512.png app/res/icon.png
         cd app
         cordova platform add android
-        sed -i 's|</widget>|    <preference name="android-windowSoftInputMode" value="adjustResize"/>\n    <preference name="Orientation" value="portrait"/>\n</widget>|' config.xml
+        sed -i 's|</widget>|    <preference name="android-windowSoftInputMode" value="adjustResize"/>\n    <preference name="Orientation" value="portrait"/>\n    <icon src="res/icon.png"/>\n</widget>|' config.xml
         cordova build android
     - name: Find APK
       run: find . -name "*.apk" 2>/dev/null
