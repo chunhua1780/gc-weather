@@ -2911,7 +2911,6 @@ async function triggerPushToUser(toUserId, msgText){
 
 // 从Supabase读取对方的Bark URL并推送（发送方执行，完全不依赖接收方浏览器）
 async function _sendBarkToUser(toUserId, title, body){
-  if(lg('barkEnabled')==='false'){console.log('[Bark] 已关闭');return;}
   try{
     var r=await _sb.from('users').select('settings').eq('id',parseInt(toUserId)||toUserId).maybeSingle();
     if(!r.data||!r.data.settings)return;
