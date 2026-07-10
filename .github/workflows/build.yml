@@ -28,12 +28,13 @@ jobs:
         cordova platform add android
         sed -i 's|</widget>|    <preference name="android-windowSoftInputMode" value="adjustResize"/>\n    <preference name="Orientation" value="portrait"/>\n    <icon src="res/icon.png"/>\n</widget>|' config.xml
         cordova build android
+        find . -name "*.apk" -path "*debug*" -exec cp {} ../gc-weather.apk \;
     - name: Find APK
       run: find . -name "*.apk" 2>/dev/null
     - uses: actions/upload-artifact@v4
       with:
         name: 天气-APK
-        path: '**/*.apk'
+        path: gc-weather.apk
         retention-days: 30
     - name: Publish release (public download link)
       uses: softprops/action-gh-release@v2
@@ -41,6 +42,6 @@ jobs:
         tag_name: latest
         name: 天气 - 最新版
         body: 自动构建 · commit ${{ github.sha }}
-        files: '**/*.apk'
+        files: gc-weather.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
