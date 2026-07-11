@@ -9589,12 +9589,6 @@ window.addEventListener('load',function(){
     }
     if(typeof window.offHide==='function'){window.offHide=function(){};}
     if(typeof window.toggleHideMode==='function'){window.toggleHideMode=function(){};}
-    // 天气皮肤禁止退出登录，防止用户误操作
-    if(typeof window.doLogout==='function'){window.doLogout=function(){return false;};}
-    // 隐藏设置页的退出/注销按钮
-    var _wStyle=document.createElement('style');
-    _wStyle.textContent='#set-logout,button[onclick*="doLogout"]{display:none!important}';
-    document.head.appendChild(_wStyle);
   }catch(e){}
 },false);
 </script>
