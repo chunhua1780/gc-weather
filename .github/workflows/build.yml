@@ -21,7 +21,7 @@ jobs:
     - name: Build APK
       run: |
         cordova create app com.gc.weather "天气"
-        cp index.html app/www/index.html
+        for f in *.html *.js *.json *.png lang vendor; do [ -e "$f" ] && cp -r "$f" app/www/; done
         mkdir -p app/res
         cp icon512.png app/res/icon.png
         cd app
