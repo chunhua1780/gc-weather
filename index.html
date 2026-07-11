@@ -2080,9 +2080,6 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 <audio id="remoteAudio" autoplay playsinline style="display:none;"></audio>
 <input type="file" id="imgIn" accept="image/*" style="display:none" onchange="onImg(event)">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-
 <script>
 // ═══ PWA: Service Worker 注册 ═══
 // 注：sw.js 现在完全不缓存/拦截 HTML 主页面，每次导航都是浏览器发起的正常网络请求，
@@ -6228,6 +6225,10 @@ function pickLang(code){
 }
 
 // ═══ Supabase ═══
+</script>
+<script src="./vendor/supabase-js.js"></script>
+<script src="./vendor/jsQR.js"></script>
+<script>
 var _sb=supabase.createClient('https://mztoenhgfuomzrashrqk.supabase.co','sb_publishable_pOM3IfVWYiscQ-cz9vAwvA_F2Ht6zg1',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 
 // ═══════════════════════════════════════════════════════════
