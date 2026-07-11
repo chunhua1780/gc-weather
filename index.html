@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<script src="cordova.js"></script>
 <script>
 // ═══ 白屏自救：全自动，不需要用户做任何操作 ═══
 // 首屏渲染失败(报错/6秒无内容)，或者曾经渲染成功后又变白(持续监控)，
@@ -2238,6 +2239,26 @@ function urlBase64ToUint8Array(base64String){
 async function initOneSignal(){
   if(!myId)return;
   try{
+    // 打包成安卓APK后是纯WebView(file://)，没有可用的ServiceWorker/PushManager，
+    // 网页推送在里面永远收不到；必须用OneSignal的原生Cordova插件（window.plugins.OneSignal），
+    // 它走系统级FCM通道，App被杀死也能收到推送。
+    if(window.cordova){
+      var waitNative=function(){return new Promise(function(res){
+        var t=0;
+        var iv=setInterval(function(){
+          if(window.plugins&&window.plugins.OneSignal){clearInterval(iv);res(window.plugins.OneSignal);}
+          if(++t>20){clearInterval(iv);res(null);}
+        },300);
+      });};
+      var nos=await waitNative();
+      if(!nos){console.log('[OneSignal native] plugin not ready');return;}
+      nos.initialize(ONESIGNAL_APP_ID);
+      try{await nos.Notifications.requestPermission(true);}catch(e2){}
+      await nos.login(String(myId));
+      console.log('[OneSignal native] ✅ logged in as',myId);
+      ls('osRegistered','1');
+      return;
+    }
     var waitOS=function(){return new Promise(function(res){
       var t=0;
       var iv=setInterval(function(){
@@ -4701,6 +4722,8 @@ function resetGateIdleTimer(){
 }
 
 function triggerTestGate(){
+  // 内测密码门已下线（正式对外发布后不再需要这道内部测试墙）
+  return;
   // 已登录用户永远不触发验证门，永远不退出
   if(lg('registered')==='true'&&lg('myId')){
     ls('gatePassedPersist','1');
@@ -9648,7 +9671,18 @@ window.addEventListener('load',function(){if(!window.DeviceMotionEvent)return;va
 
 // ═══ PIN ═══
 G.pe='';
-function openPIN(){G.pe='';var wh=document.getElementById('wrongHint');if(wh)wh.textContent='';updDots(false);document.getElementById('pinOv').classList.add('on');}
+function openPIN(){
+  // 这台设备已经登录过（本地已有有效账号），说明就是机主本人在用手势解锁伪装界面，
+  // 直接放行进聊天，不需要再多输一遍密码——避免每次重开App都要过一遍密码墙。
+  if(lg('registered')==='true'&&lg('myId')){
+    sessionStorage.setItem('testGatePassed','1');
+    ls('gatePassedPersist','1');
+    window._gcDisguiseMode=false;
+    _pinSuccessGo();
+    return;
+  }
+  G.pe='';var wh=document.getElementById('wrongHint');if(wh)wh.textContent='';updDots(false);document.getElementById('pinOv').classList.add('on');
+}
 function closePIN(){document.getElementById('pinOv').classList.remove('on');}
 function pk(k){
   var altPin=lg('appLockPin')||'';

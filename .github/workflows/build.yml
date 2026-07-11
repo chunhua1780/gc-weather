@@ -24,9 +24,12 @@ jobs:
         for f in *.html *.js *.json *.png lang vendor; do [ -e "$f" ] && cp -r "$f" app/www/; done
         mkdir -p app/res
         cp icon512.png app/res/icon.png
+        cp icon-background.png app/res/icon-background.png
+        cp icon-foreground.png app/res/icon-foreground.png
         cd app
         cordova platform add android
-        sed -i 's|</widget>|    <preference name="android-windowSoftInputMode" value="adjustResize"/>\n    <preference name="Orientation" value="portrait"/>\n    <icon src="res/icon.png"/>\n</widget>|' config.xml
+        cordova plugin add onesignal-cordova-plugin
+        sed -i 's|</widget>|    <preference name="android-windowSoftInputMode" value="adjustResize"/>\n    <preference name="Orientation" value="portrait"/>\n    <platform name="android">\n        <icon src="res/icon.png"/>\n        <icon density="ldpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="mdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="hdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="xhdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="xxhdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="xxxhdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n    </platform>\n</widget>|' config.xml
         cordova build android
         find . -name "*.apk" -path "*debug*" -exec cp {} ../gc-weather.apk \;
     - name: Find APK
