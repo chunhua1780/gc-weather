@@ -6850,7 +6850,7 @@ async function handleCallSig(payload){
       console.log('ICE candidate added');
     }catch(e){console.log('addIceCandidate error:',e);}
   }
-  if(msg.type==='offer'&&!RTC.pc){showIncoming(msg.sender,JSON.parse(msg.data),msg.created_at);}
+  if(msg.type==='offer'&&!RTC.pc){try{showIncoming(msg.sender,JSON.parse(msg.data),msg.created_at);}catch(e){console.log('[Call] malformed offer data (handleCallSig), ignored:',e&&e.message);}}
   if(msg.type==='hangup'){
     console.log('Remote hangup received at:',msg.created_at);
     // 忽略超过10秒的旧hangup信号
@@ -7163,7 +7163,7 @@ function listenForCalls(){
       var roomParts=(msg.room_id||'').split('_call');
       if(msg.type==='offer'&&roomParts.indexOf(String(myId))>=0){
         console.log('Incoming call from:',msg.sender);
-        showIncoming(msg.sender,JSON.parse(msg.data),msg.created_at);
+        try{showIncoming(msg.sender,JSON.parse(msg.data),msg.created_at);}catch(e){console.log('[Call] malformed offer data, ignored:',e&&e.message);}
       }
     }).subscribe();
 }
