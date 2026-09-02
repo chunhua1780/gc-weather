@@ -4585,6 +4585,9 @@ function _disguiseTarget(){
 function disguiseNow(){
   try{
     if(_hideDisguised)return;
+    // 自由模式是用户明确选的「不设防」(FOCUS_MODES.free: lock:false, disguise:false)，
+    // 尊重它。其余四个模式都带 lock:true —— 离开聊天即隐身，不再看 autoLockLeave。
+    if((lg('focusMode')||'free')==='free')return;
     if(!lg('appLockPin'))return;      // 没设锁屏密码就切过去的话，回来解不开
     if(!_appWasActive)return;
     var active=document.querySelector('.screen.active');
@@ -4599,17 +4602,12 @@ function disguiseNow(){
     show(target);
   }catch(e){}
 }
-// 回到前台：该不该继续拦着，按用户自己的锁屏设置来。
-// 界面遮挡是无条件的，但「回来要不要重新输密码」仍然尊重设置，
-// 否则切个 App 查个东西回来就要解锁一次，用户会直接把功能关掉。
 function _resumeAfterDisguise(){
-  if(!_hideDisguised)return;
+  // 走到这里说明离开时已经切成伪装壳了，也就意味着当时不是自由模式。
+  // 那就一律停在伪装界面，走正常解锁流程回来 —— 不再按 autoLockLeave /
+  // lockTimeout 自动放行：那两个开关管的是「离开一会儿要不要锁」，
+  // 和这里「除自由模式外离开即隐身」是两回事，混在一起会互相打架。
   _hideDisguised=false;
-  var always=lg('autoLockLeave')==='true';
-  var lockMins=parseInt(lg('lockTimeout'))||0;
-  var hiddenMs=Date.now()-(parseInt(lg('lastHiddenAt'))||0);
-  if(always||(lockMins>0&&hiddenMs>=lockMins*60000))return;   // 留在伪装界面
-  resumeFromLock();
 }
 
 // ── 底缘上滑提前布防 ────────────────────────────────────────────────
