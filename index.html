@@ -4681,6 +4681,9 @@ document.addEventListener('freeze',shieldOn);
 // 只有从没真正进过后台的预判才这样还原；真进过后台的一律走正常解锁流程。
 document.addEventListener('touchstart',function(e){
   if(!_hideDisguised||!_preemptive||document.hidden)return;
+  // 非自由模式：进了伪装壳就只能靠密码出来，一次触摸不算数。
+  // 手势误判的代价因此是「多输一次密码」，而不是「可能泄露」—— 这个方向没得选。
+  if(!_disguiseAutoBack)return;
   if(Date.now()-_lastEdgeAt<400)return;              // 还是刚才那一下手势
   var t=e.touches&&e.touches[0];
   if(!t||t.clientY>window.innerHeight*0.6)return;    // 底部半屏不算，可能仍在划
