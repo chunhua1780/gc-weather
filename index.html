@@ -4580,7 +4580,7 @@ function shieldOff(){
 // 只盖一层遮罩不够：系统什么时候拍快照不归网页管，遮罩慢一帧，快照里就是
 // 聊天内容。所以离开时把底下的 active screen 也换掉 —— 遮罩负责抢时间，
 // 伪装壳负责兜底，两层同时失手才会漏。
-var _hideDisguised=false, _disguiseAutoBack=false, _preemptTimer=null;
+var _hideDisguised=false, _disguiseAutoBack=false, _preemptive=false, _lastEdgeAt=0;
 function _disguiseTarget(){
   var dm={weather:'dweather',calculator:'dcalc',clock:'dclk',note:'dnote'};
   return dm[(typeof G!=='undefined'&&G.dis)||lg('dis')||'calculator']||'dcalc';
@@ -4605,16 +4605,11 @@ function disguiseNow(preemptive){
     _disguiseAutoBack = !lg('appLockPin') || !_appWasActive
                         || (lg('focusMode')||'free')==='free';
     show(target);
-    if(preemptive){
-      // 手势预判可能误伤（比如从屏幕最底缘往上滑消息列表）。
-      // 真切到后台的话下面这个定时器不会有机会判错；没切走就悄悄还原。
-      clearTimeout(_preemptTimer);
-      _preemptTimer=setTimeout(function(){
-        if(document.hidden)return;
-        _hideDisguised=false; _disguiseAutoBack=false;
-        resumeFromLock(); shieldOff();
-      },1400);
-    }
+    // 手势预判只做标记，绝不按时间还原。
+    // 上滑把应用缩成卡片时 document.hidden 仍是 false（iOS 这时显示的是实时
+    // 画面而非快照），定时器会在人还停在卡片界面时把聊天放回来 —— 正好暴露在
+    // 那一刻。还原只能由「确实回到全屏并在操作」触发，见 _armPreemptRevert。
+    _preemptive = !!preemptive;
   }catch(e){}
 }
 function _resumeAfterDisguise(){
@@ -4630,33 +4625,50 @@ function _resumeAfterDisguise(){
 // 往往已经晚了，所以在手指还在往上划的时候就先盖上 —— 这比任何生命周期
 // 事件都早。只认最下面 16px（Home 指示条那一条，App 内容够不到），并且要求
 // 明确上滑 10px，避免把聊天列表的正常滑动误判成离开。
-var _edgeY=null,_edgeTimer=null;
+var _edgeY=null;
 document.addEventListener('touchstart',function(e){
   var t=e.touches&&e.touches[0];
   _edgeY=(t&&t.clientY>=window.innerHeight-28)?t.clientY:null;
 },{passive:true,capture:true});
+function _edgeGesture(){
+  _edgeY=null;
+  _lastEdgeAt=Date.now();
+  shieldOn();
+  disguiseNow(true);              // 手指还在划的时候就换掉界面，这是最早的时机
+}
 document.addEventListener('touchmove',function(e){
   if(_edgeY===null)return;
   var t=e.touches&&e.touches[0]; if(!t)return;
-  if(_edgeY-t.clientY<10)return;
-  _edgeY=null;
-  shieldOn();
-  disguiseNow(true);              // 手指还在划的时候就把界面换掉，这是最早的时机
-  clearTimeout(_edgeTimer);
-  _edgeTimer=setTimeout(function(){ if(!document.hidden)shieldOff(); },1500);
+  // 24px 而不是 10px：Home 手势又快又长，从底缘滑列表通常没这么大位移，
+  // 抬高一点能明显减少误判，代价只有几毫秒。
+  if(_edgeY-t.clientY<24)return;
+  _edgeGesture();
 },{passive:true,capture:true});
-document.addEventListener('touchend',function(){
-  _edgeY=null;
-  if(!document.documentElement.classList.contains('gc-shielded'))return;
-  clearTimeout(_edgeTimer);
-  _edgeTimer=setTimeout(function(){ if(!document.hidden)shieldOff(); },600);
+// 系统接管手势时 WebView 会收到 touchcancel —— 这是「用户正在离开」最明确的信号
+document.addEventListener('touchcancel',function(){
+  if(_edgeY===null)return;
+  _edgeGesture();
 },{passive:true,capture:true});
+document.addEventListener('touchend',function(){ _edgeY=null; },{passive:true,capture:true});
 
 // blur 在部分 WebView 里比 visibilitychange 更早，之前这里只盖遮罩不切界面，
 // 于是「更早」的那条路径反而防护更弱。现在两件事一起做。
 window.addEventListener('blur',function(){ shieldOn(); disguiseNow(true); });
 window.addEventListener('pagehide',shieldOn);
 document.addEventListener('freeze',shieldOn);
+// 误判还原：只认「应用确实回到全屏、而且用户正在操作」。
+// 关键在于卡片状态下应用收不到触摸事件 —— 所以一次落在屏幕上半部的新触摸，
+// 就是回到全屏最可靠的证据，比任何定时器都准。
+// 只有从没真正进过后台的预判才这样还原；真进过后台的一律走正常解锁流程。
+document.addEventListener('touchstart',function(e){
+  if(!_hideDisguised||!_preemptive||document.hidden)return;
+  if(Date.now()-_lastEdgeAt<400)return;              // 还是刚才那一下手势
+  var t=e.touches&&e.touches[0];
+  if(!t||t.clientY>window.innerHeight*0.6)return;    // 底部半屏不算，可能仍在划
+  _hideDisguised=false; _preemptive=false; _disguiseAutoBack=false;
+  resumeFromLock(); shieldOff();
+},{passive:true,capture:true});
+
 window.addEventListener('pageshow',function(){if(!document.hidden)shieldOff();});
 window.addEventListener('focus',function(){if(!document.hidden)shieldOff();});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',buildShield);
@@ -4664,7 +4676,7 @@ else buildShield();
 
 document.addEventListener('visibilitychange',function(){
   if(document.hidden){
-    clearTimeout(_preemptTimer);                 // 手势预判猜对了，别再还原
+    _preemptive=false;                           // 预判被证实，按真正的后台处理
     shieldOn();                                  // 先盖，最快的一步放最前面
     ls('lastHiddenAt',String(Date.now()));
     disguiseNow();                               // 再把底下的界面也换掉
