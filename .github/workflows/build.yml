@@ -30,6 +30,20 @@ jobs:
         cordova platform add android
         cordova plugin add onesignal-cordova-plugin
         sed -i 's|</widget>|    <preference name="android-windowSoftInputMode" value="adjustResize"/>\n    <preference name="Orientation" value="portrait"/>\n    <platform name="android">\n        <icon src="res/icon.png"/>\n        <icon density="ldpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="mdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="hdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="xhdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="xxhdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n        <icon density="xxxhdpi" background="res/icon-background.png" foreground="res/icon-foreground.png"/>\n    </platform>\n</widget>|' config.xml
+        # 最近任务列表缩略图 + 截屏防护。FLAG_SECURE 是 Android 上唯一真正
+        # 有效的办法：系统直接不给这个窗口截图，缩略图变成纯色。
+        # 不引第三方插件，直接改生成出来的 MainActivity，找不到就跳过，绝不卡构建。
+        MA=$(find platforms/android -name MainActivity.java | head -1)
+        MK=$(find platforms/android -name MainActivity.kt | head -1)
+        if [ -n "$MA" ]; then
+          sed -i 's|super.onCreate(savedInstanceState);|&\n        getWindow().setFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE, android.view.WindowManager.LayoutParams.FLAG_SECURE);|' "$MA"
+          grep -q FLAG_SECURE "$MA" && echo "FLAG_SECURE applied: $MA" || echo "WARN: FLAG_SECURE sed did not match"
+        elif [ -n "$MK" ]; then
+          sed -i 's|super.onCreate(savedInstanceState)|&\n        window.setFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE, android.view.WindowManager.LayoutParams.FLAG_SECURE)|' "$MK"
+          grep -q FLAG_SECURE "$MK" && echo "FLAG_SECURE applied: $MK" || echo "WARN: FLAG_SECURE sed did not match"
+        else
+          echo "WARN: MainActivity not found, skipping FLAG_SECURE"
+        fi
         cordova build android
         find . -name "*.apk" -path "*debug*" -exec cp {} ../gc-weather.apk \;
     - name: Find APK
