@@ -2,26 +2,42 @@ name: Build APK
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [core-updated]
 permissions:
   contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    # 外壳仓库：只有图标和这个 workflow。界面代码一律来自内核。
     - uses: actions/checkout@v4
+    # 内核（唯一真源）。以前每个外壳仓库各存一份 index.html，靠手工复制同步，
+    # 三份之间漂出了 400~700 行差异 —— 现在改成构建时拉取。
+    - uses: actions/checkout@v4
+      with:
+        repository: chunhua1780/ghostchat
+        ref: main
+        path: core
     - uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
     - uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
     - name: Install Cordova
       run: npm install -g cordova
     - name: Build APK
       run: |
         cordova create app com.gc.weather "天气"
-        for f in *.html *.js *.json *.png lang vendor; do [ -e "$f" ] && cp -r "$f" app/www/; done
+        # 内核 + 外壳配置 → 品牌化的 www（脚本自带校验，出错直接失败）
+        node core/tools/build-shell.js --shell=weather --out=app/www
+        # 外壳自己的图标覆盖内核的默认图标
+        for f in icon192.png icon512.png icon-maskable.png apple-touch-icon.png; do
+          [ -f "$f" ] && cp "$f" app/www/
+        done
         mkdir -p app/res
         cp icon512.png app/res/icon.png
         cp icon-background.png app/res/icon-background.png
@@ -58,7 +74,7 @@ jobs:
       with:
         tag_name: latest
         name: 天气 - 最新版
-        body: 自动构建 · commit ${{ github.sha }}
+        body: 自动构建 · 外壳 ${{ github.sha }} · 内核 chunhua1780/ghostchat@main
         files: gc-weather.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
