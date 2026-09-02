@@ -1,0 +1,65 @@
+name: Sync from core
+# 本仓库同时通过 GitHub Pages 提供网页版（伪装 PWA 的入口）。
+# 界面代码不再手工维护：从 chunhua1780/ghostchat（内核）生成后提交回本仓库根目录。
+#
+# 为什么是「提交产物」而不是 deploy-pages：
+# 本仓库的 Pages 来源是分支根目录。改成 Actions 部署需要去 Settings → Pages 手动
+# 切换，忘了切站点会直接 404。提交产物则两种来源都能用。
+#
+# 只覆盖生成出来的那些文件，不做整目录清空 —— 仓库里还有图标源文件、下载页、
+# 构建脚本这些跟内核无关的东西，误删过一次，不能再来第二次。
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [core-updated]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-core.yml'
+      - 'icon*.png'
+      - 'apple-touch-icon.png'
+permissions:
+  contents: write
+concurrency:
+  group: sync-core
+  cancel-in-progress: true
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        repository: chunhua1780/ghostchat
+        ref: main
+        path: .core
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Generate web build from core
+      run: |
+        node .core/tools/build-shell.js --shell=weather --out=.out
+        # 本仓库自己的图标优先
+        for f in icon192.png icon512.png icon-maskable.png apple-touch-icon.png; do
+          [ -f "$f" ] && cp "$f" .out/
+        done
+        test -s .out/index.html
+        test -s .out/chat-core.js
+        test -d .out/vendor
+        test -d .out/lang
+
+    - name: Commit if changed
+      run: |
+        cp -r .out/. .
+        rm -rf .core .out
+        git add -A
+        if git diff --cached --quiet; then
+          echo "内核无变化，跳过提交"
+          exit 0
+        fi
+        git -c user.email="actions@github.com" -c user.name="core-sync" \
+          commit -m "sync: 从内核 chunhua1780/ghostchat 重新生成网页版"
+        git push
