@@ -4573,6 +4573,71 @@ function shieldOff(){
     buildShield();                             // 趁在前台，把下一次要用的皮肤先画好
   }catch(e){}
 }
+// ── 离开时把界面本身也换成伪装壳 ──────────────────────────────────────
+// 只盖一层遮罩不够：系统什么时候拍快照不归网页管，遮罩慢一帧，快照里就是
+// 聊天内容。所以离开时把底下的 active screen 也换掉 —— 遮罩负责抢时间，
+// 伪装壳负责兜底，两层同时失手才会漏。
+var _hideDisguised=false;
+function _disguiseTarget(){
+  var dm={weather:'dweather',calculator:'dcalc',clock:'dclk',note:'dnote'};
+  return dm[(typeof G!=='undefined'&&G.dis)||lg('dis')||'calculator']||'dcalc';
+}
+function disguiseNow(){
+  try{
+    if(_hideDisguised)return;
+    if(!lg('appLockPin'))return;      // 没设锁屏密码就切过去的话，回来解不开
+    if(!_appWasActive)return;
+    var active=document.querySelector('.screen.active');
+    if(!active)return;
+    if(['applock','testgate','reg'].indexOf(active.id)>=0)return;
+    // 开了隐身就用伪装壳，没开就退到锁屏页 —— 两者都不会露出聊天内容
+    var target=(typeof G!=='undefined'&&G.hide)?_disguiseTarget():'applock';
+    if(active.id===target)return;
+    // 在聊天里要记住聊的是谁，解锁后能回到原处
+    _lockReturnScreen=(active.id==='chat'&&typeof G!=='undefined'&&G.chat)?('chat:'+G.chat):active.id;
+    _hideDisguised=true;
+    show(target);
+  }catch(e){}
+}
+// 回到前台：该不该继续拦着，按用户自己的锁屏设置来。
+// 界面遮挡是无条件的，但「回来要不要重新输密码」仍然尊重设置，
+// 否则切个 App 查个东西回来就要解锁一次，用户会直接把功能关掉。
+function _resumeAfterDisguise(){
+  if(!_hideDisguised)return;
+  _hideDisguised=false;
+  var always=lg('autoLockLeave')==='true';
+  var lockMins=parseInt(lg('lockTimeout'))||0;
+  var hiddenMs=Date.now()-(parseInt(lg('lastHiddenAt'))||0);
+  if(always||(lockMins>0&&hiddenMs>=lockMins*60000))return;   // 留在伪装界面
+  resumeFromLock();
+}
+
+// ── 底缘上滑提前布防 ────────────────────────────────────────────────
+// iOS 的 Home 手势和多任务手势都从屏幕底缘上滑开始。等 visibilitychange
+// 往往已经晚了，所以在手指还在往上划的时候就先盖上 —— 这比任何生命周期
+// 事件都早。只认最下面 16px（Home 指示条那一条，App 内容够不到），并且要求
+// 明确上滑 10px，避免把聊天列表的正常滑动误判成离开。
+var _edgeY=null,_edgeTimer=null;
+document.addEventListener('touchstart',function(e){
+  var t=e.touches&&e.touches[0];
+  _edgeY=(t&&t.clientY>=window.innerHeight-16)?t.clientY:null;
+},{passive:true,capture:true});
+document.addEventListener('touchmove',function(e){
+  if(_edgeY===null)return;
+  var t=e.touches&&e.touches[0]; if(!t)return;
+  if(_edgeY-t.clientY<10)return;
+  _edgeY=null;
+  shieldOn();
+  clearTimeout(_edgeTimer);
+  _edgeTimer=setTimeout(function(){ if(!document.hidden)shieldOff(); },1500);
+},{passive:true,capture:true});
+document.addEventListener('touchend',function(){
+  _edgeY=null;
+  if(!document.documentElement.classList.contains('gc-shielded'))return;
+  clearTimeout(_edgeTimer);
+  _edgeTimer=setTimeout(function(){ if(!document.hidden)shieldOff(); },600);
+},{passive:true,capture:true});
+
 window.addEventListener('blur',shieldOn);      // 桌面端/部分 WebView 比 visibilitychange 更早
 window.addEventListener('pagehide',shieldOn);
 document.addEventListener('freeze',shieldOn);
@@ -4582,7 +4647,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 else buildShield();
 
 document.addEventListener('visibilitychange',function(){
-  if(document.hidden){shieldOn();ls('lastHiddenAt',String(Date.now()));return;}
+  if(document.hidden){
+    shieldOn();                                  // 先盖，最快的一步放最前面
+    ls('lastHiddenAt',String(Date.now()));
+    disguiseNow();                               // 再把底下的界面也换掉
+    return;
+  }
   // 回到前台：先把锁屏判断做完，再掀开遮罩。顺序反了的话，chat 界面会在
   // triggerLock() 生效前闪现一帧。
   var _cid=(document.querySelector('.screen.active')||{}).id||'';
@@ -4591,6 +4661,7 @@ document.addEventListener('visibilitychange',function(){
     // 只有用户明确开启"离开自动锁"=true 才触发，默认不锁
     if(lg('appLockPin')&&lg('autoLockLeave')==='true'){triggerLock();}
   }
+  _resumeAfterDisguise();
   shieldOff();
   // 从后台回到前台：重新建立session，刷新聊天列表
   if(lg('registered')&&myId){
