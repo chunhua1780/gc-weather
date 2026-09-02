@@ -4625,10 +4625,19 @@ function _resumeAfterDisguise(){
 // 往往已经晚了，所以在手指还在往上划的时候就先盖上 —— 这比任何生命周期
 // 事件都早。只认最下面 16px（Home 指示条那一条，App 内容够不到），并且要求
 // 明确上滑 10px，避免把聊天列表的正常滑动误判成离开。
-var _edgeY=null;
+var _edgeY=null,_edgeLiftTimer=null;
 document.addEventListener('touchstart',function(e){
   var t=e.touches&&e.touches[0];
-  _edgeY=(t&&t.clientY>=window.innerHeight-28)?t.clientY:null;
+  if(!t){_edgeY=null;return;}
+  // 感应带放到 60px：iOS 很快就把 Home 手势接管走，页面能收到的 touchmove
+  // 很少而且位移很小，带子窄一点就整个判定不成立。
+  _edgeY=(t.clientY>=window.innerHeight-60)?t.clientY:null;
+  // 最底下 24px 是 Home 指示条那一条，App 内容够不到（输入框在它上面），
+  // 落在这里就先无条件盖上遮罩 —— 遮罩最便宜，撤下来也不留痕。
+  if(t.clientY>=window.innerHeight-24){
+    clearTimeout(_edgeLiftTimer);
+    shieldOn();
+  }
 },{passive:true,capture:true});
 function _edgeGesture(){
   _edgeY=null;
@@ -4639,9 +4648,10 @@ function _edgeGesture(){
 document.addEventListener('touchmove',function(e){
   if(_edgeY===null)return;
   var t=e.touches&&e.touches[0]; if(!t)return;
-  // 24px 而不是 10px：Home 手势又快又长，从底缘滑列表通常没这么大位移，
-  // 抬高一点能明显减少误判，代价只有几毫秒。
-  if(_edgeY-t.clientY<24)return;
+  // 8px。上一版提到 24px 是个错误：iOS 的 Home 手势没滑几像素就被系统接管，
+  // 页面压根收不到那么大的位移，判定永远不成立，等于上滑完全不隐身。
+  // 宁可偶尔误判 —— 误判只是提前进伪装壳，摸一下屏幕就回来了；漏判是泄露。
+  if(_edgeY-t.clientY<8)return;
   _edgeGesture();
 },{passive:true,capture:true});
 // 系统接管手势时 WebView 会收到 touchcancel —— 这是「用户正在离开」最明确的信号
@@ -4649,7 +4659,16 @@ document.addEventListener('touchcancel',function(){
   if(_edgeY===null)return;
   _edgeGesture();
 },{passive:true,capture:true});
-document.addEventListener('touchend',function(){ _edgeY=null; },{passive:true,capture:true});
+document.addEventListener('touchend',function(){
+  _edgeY=null;
+  // 只是点了一下底部、没构成手势：把遮罩撤掉，别留一层黑。
+  // 已经切成伪装壳的不撤 —— 那时候撤掉遮罩底下就是聊天界面了。
+  if(_hideDisguised)return;
+  clearTimeout(_edgeLiftTimer);
+  _edgeLiftTimer=setTimeout(function(){
+    if(!document.hidden&&!_hideDisguised)shieldOff();
+  },300);
+},{passive:true,capture:true});
 
 // blur 在部分 WebView 里比 visibilitychange 更早，之前这里只盖遮罩不切界面，
 // 于是「更早」的那条路径反而防护更弱。现在两件事一起做。
