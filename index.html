@@ -4497,8 +4497,10 @@ function handleViewportResize(){
   // 只调整chat页，其他页面用fixed inset:0不受键盘影响
   var chatEl=document.getElementById('chat');
   if(chatEl&&chatEl.classList.contains('active')){
-    chatEl.style.height=vvh+'px';
-    chatEl.style.top=vvt+'px';
+    var _h=vvh+'px', _t=vvt+'px';
+    if(chatEl.style.height===_h&&chatEl.style.top===_t&&chatEl.style.bottom==='')return;
+    chatEl.style.height=_h;
+    chatEl.style.top=_t;
     chatEl.style.bottom='';
     // 键盘弹出/收起后滚到底，双rAF确保布局稳定后再滚
     if(_chatKeyboardTimer)cancelAnimationFrame(_chatKeyboardTimer);
@@ -4535,8 +4537,7 @@ function initChatLayout(){
 var _shieldTitle=null;
 var _brandTitle=(typeof document!=='undefined'&&document.title)||'';
 function _shieldSkin(){
-  var hidden=(lg('hide')==='true');
-  var dis=hidden?(lg('dis')||'calculator'):'';
+  var dis=lg('dis')||(typeof G!=='undefined'&&G.dis)||'calculator';
   if(dis==='calculator')return{bg:'#1c1c1e',fg:'#fff',
     html:'<div style="width:100%;padding:0 26px;text-align:right;font-size:74px;font-weight:300;box-sizing:border-box;">0</div>'};
   if(dis==='weather')return{bg:'linear-gradient(160deg,#7b6ad6,#4a90d9)',fg:'#fff',
@@ -4559,6 +4560,7 @@ function buildShield(){
 }
 function shieldOn(){
   try{
+    if(_gcFreeMode())return;
     var r=document.documentElement;
     if(r.classList.contains('gc-shielded'))return;
     r.classList.add('gc-shielded');
@@ -4585,15 +4587,17 @@ function _disguiseTarget(){
   var dm={weather:'dweather',calculator:'dcalc',clock:'dclk',note:'dnote'};
   return dm[(typeof G!=='undefined'&&G.dis)||lg('dis')||'calculator']||'dcalc';
 }
+function _gcFreeMode(){ try{ return (lg('focusMode')||'free')==='free'; }catch(e){ return false; } }
 function disguiseNow(preemptive){
   try{
+    if(_gcFreeMode())return;
     if(_hideDisguised)return;
     var active=document.querySelector('.screen.active');
     if(!active)return;
     // 网关页本身就不含隐私内容，切走反而会打断登录/解锁流程
     if(['applock','testgate','reg'].indexOf(active.id)>=0)return;
     // 开了隐身就用伪装壳，没开就退到锁屏页 —— 两者都不会露出聊天内容
-    var target=(typeof G!=='undefined'&&G.hide)?_disguiseTarget():'applock';
+    var target=_disguiseTarget();
     if(active.id===target)return;
     // 在聊天里要记住聊的是谁，解锁后能回到原处
     _lockReturnScreen=(active.id==='chat'&&typeof G!=='undefined'&&G.chat)?('chat:'+G.chat):active.id;
@@ -4690,6 +4694,11 @@ document.addEventListener('touchstart',function(e){
   _hideDisguised=false; _preemptive=false; _disguiseAutoBack=false;
   resumeFromLock(); shieldOff();
 },{passive:true,capture:true});
+
+document.addEventListener('pause',function(){ shieldOn(); disguiseNow(); },false);
+document.addEventListener('resume',function(){
+  setTimeout(function(){ _resumeAfterDisguise(); shieldOff(); },0);
+},false);
 
 window.addEventListener('pageshow',function(){if(!document.hidden)shieldOff();});
 window.addEventListener('focus',function(){if(!document.hidden)shieldOff();});
@@ -8086,54 +8095,8 @@ function retryFailedMsgs(){
 }
 window.addEventListener('online',function(){setTimeout(retryFailedMsgs,800);});
 
-// ═══ 键盘高度自动适配（APK + 移动浏览器通用）═══
-// 使用 visualViewport API 检测软键盘高度，动态上移聊天窗口
-(function _initKbFix(){
-  var _prevKbH = 0;
+// keyboard fit handled solely by handleViewportResize (dup _initKbFix removed)
 
-  function _applyKbOffset(kbH){
-    if(Math.abs(kbH - _prevKbH) < 4) return;
-    _prevKbH = kbH;
-    // 只对 #chat 屏幕生效，其他屏幕不受影响
-    var chat = document.getElementById('chat');
-    if(!chat) return;
-    if(kbH > 20){
-      chat.style.bottom = kbH + 'px';
-      // 键盘弹出后滚动到最新消息
-      var cbg = document.getElementById('chatMsgs');
-      if(cbg) setTimeout(function(){ cbg.scrollTop = cbg.scrollHeight; }, 80);
-    } else {
-      chat.style.bottom = '';
-    }
-  }
-
-  if(window.visualViewport){
-    // 现代方案：visualViewport（Android WebView / iOS Safari 13+ / Chrome）
-    function _onVV(){
-      var vv = window.visualViewport;
-      var kbH = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      _applyKbOffset(kbH);
-    }
-    window.visualViewport.addEventListener('resize', _onVV, {passive:true});
-    window.visualViewport.addEventListener('scroll', _onVV, {passive:true});
-  } else {
-    // 兜底：监听输入框 focus/blur，通过 innerHeight 差值估算键盘高度
-    var _baseH = 0;
-    window.addEventListener('load', function(){ _baseH = window.innerHeight; });
-    var _mi = document.getElementById('mi');
-    if(_mi){
-      _mi.addEventListener('focus', function(){
-        setTimeout(function(){
-          var kbH = Math.max(0, _baseH - window.innerHeight);
-          if(kbH > 80) _applyKbOffset(kbH);
-        }, 350);
-      });
-      _mi.addEventListener('blur', function(){
-        setTimeout(function(){ _applyKbOffset(0); }, 100);
-      });
-    }
-  }
-})();
 function fmtLastTime(ts){
   if(!ts)return'';
   var d=new Date(ts),now=new Date();
