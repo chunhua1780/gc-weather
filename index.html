@@ -4490,6 +4490,7 @@ var G={
 // ═══ 启动 ═══
 // 键盘弹出时chat页面高度跟随，其余页面fixed不动
 var _chatKeyboardTimer=null;
+var _prevKbH=0;
 function handleViewportResize(){
   var vv=window.visualViewport;
   var vvh=vv?vv.height:window.innerHeight;
@@ -4497,7 +4498,16 @@ function handleViewportResize(){
   // 只调整chat页，其他页面用fixed inset:0不受键盘影响
   var chatEl=document.getElementById('chat');
   if(chatEl&&chatEl.classList.contains('active')){
-    var _h=vvh+'px', _t=vvt+'px';
+    // 键盘高度 = 布局视口(innerHeight，不受地址栏收起/展开影响) 减去 视觉视口。
+    // 之前直接拿 vvh/vvt 的绝对值去设 height/top，地址栏隐藏显示、滚动惯性都会
+    // 让 vvh/vvt 抖动几像素到几十像素，外框跟着这些抖动上下晃动；改成算相对
+    // innerHeight 的键盘高度后，没键盘时这个差值基本恒为0，就不会跟着乱动了。
+    var kbH=Math.max(0,window.innerHeight-vvh-vvt);
+    if(Math.abs(kbH-_prevKbH)<4)return;
+    _prevKbH=kbH;
+    var _h,_t;
+    if(kbH<4){_h='';_t='';} // 没有键盘：清掉内联样式，用CSS默认inset:0，彻底不跟着抖
+    else{_h=vvh+'px';_t=vvt+'px';}
     if(chatEl.style.height===_h&&chatEl.style.top===_t&&chatEl.style.bottom==='')return;
     chatEl.style.height=_h;
     chatEl.style.top=_t;
@@ -4519,13 +4529,13 @@ if(window.visualViewport){
 window.addEventListener('orientationchange',function(){
   setTimeout(handleViewportResize,300);
 });
-// chat页打开时初始化高度
+// chat页打开时初始化高度（此时键盘一般还没弹出，直接清空内联样式走CSS默认inset:0）
 function initChatLayout(){
-  var vv=window.visualViewport;
+  _prevKbH=0;
   var chatEl=document.getElementById('chat');
   if(!chatEl)return;
-  chatEl.style.height=(vv?vv.height:window.innerHeight)+'px';
-  chatEl.style.top=(vv?vv.offsetTop:0)+'px';
+  chatEl.style.height='';
+  chatEl.style.top='';
   chatEl.style.bottom='';
 }
 
