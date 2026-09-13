@@ -614,7 +614,11 @@ body{
 .dp-head{flex-shrink:0;position:relative;z-index:2;}
 .dp-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:2;}
 .dp-body::after{content:'';display:block;min-height:24px;pointer-events:none;}
-html,body{height:100%;height:100dvh;margin:0;padding:0;}
+/* 整个App是一叠position:fixed铺满视口的.screen面板，body自身永远不需要滚动。
+   之前body/html没锁死，背景空白处一拖就触发iOS的橡皮筋回弹，连带把
+   position:fixed的聊天框整个上下拖动/晃动。这里把body也钉成fixed+隐藏溢出，
+   彻底不给它滚动/回弹的机会，滚动只交给各screen内部自己的.scroll/.cbg容器。 */
+html,body{height:100%;height:100dvh;margin:0;padding:0;overflow:hidden;position:fixed;width:100%;overscroll-behavior:none;}
 .screen.active{display:flex;}
 .btn-blue{background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));border:none;color:#fff;padding:16px;border-radius:14px;font-size:calc(17px * var(--ui-font-scale,1));font-weight:600;width:100%;cursor:pointer;margin-bottom:10px;}
 .btn-red{background:#ff3b30;border:none;color:#fff;padding:16px;border-radius:14px;font-size:calc(17px * var(--ui-font-scale,1));font-weight:600;width:100%;cursor:pointer;}
