@@ -680,7 +680,10 @@ textarea.field-input{resize:none;line-height:1.5;}
 .day-pill{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:calc(13px * var(--ui-font-scale,1));font-weight:600;color:#8e8e93;background:var(--theme-row-bg,#f2f2f7);cursor:pointer;}
 .day-pill.on{background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:#fff;}
 .cbg{min-height:0;-webkit-overflow-scrolling:touch;flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 16px;display:flex;flex-direction:column;gap:6px;background:linear-gradient(160deg,var(--cs-bg1,var(--theme-bg)),var(--cs-bg2,var(--theme-bg2)));overscroll-behavior:none;}
-.cbg .chat-spacer{flex:1;min-height:80px;pointer-events:none;}
+/* 之前flex:1会把spacer撑满所有剩余空间，短对话被硬顶到贴底部，上面留一大片
+   空白——苹果原生Messages对短对话不会这样，就是从导航栏下面自然往下排。
+   改成不参与撑高，只留一点顶部呼吸空间，长对话该怎么滚动完全不受影响。 */
+.cbg .chat-spacer{flex:0 0 auto;height:8px;pointer-events:none;}
 .cbg .chat-sentinel{text-align:center;color:#c7c7cc;font-size:calc(12px * var(--ui-font-scale,1));padding:4px 0 6px;flex-shrink:0;letter-spacing:.3px;}
 .nav-bar{box-shadow:0 1px 0 rgba(0,0,0,.02),0 4px 14px -6px rgba(0,0,0,.05);}
 .ibar{box-shadow:0 -1px 0 rgba(0,0,0,.02),0 -4px 14px -6px rgba(0,0,0,.05);}
@@ -3757,9 +3760,16 @@ window.addEventListener('beforeinstallprompt', function(e){
   _deferredInstall = e;
   showInstallBanner();
 });
+// 伪装壳/网关页上绝不能露出这条横幅——带👻图标和"安装 天气"文案，跟伪装壳
+// 的品牌完全对不上，一眼就能看出这不是真的天气App，等于自己拆穿伪装。
+function _isDisguiseScreen(){
+  var a=document.querySelector('.screen.active');
+  return !!a && ['dweather','dcalc','dclk','dnote','applock','testgate'].indexOf(a.id)>=0;
+}
 function showInstallBanner(){
   if(localStorage.getItem('installBannerDismissed')) return;
   if(window.navigator.standalone) return;
+  if(_isDisguiseScreen()) return;
   var banner = document.getElementById('installBanner');
   if(banner) banner.style.display = 'flex';
 }
@@ -4623,6 +4633,10 @@ function disguiseNow(preemptive){
     _disguiseAutoBack = !lg('appLockPin') || !_appWasActive
                         || (lg('focusMode')||'free')==='free';
     show(target);
+    // 切到伪装壳的一瞬间，之前可能还挂着的PWA安装横幅(带👻图标和"安装 天气"
+    // 文案)必须立刻藏起来——它跟伪装壳的品牌对不上，是最直接的暴露破绽。
+    var _ib=document.getElementById('installBanner');
+    if(_ib)_ib.style.display='none';
     // 手势预判只做标记，绝不按时间还原。
     // 上滑把应用缩成卡片时 document.hidden 仍是 false（iOS 这时显示的是实时
     // 画面而非快照），定时器会在人还停在卡片界面时把聊天放回来 —— 正好暴露在
