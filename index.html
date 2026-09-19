@@ -605,8 +605,12 @@ body{
 #chat > .nav-bar{flex-shrink:0;padding-top:max(6px,calc(env(safe-area-inset-top,0px) + 2px));padding-bottom:5px;}
 #chat > .cbg{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 #chat > .ibar{flex-shrink:0;width:100%;}
-/* 桌面端：手机UI在宽屏浏览器里不该拉满整个窗口铺开，按手机比例居中显示一个"手机框" */
-@media (min-width:560px){
+/* 桌面端：手机UI在宽屏浏览器里不该拉满整个窗口铺开，按手机比例居中显示一个"手机框"。
+   加min-height:501px是为了别误伤横屏手机——横屏手机宽度经常超过560px，但高度
+   只有三四百，跟"宽而矮"的真手机横屏撞在一起，不加这条会被当成桌面端，缩成
+   中间一小条、两边留黑，横屏反而没法全屏用了。桌面浏览器窗口基本不会宽却矮到
+   这个程度，这条限制不会误伤真正的桌面端。 */
+@media (min-width:560px) and (min-height:501px){
   .screen,#chat{left:50%;right:auto;width:420px;transform:translateX(-50%);box-shadow:0 0 0 1px rgba(0,0,0,.06),0 20px 60px rgba(0,0,0,.18);}
   #installBanner,#huaweiBanner{left:50%;right:auto;width:420px;transform:translateX(-50%);}
 }
@@ -1054,35 +1058,55 @@ html.gc-shielded #privacyShield{ opacity:1; pointer-events:auto; }
 </style>
 <div id="privacyShield" aria-hidden="true"></div>
 
-<!-- ═══ 横屏提示 ═══
-     全部界面都是按手机竖屏写死的固定布局(伪装壳尤其得跟真实原生App一样锁死
-     竖屏)，没有为横屏单独适配。与其让每个屏幕在横屏下挤成一团露怯，不如像
-     很多手机应用一样直接提示"请转回竖屏"——只在真手机横屏(矮而宽)时出现，
-     桌面浏览器的居中"手机框"模式不受影响。 -->
+<!-- ═══ 横屏适配 ═══
+     全部界面都是按手机竖屏写死的固定尺寸(大标题、超大数字、固定高度按键格)，
+     横屏时高度只剩三四百像素，直接照搬竖屏尺寸会被裁掉一截、够不到最下面
+     一排按键。这里不做"锁竖屏"，而是横屏下把明显偏大的标题/数字/按键收紧，
+     再给内容本来就固定高度、没有自带滚动的容器(主要是计算器键盘区)兜底加上
+     可以滚动，保证再怎么挤也总能滑到、点到。
+     两条判断双重命中：CSS的(orientation:landscape)媒体查询 + JS实测像素
+     (html.gc-landscape，见_checkLandscapeHint)——前者在部分设备/浏览器组合
+     下不准，后者做兜底。 -->
 <style>
-#rotateHint{
-  display:none; position:fixed; inset:0; z-index:999999;
-  background:#0b0b0f; color:#fff;
-  flex-direction:column; align-items:center; justify-content:center; gap:14px;
-  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-  text-align:center; padding:0 32px;
-}
-#rotateHint .rh-ic{font-size:44px;animation:rhSpin 1.6s ease-in-out infinite;}
-@keyframes rhSpin{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-90deg);}}
-#rotateHint .rh-t{font-size:16px;font-weight:600;}
-#rotateHint .rh-s{font-size:13px;color:rgba(255,255,255,.55);}
 @media (orientation:landscape) and (max-height:500px) and (max-width:930px){
-  #rotateHint{display:flex;}
+  .nav-lg{padding:max(6px,var(--safe-top)) 20px 4px;}
+  .nav-lg .t{font-size:calc(22px * var(--ui-font-scale,1));}
+  #dcalc{overflow-y:auto;}
+  #dcalc > div:first-child{padding:max(10px,var(--safe-top)) 16px 0 !important;}
+  #cExpr{font-size:calc(14px * var(--ui-font-scale,1)) !important;min-height:0 !important;}
+  #cNum{font-size:calc(44px * var(--ui-font-scale,1)) !important;}
+  #calcGrid{gap:5px !important;padding:0 10px calc(6px + var(--safe-bottom)) !important;}
+  .ck{height:38px !important;border-radius:19px !important;}
+  .ck-sci{height:32px !important;}
+  .aw-hero{padding:max(8px,var(--safe-top)) 0 6px !important;}
+  .aw-temp{font-size:48px !important;}
+  .aw-city{font-size:20px !important;}
+  .aw-cond,.aw-hilo{font-size:14px !important;}
+  .dp-head{padding:max(10px,var(--safe-top)) 16px 8px !important;}
+  .screen{padding-left:var(--safe-left);padding-right:var(--safe-right);}
 }
-/* JS量出来的实际横屏兜底，见_checkLandscapeHint —— 纯CSS媒体查询在部分设备/
-   浏览器组合下不可靠，这一条独立生效，两条有一条命中提示就会出现。 */
-html.gc-landscape #rotateHint{display:flex;}
+html.gc-landscape .nav-lg{padding:max(6px,var(--safe-top)) 20px 4px;}
+html.gc-landscape .nav-lg .t{font-size:calc(22px * var(--ui-font-scale,1));}
+html.gc-landscape #dcalc{overflow-y:auto;}
+html.gc-landscape #dcalc > div:first-child{padding:max(10px,var(--safe-top)) 16px 0 !important;}
+html.gc-landscape #cExpr{font-size:calc(14px * var(--ui-font-scale,1)) !important;min-height:0 !important;}
+html.gc-landscape #cNum{font-size:calc(44px * var(--ui-font-scale,1)) !important;}
+html.gc-landscape #calcGrid{gap:5px !important;padding:0 10px calc(6px + var(--safe-bottom)) !important;}
+html.gc-landscape .ck{height:38px !important;border-radius:19px !important;}
+html.gc-landscape .ck-sci{height:32px !important;}
+html.gc-landscape .aw-hero{padding:max(8px,var(--safe-top)) 0 6px !important;}
+html.gc-landscape .aw-temp{font-size:48px !important;}
+html.gc-landscape .aw-city{font-size:20px !important;}
+html.gc-landscape .aw-cond,html.gc-landscape .aw-hilo{font-size:14px !important;}
+html.gc-landscape .dp-head{padding:max(10px,var(--safe-top)) 16px 8px !important;}
+/* 横屏时刘海通常在左/右边而不是顶部，.screen本身留一点左右安全间距，
+   内容不会被刘海直接挡住(左右各自独立，机身哪边有刘海就哪边有值，另一边是0)。 */
+html.gc-landscape .screen{padding-left:var(--safe-left);padding-right:var(--safe-right);}
+/* 横屏手机常常宽度超过560px，会被桌面端那条"居中手机框"规则误判——这里强制
+   拉回铺满全屏，JS实测的横屏判断比min-width单独判断更可靠，双重保险。 */
+html.gc-landscape .screen,html.gc-landscape #chat{left:0 !important;right:0 !important;width:100% !important;transform:none !important;box-shadow:none !important;}
+html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !important;right:0 !important;width:100% !important;transform:none !important;}
 </style>
-<div id="rotateHint" aria-hidden="true">
-  <div class="rh-ic">📱</div>
-  <div class="rh-t" data-i18n="rotateHintTitle">请将设备切换回竖屏</div>
-  <div class="rh-s" data-i18n="rotateHintDesc">此App仅支持竖屏使用</div>
-</div>
 
 <!-- ═══ PWA 安装横幅（Android Chrome）═══ -->
 <div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9990;background:linear-gradient(135deg,#ff9a9e,#a18cd1);color:#fff;padding:14px 16px calc(14px + env(safe-area-inset-bottom));align-items:center;gap:12px;font-family:-apple-system,sans-serif;box-shadow:0 -4px 20px rgba(0,0,0,.15);">
