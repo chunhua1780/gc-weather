@@ -1074,6 +1074,9 @@ html.gc-shielded #privacyShield{ opacity:1; pointer-events:auto; }
 @media (orientation:landscape) and (max-height:500px) and (max-width:930px){
   #rotateHint{display:flex;}
 }
+/* JS量出来的实际横屏兜底，见_checkLandscapeHint —— 纯CSS媒体查询在部分设备/
+   浏览器组合下不可靠，这一条独立生效，两条有一条命中提示就会出现。 */
+html.gc-landscape #rotateHint{display:flex;}
 </style>
 <div id="rotateHint" aria-hidden="true">
   <div class="rh-ic">📱</div>
@@ -4570,6 +4573,25 @@ if(window.visualViewport){
 window.addEventListener('orientationchange',function(){
   setTimeout(handleViewportResize,300);
 });
+// 横屏提示：不只靠CSS的(orientation:landscape)媒体查询——manifest里锁了
+// orientation:portrait，部分Android WebView/浏览器组合下这个媒体特性判断
+// 不准(有的锁死后干脆不触发，有的判断跟实际像素尺寸对不上)。这里直接量
+// window.innerWidth/innerHeight的实际比例，双重兜底，哪一层生效都能盖住。
+function _checkLandscapeHint(){
+  try{
+    var w=window.innerWidth, h=window.innerHeight;
+    var isLandscapePhone = w>h && h<=500 && w<=930;
+    document.documentElement.classList.toggle('gc-landscape', isLandscapePhone);
+  }catch(e){}
+}
+window.addEventListener('resize',_checkLandscapeHint);
+window.addEventListener('orientationchange',function(){
+  setTimeout(_checkLandscapeHint,50);
+  setTimeout(_checkLandscapeHint,300);
+});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',_checkLandscapeHint);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_checkLandscapeHint);
+else _checkLandscapeHint();
 // chat页打开时初始化高度（此时键盘一般还没弹出，直接清空内联样式走CSS默认inset:0）
 function initChatLayout(){
   _prevKbH=0;
