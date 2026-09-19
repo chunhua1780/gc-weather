@@ -605,8 +605,8 @@ body{
 #chat > .nav-bar{flex-shrink:0;padding-top:max(6px,calc(env(safe-area-inset-top,0px) + 2px));padding-bottom:5px;}
 #chat > .cbg{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 #chat > .ibar{flex-shrink:0;width:100%;}
-/* 桌面端：手机UI在宽屏浏览器里不该拉满整个窗口铺开，按手机比例居中显示一个"手机框"。
-   加min-height:501px是为了别误伤横屏手机——横屏手机宽度经常超过560px，但高度
+/* 桌面端：手机UI在宽屏浏览器里不该拉满整个窗口铺开，按手机比例居中显示一个"手机框" */
+/* 加min-height:501px是为了别误伤横屏手机——横屏手机宽度经常超过560px，但高度
    只有三四百，跟"宽而矮"的真手机横屏撞在一起，不加这条会被当成桌面端，缩成
    中间一小条、两边留黑，横屏反而没法全屏用了。桌面浏览器窗口基本不会宽却矮到
    这个程度，这条限制不会误伤真正的桌面端。 */
@@ -1099,8 +1099,6 @@ html.gc-landscape .aw-temp{font-size:48px !important;}
 html.gc-landscape .aw-city{font-size:20px !important;}
 html.gc-landscape .aw-cond,html.gc-landscape .aw-hilo{font-size:14px !important;}
 html.gc-landscape .dp-head{padding:max(10px,var(--safe-top)) 16px 8px !important;}
-/* 横屏时刘海通常在左/右边而不是顶部，.screen本身留一点左右安全间距，
-   内容不会被刘海直接挡住(左右各自独立，机身哪边有刘海就哪边有值，另一边是0)。 */
 html.gc-landscape .screen{padding-left:var(--safe-left);padding-right:var(--safe-right);}
 /* 横屏手机常常宽度超过560px，会被桌面端那条"居中手机框"规则误判——这里强制
    拉回铺满全屏，JS实测的横屏判断比min-width单独判断更可靠，双重保险。 */
