@@ -643,7 +643,7 @@ html,body{height:100%;height:100dvh;margin:0;padding:0;overflow:hidden;position:
 .nav-sm{padding:max(12px,calc(env(safe-area-inset-top,0px) + 8px)) 16px 8px;display:flex;align-items:center;justify-content:space-between;}
 .nav-sm .t{font-size:calc(17px * var(--ui-font-scale,1));font-weight:600;}
 .nav-btn{color:var(--theme-link);font-size:calc(15px * var(--ui-font-scale,1));cursor:pointer;padding:4px 8px;}
-.tabs{background:var(--theme-navbar);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;position:relative;z-index:10;padding-bottom:max(env(safe-area-inset-bottom,0px),6px);}
+.tabs{background:var(--theme-navbar);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;position:relative;z-index:10;padding-bottom:max(6px,calc(env(safe-area-inset-bottom,0px) - 12px));}
 .tab{flex:1;padding:6px 0 2px;text-align:center;cursor:pointer;font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .tab.on{color:var(--theme-tab-active);}
 .tab svg{width:24px;height:24px;}
@@ -718,7 +718,9 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 .typing-dots span:nth-child(3){animation-delay:.4s;}
 @keyframes typingBounce{0%,60%,100%{opacity:.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-2px);}}
 .msg-img{max-width:min(260px,72vw);max-height:400px;border-radius:16px;display:block;width:auto;height:auto;object-fit:contain;}
-.ibar{background:var(--theme-ibar);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);flex-shrink:0;padding-bottom:var(--safe-bottom);;position:relative;z-index:10;}
+.ibar{background:var(--theme-ibar);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);flex-shrink:0;padding-bottom:max(0px,calc(var(--safe-bottom) - 14px));position:relative;z-index:10;}
+/* 键盘弹起时 Home 指示条被键盘盖住，安全区留白毫无意义，输入框直接贴着键盘 */
+#chat.kb-open > .ibar{padding-bottom:0;}
 .irow{padding:8px 12px;display:flex;align-items:flex-end;gap:8px;}
 .ibtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--theme-icon);flex-shrink:0;}
 .ibtn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
@@ -4610,6 +4612,7 @@ function handleViewportResize(){
     var kbH=Math.max(0,window.innerHeight-vvh-vvt);
     if(Math.abs(kbH-_prevKbH)<4)return;
     _prevKbH=kbH;
+    chatEl.classList.toggle('kb-open',kbH>=4);
     var _h,_t;
     if(kbH<4){_h='';_t='';} // 没有键盘：清掉内联样式，用CSS默认inset:0，彻底不跟着抖
     else{_h=vvh+'px';_t=vvt+'px';}
@@ -4661,6 +4664,7 @@ function initChatLayout(){
   chatEl.style.height='';
   chatEl.style.top='';
   chatEl.style.bottom='';
+  chatEl.classList.remove('kb-open');
 }
 
 // ═══ 后台快照防护 ══════════════════════════════════════════════════════════
@@ -10316,6 +10320,66 @@ function updDots(err){
 }
 </script>
 <script src="./chat-core.js"></script>
+<script>
+// 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
+// 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
+// 就露出一条白带。这里取当前界面最底下那一像素实际显示的颜色，同步给 html；
+// 伪装壳这类自己铺满不透明背景的界面，body 也一起同步（反正 body 的主题渐变
+// 被它整个盖住看不见）。聊天列表这类透明界面依赖 body 主题渐变，不动 body。
+(function(){
+  var DESK='(min-width:560px) and (min-height:501px)';
+  function rgba(s){var m=(s||'').match(/[\d.]+/g);if(!m||m.length<3)return null;return[+m[0],+m[1],+m[2],m.length>3?+m[3]:1];}
+  function lastStop(img){if(!img||img==='none')return null;var a=img.match(/rgba?\([^)]*\)/g);return a?rgba(a[a.length-1]):null;}
+  function over(b,c){if(!c||!(c[3]>0))return b;var a=c[3];return[c[0]*a+b[0]*(1-a),c[1]*a+b[1]*(1-a),c[2]*a+b[2]*(1-a)];}
+  function opaque(el){if(!el)return false;var cs=getComputedStyle(el);var c=rgba(cs.backgroundColor);return (c&&c[3]>=0.99)||(cs.backgroundImage&&cs.backgroundImage!=='none');}
+  // 只认当前界面自己和 body 的颜色，安装提示条/toast 这类临时浮层不算，不然浮层一消失颜色就残留
+  function sample(sc){
+    if(!document.elementsFromPoint)return null;
+    var els=document.elementsFromPoint(Math.round(window.innerWidth/2),Math.max(0,window.innerHeight-2));
+    var b=[255,255,255];
+    for(var i=els.length-1;i>=0;i--){
+      var e=els[i];if(e===document.documentElement)continue;
+      if(e!==document.body&&!(sc&&sc.contains(e)))continue;
+      var cs=getComputedStyle(e);
+      b=over(b,rgba(cs.backgroundColor));
+      b=over(b,lastStop(cs.backgroundImage));
+    }
+    return 'rgb('+Math.round(b[0])+','+Math.round(b[1])+','+Math.round(b[2])+')';
+  }
+  function sync(){
+    try{
+      var body=document.body;if(!body)return;
+      var sc=document.querySelector('.screen.active');
+      var own=opaque(sc)&&!(window.matchMedia&&matchMedia(DESK).matches);
+      if(!own){body.style.backgroundColor='';body.style.backgroundImage='';}
+      var c=sample(sc);if(!c)return;
+      document.documentElement.style.backgroundColor=c;
+      if(own){body.style.backgroundColor=c;body.style.backgroundImage='none';}
+    }catch(e){}
+  }
+  var t1=null,t2=null;
+  function schedule(){
+    clearTimeout(t1);clearTimeout(t2);
+    t1=setTimeout(sync,60);
+    t2=setTimeout(sync,1400); // 天气天空背景有 1.2s 渐变，等它落定再取一次
+  }
+  window._gcSyncEdgeColor=schedule;
+  function watch(){
+    if(!window.MutationObserver)return;
+    var mo=new MutationObserver(schedule);
+    mo.observe(document.body,{attributes:true,attributeFilter:['class']});
+    document.querySelectorAll('.screen,.aw-sky').forEach(function(el){
+      mo.observe(el,{attributes:true,attributeFilter:['class','style']});
+    });
+  }
+  function start(){watch();schedule();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+  window.addEventListener('resize',schedule);
+  window.addEventListener('orientationchange',schedule);
+  window.addEventListener('pageshow',schedule);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)schedule();});
+})();
+</script>
 </body>
 </html>
 
