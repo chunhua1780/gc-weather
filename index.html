@@ -4099,30 +4099,18 @@ function _buildFontSizeGrid(){
     if(_s)document.documentElement.style.setProperty('--ui-font-scale',(_s.px/_FONT_BASE_PX));
   }
 })();
-// 今天的消息只显示钟点；今天以前的显示"2026年9月24日 星期四 10:05"。
-// 按显示时的"今天"算，不在收到消息时就定死，过了零点旧消息会自动带上日期。
+// 消息时间：每条消息下面只显示钟点（16:15）；日期和星期几按天显示——每天第一条消息上面
+// 一条居中的日期条"2026年6月29日 星期一"，今天也有。钟点按显示时从时间戳算，不用存下来的字符串。
 var _GC_WEEK=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
-function _fmtMsgTime(d){
-  var hm=d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
-  var n=new Date();
-  if(d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate())return hm;
-  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+_GC_WEEK[d.getDay()]+' '+hm;
-}
+function _fmtMsgTime(d){return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();}
 function _msgTimeLabel(m){return (m&&m.ts)?_fmtMsgTime(new Date(m.ts)):((m&&m.t)||'');}
 function gt(){return _fmtMsgTime(new Date());}
-// ═══ 聊天日期分隔条 ═══ 老消息看不出是哪天发的，只有个时间点太模糊，加一条
-// 居中的日期标签插在换天的第一条消息前面（今天的不用加，本来就一目了然）。
+// ═══ 聊天日期条 ═══
 function _dayKey(ts){var d=new Date(ts||Date.now());return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();}
 function _isToday(ts){return _dayKey(ts)===_dayKey(Date.now());}
-function _dayLabel(ts){
-  var d=new Date(ts||Date.now()),n=new Date();
-  var y=d.getFullYear()!==n.getFullYear()?(d.getFullYear()+'年'):'';
-  var yestKey=_dayKey(Date.now()-86400000);
-  if(!y&&_dayKey(ts)===yestKey)return'昨天';
-  return y+(d.getMonth()+1)+'月'+d.getDate()+'日';
-}
+function _dayLabel(ts){var d=new Date(ts||Date.now());return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+_GC_WEEK[d.getDay()];}
 function _dayDividerHtml(ts){
-  return '<div class="chat-daydiv" style="text-align:center;color:#c7c7cc;font-size:calc(12px * var(--ui-font-scale,1));padding:8px 0 4px;letter-spacing:.3px;">'+_dayLabel(ts)+'</div>';
+  return '<div class="chat-daydiv" style="text-align:center;padding:10px 0 4px;"><span style="display:inline-block;padding:3px 10px;border-radius:10px;background:rgba(0,0,0,.045);color:#8e8e93;font-size:calc(12px * var(--ui-font-scale,1));letter-spacing:.3px;">'+_dayLabel(ts)+'</span></div>';
 }
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function makeRC(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';for(var i=0;i<12;i++){if(i>0&&i%4===0)s+='-';s+=c[Math.floor(Math.random()*c.length)];}return s;}
@@ -4171,7 +4159,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.06';
+var CORE_VERSION='v2.07';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -8038,7 +8026,7 @@ function loadMoreMsgs(){
     var _om=allMsgs[i];
     var _odk=_dayKey(_om.ts);
     if(_odk!==_prevDayKeyOlder){
-      if(_prevDayKeyOlder!==null&&!_isToday(_om.ts))olderHtml+=_dayDividerHtml(_om.ts);
+      if(_prevDayKeyOlder!==null)olderHtml+=_dayDividerHtml(_om.ts);
       _prevDayKeyOlder=_odk;
     }
     olderHtml+=_oneMsgHtml(_om);
@@ -8047,7 +8035,7 @@ function loadMoreMsgs(){
   // 如果不是同一天，边界上也要补一条分隔线（分隔线本身随olderHtml一起插进去）。
   if(prevStart<allMsgs.length){
     var _boundaryNext=allMsgs[prevStart];
-    if(_dayKey(_boundaryNext.ts)!==_dayKey(allMsgs[prevStart-1].ts)&&!_isToday(_boundaryNext.ts)){
+    if(_dayKey(_boundaryNext.ts)!==_dayKey(allMsgs[prevStart-1].ts)){
       olderHtml+=_dayDividerHtml(_boundaryNext.ts);
     }
   }
@@ -8081,7 +8069,7 @@ function renderMsgs(){
     if(_dk!==_prevDayKey){
       // 第0条如果还有更老的消息没加载，不确定那天是不是从这条才开始，先不加；
       // loadMoreMsgs()把更早的消息加载进来时会自己补上这条分隔线。
-      if((i>0||!_hasOlderForDiv)&&!_isToday(_m.ts))html+=_dayDividerHtml(_m.ts);
+      if((i>0||!_hasOlderForDiv))html+=_dayDividerHtml(_m.ts);
       _prevDayKey=_dk;
     }
     html+=_oneMsgHtml(_m);
@@ -10429,7 +10417,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.06"></script>
+<script src="./chat-core.js?v2.07"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面

@@ -556,7 +556,7 @@ function renderMsgs(){
     // 那段内联脚本，直接用全局的就行，不用在这再重复一份。
     var _dk=_dayKey(m.ts);
     if(_dk!==_prevDayKey){
-      if(!_isToday(m.ts))html+=_dayDividerHtml(m.ts);
+      html+=_dayDividerHtml(m.ts);
       _prevDayKey=_dk;
     }
     if(m.type==='recalled'){html+='<div style="text-align:center;color:#aaa;font-size:12px;margin:6px 0;">'+(s?'你撤回了一条消息':'对方撤回了一条消息')+'</div>';continue;}
