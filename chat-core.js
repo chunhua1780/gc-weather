@@ -221,7 +221,7 @@ async function syncRoomMessages(name){
   try{
     var a=parseInt(myId)||myId,b=parseInt(name)||name;
     var room=roomIdOf(a,b);
-    var res=await _sb.from('messages').select('*').eq('room_id',room).order('created_at',{ascending:false}).limit(50);
+    var _rrP=Promise.resolve(_sb.from('messages').select('content').eq('room_id',room).eq('type','read_receipt').eq('sender',String(name)).order('created_at',{ascending:false}).limit(1)).catch(function(){return null;});var res=await _sb.from('messages').select('*').eq('room_id',room).order('created_at',{ascending:false}).limit(50);
     var serverMsgs=[];var toCleanup=[];
     var chatOpen=(G.chat===name);var weekAgo=Date.now()-7*24*60*60*1000;
     var otherLastRead=0;
@@ -232,8 +232,9 @@ async function syncRoomMessages(name){
         }
       });
     }
-    var prevReadIds={};
-    (G.msgs[name]||[]).forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});
+    // 对方最近一次已读回执单独查：只看最近50条的话，聊得多了回执会被挤出窗口，爪印就全掉了
+    try{var _rr=await _rrP;if(_rr&&_rr.data&&_rr.data[0]){var _v0=parseInt(_rr.data[0].content)||0;if(_v0>otherLastRead)otherLastRead=_v0;}}catch(e){}var prevReadIds={};
+    (G.msgs[name]||[]).forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});localMsgs.forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});
     if(res.data&&res.data.length>0){
       serverMsgs=res.data
         .filter(function(m){return m.type!=='gc_del'&&m.type!=='read_receipt';})
@@ -317,7 +318,9 @@ async function syncRoomMessages(name){
 // ── 已读回执 ──
 async function markRoomRead(otherId){
   try{
-    var ts=Date.now();
+    // 回执时间取本机时钟和这段对话里最新一条消息（服务器时间）的较大值：手机时钟稍慢时，
+    // 刚读的最新几条消息时间会比回执还晚，对方那边就一直不出爪印
+    var ts=Date.now();(G.msgs[otherId]||[]).forEach(function(m){if(m&&m.ts>ts)ts=m.ts;});
     var room=roomIdOf(parseInt(myId)||myId,parseInt(otherId)||otherId);
     var ins=await _sb.from('messages').insert({room_id:room,sender:String(myId),type:'read_receipt',content:String(ts)});
     if(ins.error)console.log('markRoomRead failed:',ins.error.message);
@@ -423,7 +426,8 @@ function listenForAllMessages(){
         if(m.type==='contact'){try{var cc=JSON.parse(m.content);msg.cid=cc.id;msg.cname=cc.name;}catch(e){}}
         if(m.type==='video')msg.src=m.content;
         if(m.type==='file'){var fp=(m.content||'').split('|');msg.src=fp[0];msg.fname=decodeURIComponent(fp[1]||'File');}
-        if(!G.msgs[senderId])G.msgs[senderId]=[];
+        // 这个联系人本次还没打开过：先把本机已存的聊天记录接上再追加，否则下面 saveLocalMsgs 会用只有这一条的数组把整段历史（连同已读状态）覆盖掉
+        if(!G.msgs[senderId]||!G.msgs[senderId].length){var _seed=loadLocalMsgs(senderId);var _co=(typeof getDeletedCutoff==='function')?getDeletedCutoff(senderId):0;G.msgs[senderId]=_co>0?_seed.filter(function(x){return x.ts>_co;}):_seed;}
         var already=G.msgs[senderId].some(function(x){return x.id===m.id;});
         if(!already){
           var chatOpenNow=(G.chat===senderId)&&document.getElementById('chat')&&document.getElementById('chat').classList.contains('active');
@@ -591,7 +595,7 @@ function renderMsgs(){
     if(s&&m.id!=null&&!m.failed&&!m.read){bubSty=' style="background:var(--cs-sent-unread);color:var(--cs-sent-text,#fff);"';}
     var bubCls='bub'+(s&&m.read&&m.id!=null?' bub-read':'');
     var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
-    html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubSty+'>'+b+inPaw+'</div><div class="mt">'+m.t+statusTick+'</div></div>';
+    html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubSty+'>'+b+inPaw+'</div><div class="mt">'+_msgTimeLabel(m)+statusTick+'</div></div>';
   }
   var _atBottom=(c.scrollHeight-c.scrollTop-c.clientHeight)<200;
   var _prevScrollTop=c.scrollTop;var _prevScrollHeight=c.scrollHeight;
