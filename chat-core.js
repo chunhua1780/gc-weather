@@ -177,7 +177,7 @@ async function joinRoom(name){
         if(m.type==='read_receipt'||m.type==='gc_del')return;
         var createdMs=new Date(m.created_at).getTime()||Date.now();
         var dl=new Date(createdMs);
-        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:dl.getHours()+':'+(dl.getMinutes()<10?'0':'')+dl.getMinutes(),ts:createdMs};
+        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(dl),ts:createdMs};
         if(m.type==='image'){var ip=(m.content||'').split('|');msg.src=ip[0];if(ip[1])msg.thumb=ip[1];}
         if(m.type==='voice'){msg.src=m.content&&m.content.startsWith('http')?m.content:null;msg.dur=m.duration||(m.content&&m.content.match(/\d+/)?m.content.match(/\d+/)[0]:'?');}
         if(m.type==='location'){var lp=(m.content||'').split('|');msg.addr=lp[0];msg.mapUrl=lp[1]||('https://maps.google.com/?q='+lp[0]);}
@@ -242,7 +242,7 @@ async function syncRoomMessages(name){
             var content=m.content||'';
             var createdMs=new Date(m.created_at).getTime()||Date.now();
             var dlocal=new Date(createdMs);
-            var msg={id:m.id,text:content,type:m.type||'text',sent:String(m.sender)===String(myId),t:dlocal.getHours()+':'+(dlocal.getMinutes()<10?'0':'')+dlocal.getMinutes(),ts:createdMs};
+            var msg={id:m.id,text:content,type:m.type||'text',sent:String(m.sender)===String(myId),t:_fmtMsgTime(dlocal),ts:createdMs};
             if(m.type==='image'){var ip=content.split('|');msg.src=ip[0];if(ip[1])msg.thumb=ip[1];}
             if(m.type==='voice'){msg.src=content.startsWith('http')?content:null;var vm=content.match(/\d+/);msg.dur=m.duration||(vm?vm[0]:'?');}
             if(m.type==='location'){var lp=content.split('|');msg.addr=lp[0];msg.mapUrl=lp[1];}
@@ -406,7 +406,7 @@ function listenForAllMessages(){
         var cutoff=getDeletedCutoff(senderId);
         if(cutoff>0&&msgTs<=cutoff)return;
         var msgDate=new Date(msgTs);
-        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:msgDate.getHours()+':'+(msgDate.getMinutes()<10?'0':'')+msgDate.getMinutes(),ts:msgTs};
+        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(msgDate),ts:msgTs};
         if(m.type==='image'){var ip=(m.content||'').split('|');msg.src=ip[0];if(ip[1])msg.thumb=ip[1];}
         if(m.type==='voice'){msg.src=m.content&&m.content.startsWith('http')?m.content:null;msg.dur=m.duration||'?';}
         if(m.type==='location'){var lp=(m.content||'').split('|');msg.addr=lp[0];msg.mapUrl=lp[1];}

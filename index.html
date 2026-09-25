@@ -4060,7 +4060,14 @@ function _buildFontSizeGrid(){
     if(_s)document.documentElement.style.setProperty('--ui-font-scale',(_s.px/_FONT_BASE_PX));
   }
 })();
-function gt(){var d=new Date();return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();}
+// 消息时间显示：以前只有"9:41"这种钟点，翻旧消息完全看不出是哪天发的
+// （日期分隔条只在换天的第一条前面插一条，单看某一条消息本身还是没有日期）。
+// 现在每条消息自己就带日期，格式"09-25 9:41"，不用再去找上面最近的分隔条。
+function _fmtMsgTime(d){
+  var mo=d.getMonth()+1,da=d.getDate();
+  return (mo<10?'0':'')+mo+'-'+(da<10?'0':'')+da+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+}
+function gt(){return _fmtMsgTime(new Date());}
 // ═══ 聊天日期分隔条 ═══ 老消息看不出是哪天发的，只有个时间点太模糊，加一条
 // 居中的日期标签插在换天的第一条消息前面（今天的不用加，本来就一目了然）。
 function _dayKey(ts){var d=new Date(ts||Date.now());return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();}
@@ -7034,7 +7041,7 @@ async function joinRoom(name){
         if(m.type==='read_receipt'||m.type==='gc_del')return;
         var createdMs1=new Date(m.created_at).getTime()||Date.now();
         var dl1=new Date(createdMs1);
-        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:dl1.getHours()+':'+(dl1.getMinutes()<10?'0':'')+dl1.getMinutes(),ts:createdMs1};
+        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(dl1),ts:createdMs1};
         if(m.type==='image'){var imgParts=(m.content||'').split('|');msg.src=imgParts[0];if(imgParts[1])msg.thumb=imgParts[1];}
         if(m.type==='voice'){msg.src=m.content&&m.content.startsWith('http')?m.content:null;msg.dur=m.duration||(m.content&&m.content.match(/\d+/)?m.content.match(/\d+/)[0]:'?');}
         if(m.type==='location'){var pts=(m.content||'').split('|');msg.addr=pts[0];msg.mapUrl=pts[1]||('https://maps.google.com/?q='+pts[0]);}
@@ -7110,7 +7117,7 @@ async function syncRoomMessages(name){
       var content=m.content||'';
       var createdMs=new Date(m.created_at).getTime()||Date.now();
       var dlocal=new Date(createdMs);
-      var msg={id:m.id,text:content,type:m.type||'text',sent:String(m.sender)===String(myId),t:dlocal.getHours()+':'+(dlocal.getMinutes()<10?'0':'')+dlocal.getMinutes(),ts:createdMs};
+      var msg={id:m.id,text:content,type:m.type||'text',sent:String(m.sender)===String(myId),t:_fmtMsgTime(dlocal),ts:createdMs};
       if(m.type==='image'){var imgParts=content.split('|');msg.src=imgParts[0];if(imgParts[1])msg.thumb=imgParts[1];}
       if(m.type==='voice'){msg.src=content.startsWith('http')?content:null;var vm=content.match(/\d+/);msg.dur=m.duration||(vm?vm[0]:'?');}
       if(m.type==='location'){var pts=content.split('|');msg.addr=pts[0];msg.mapUrl=pts[1];}
@@ -7690,7 +7697,7 @@ function listenForAllMessages(){
       }
       var msgTs=new Date(m.created_at).getTime()||Date.now();
       var msgDate=new Date(msgTs);
-      var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:msgDate.getHours()+':'+(msgDate.getMinutes()<10?'0':'')+msgDate.getMinutes(),ts:msgTs};
+      var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(msgDate),ts:msgTs};
       if(m.type==='image'){var imgParts=(m.content||'').split('|');msg.src=imgParts[0];if(imgParts[1])msg.thumb=imgParts[1];}
       if(m.type==='voice'){msg.src=m.content&&m.content.startsWith('http')?m.content:null;msg.dur=m.duration||'?';}
       if(m.type==='location'){var pts=(m.content||'').split('|');msg.addr=pts[0];msg.mapUrl=pts[1];}
