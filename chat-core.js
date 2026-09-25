@@ -534,8 +534,17 @@ function renderMsgs(){
   // 找最后一条我发且对方已读的消息，🐾🐾 只显示在这条上
   var _lastReadSentIdx=-1;
   for(var _j=msgs.length-1;_j>=0;_j--){if(msgs[_j].sent&&msgs[_j].read&&msgs[_j].id!=null&&!msgs[_j].failed){_lastReadSentIdx=_j;break;}}
+  var _prevDayKey=null;
   for(var i=0;i<msgs.length;i++){
     var m=msgs[i];var s=m.sent;var b='';
+    // 老消息看不出是哪天发的，换天时插一条居中日期标签，今天的不用加。
+    // _dayKey/_isToday/_dayDividerHtml定义在index.html里，chat-core.js加载晚于
+    // 那段内联脚本，直接用全局的就行，不用在这再重复一份。
+    var _dk=_dayKey(m.ts);
+    if(_dk!==_prevDayKey){
+      if(!_isToday(m.ts))html+=_dayDividerHtml(m.ts);
+      _prevDayKey=_dk;
+    }
     if(m.type==='recalled'){html+='<div style="text-align:center;color:#aaa;font-size:12px;margin:6px 0;">'+(s?'你撤回了一条消息':'对方撤回了一条消息')+'</div>';continue;}
     if(m.type==='image'){
       if(m.loading&&!m.src)b='<div style="width:160px;height:120px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.8;">📷 处理中...</div>';

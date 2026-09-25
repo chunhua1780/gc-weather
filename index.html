@@ -4061,6 +4061,20 @@ function _buildFontSizeGrid(){
   }
 })();
 function gt(){var d=new Date();return d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();}
+// ═══ 聊天日期分隔条 ═══ 老消息看不出是哪天发的，只有个时间点太模糊，加一条
+// 居中的日期标签插在换天的第一条消息前面（今天的不用加，本来就一目了然）。
+function _dayKey(ts){var d=new Date(ts||Date.now());return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();}
+function _isToday(ts){return _dayKey(ts)===_dayKey(Date.now());}
+function _dayLabel(ts){
+  var d=new Date(ts||Date.now()),n=new Date();
+  var y=d.getFullYear()!==n.getFullYear()?(d.getFullYear()+'年'):'';
+  var yestKey=_dayKey(Date.now()-86400000);
+  if(!y&&_dayKey(ts)===yestKey)return'昨天';
+  return y+(d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+function _dayDividerHtml(ts){
+  return '<div class="chat-daydiv" style="text-align:center;color:#c7c7cc;font-size:calc(12px * var(--ui-font-scale,1));padding:8px 0 4px;letter-spacing:.3px;">'+_dayLabel(ts)+'</div>';
+}
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function makeRC(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';for(var i=0;i<12;i++){if(i>0&&i%4===0)s+='-';s+=c[Math.floor(Math.random()*c.length)];}return s;}
 
@@ -7916,7 +7930,24 @@ function loadMoreMsgs(){
   var prevH=c.scrollHeight;
   var prevTop=c.scrollTop;
   var olderHtml='';
-  for(var i=newStart;i<prevStart;i++)olderHtml+=_oneMsgHtml(allMsgs[i]);
+  var _prevDayKeyOlder=newStart>0?null:'__none__'; // newStart>0时不确定更早还有没有同一天的，第0条先不判
+  for(var i=newStart;i<prevStart;i++){
+    var _om=allMsgs[i];
+    var _odk=_dayKey(_om.ts);
+    if(_odk!==_prevDayKeyOlder){
+      if(_prevDayKeyOlder!==null&&!_isToday(_om.ts))olderHtml+=_dayDividerHtml(_om.ts);
+      _prevDayKeyOlder=_odk;
+    }
+    olderHtml+=_oneMsgHtml(_om);
+  }
+  // 衔接处：新加载进来的最后一条老消息，和原本已经显示的第一条消息，
+  // 如果不是同一天，边界上也要补一条分隔线（分隔线本身随olderHtml一起插进去）。
+  if(prevStart<allMsgs.length){
+    var _boundaryNext=allMsgs[prevStart];
+    if(_dayKey(_boundaryNext.ts)!==_dayKey(allMsgs[prevStart-1].ts)&&!_isToday(_boundaryNext.ts)){
+      olderHtml+=_dayDividerHtml(_boundaryNext.ts);
+    }
+  }
   var sentinel=c.querySelector('.chat-sentinel');
   if(sentinel){
     var hasMore=newStart>0;
@@ -7939,7 +7970,19 @@ function renderMsgs(){
   if(c._chatStart===undefined)c._chatStart=0;
   var msgs=allMsgs.slice(c._chatStart);
   var html='';
-  for(var i=0;i<msgs.length;i++)html+=_oneMsgHtml(msgs[i]);
+  var _hasOlderForDiv=c._chatStart>0;
+  var _prevDayKey=null;
+  for(var i=0;i<msgs.length;i++){
+    var _m=msgs[i];
+    var _dk=_dayKey(_m.ts);
+    if(_dk!==_prevDayKey){
+      // 第0条如果还有更老的消息没加载，不确定那天是不是从这条才开始，先不加；
+      // loadMoreMsgs()把更早的消息加载进来时会自己补上这条分隔线。
+      if((i>0||!_hasOlderForDiv)&&!_isToday(_m.ts))html+=_dayDividerHtml(_m.ts);
+      _prevDayKey=_dk;
+    }
+    html+=_oneMsgHtml(_m);
+  }
   // 在重建DOM前快照滚动状态
   var _atBottom=(c.scrollHeight-c.scrollTop-c.clientHeight)<200;
   var _prevScrollTop=c.scrollTop;
