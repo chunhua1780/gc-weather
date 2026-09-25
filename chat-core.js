@@ -282,6 +282,16 @@ async function syncRoomMessages(name){
     var merged=localMsgs.filter(function(m){return !(m.id!=null&&serverIds[m.id]);}).concat(serverMsgs);
     var mergedTs=new Set(merged.map(function(m){return m.ts+'_'+m.text;}));
     pendingMsgs.forEach(function(m){if(!mergedTs.has(m.ts+'_'+m.text))merged.push(m);});
+    // ★ 补丢消息：上面这段是用调用一开始快照的localMsgs算出来的，但这次await服务器
+    // 请求期间，listenForAllMessages的实时推送可能已经直接往G.msgs[name]里插了新消息（带着真实
+    // id，不会被上面的pendingMsgs逻辑捕到，因为那段只认id==null的待发消息）。写回前用
+    // 当前最新的G.msgs[name]兵底核对一遍，把这次没算进去的都补回来，否则这次同步
+    // 结果一覆盖，刚收到的消息就凭空消失了——这正是"对方发的消息会丢"的成因。
+    var mergedKeys=new Set(merged.map(function(m){return m.id!=null?('id:'+m.id):('k:'+m.ts+'_'+m.text);}));
+    (G.msgs[name]||[]).forEach(function(m){
+      var key=m.id!=null?('id:'+m.id):('k:'+m.ts+'_'+m.text);
+      if(!mergedKeys.has(key)){merged.push(m);mergedKeys.add(key);}
+    });
     merged.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
     var prevLen=(G.msgs[name]||[]).length;
     G.msgs[name]=merged;
