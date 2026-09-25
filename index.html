@@ -646,8 +646,8 @@ html,body{height:100%;height:100dvh;margin:0;padding:0;overflow:hidden;position:
 .nav-sm{padding:max(12px,calc(env(safe-area-inset-top,0px) + 8px)) 16px 8px;display:flex;align-items:center;justify-content:space-between;}
 .nav-sm .t{font-size:calc(17px * var(--ui-font-scale,1));font-weight:600;}
 .nav-btn{color:var(--theme-link);font-size:calc(15px * var(--ui-font-scale,1));cursor:pointer;padding:4px 8px;}
-.tabs{background:linear-gradient(var(--theme-navbar),var(--theme-navbar)),var(--theme-bg-solid);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;position:relative;z-index:10;padding-bottom:max(4px,calc(var(--safe-bottom) - 12px));}
-.tab{flex:1;padding:5px 0 1px;text-align:center;cursor:pointer;font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.tabs{background:linear-gradient(var(--theme-navbar),var(--theme-navbar)),var(--theme-bg-solid);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;position:relative;z-index:10;padding-bottom:max(3px,calc(var(--safe-bottom) - 12px));}
+.tab{flex:1;padding:4px 0 0;text-align:center;cursor:pointer;font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;display:flex;flex-direction:column;align-items:center;gap:1px;}
 .tab.on{color:var(--theme-tab-active);}
 .tab svg{width:22px;height:22px;}
 .scroll{flex:1;overflow-y:auto;background:transparent;min-height:0;-webkit-overflow-scrolling:touch;}
@@ -1473,6 +1473,11 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
         <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">🔒</div>
         <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));" data-i18n="autoLockLeaveRowTitle">离开APP自动锁屏</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;" data-i18n="autoLockLeaveRowDesc">切到其他软件或锁屏后，回来需要输入锁屏密码</div></div>
         <div class="tog" id="autoLockToggle" onclick="toggleAutoLockLeave()"><div class="td"></div></div>
+      </div>
+      <div class="row">
+        <div class="si" style="background:var(--theme-row-bg);font-size:calc(18px * var(--ui-font-scale,1));">🕶️</div>
+        <div style="flex:1;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">离开即隐身</div><div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">切到后台、打开别的程序或重新打开后停在伪装界面，输入登录密码才能回到聊天</div></div>
+        <div class="tog on" id="stealthLeaveToggle" onclick="toggleStealthOnLeave()"><div class="td"></div></div>
       </div>
       <div class="row" onclick="showQR()">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="21" y2="14"/><line x1="14" y1="21" x2="21" y2="21"/><line x1="17.5" y1="14" x2="17.5" y2="21"/></svg></div>
@@ -2739,7 +2744,7 @@ function getBarkUrl(){return (localStorage.getItem('barkUrl')||'').trim();}
 var FOCUS_MODES = {
   // 🆓 自由模式：无锁屏，真实通知，直接打开
   free:  {label:'自由模式', labelEn:'Free', emoji:'🆓',
-          desc:'无锁屏 · 真实通知 · 直接打开聊天',
+          desc:'无锁屏密码页 · 真实通知 · 离开即隐身（可在隐私设置关闭）',
           descEn:'No lock screen · Real notifications · Opens chat directly',
           bark:true,  dnd:false, hide:false, lock:false, disguise:false},
   // 💼 工作模式：锁屏 + 通知只显示角标，不显示内容
@@ -2892,7 +2897,7 @@ window.addEventListener('load',function(){
 
 
 // ═══ 快速开关：Bark / 免打扰 / 隐藏模式 / 锁屏 ═══
-function initQuickToggles(){updateFocusWheelUI();
+function initQuickToggles(){updateFocusWheelUI();_initStealthToggle();
   // Bark开关：默认开（没设过就是开）
   var barkOn = lg('barkEnabled')!=='false';
   var bt=document.getElementById('barkEnabledToggle');
@@ -4171,7 +4176,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.04';
+var CORE_VERSION='v2.05';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -4756,6 +4761,18 @@ function _disguiseTarget(){
   return dm[(typeof G!=='undefined'&&G.dis)||lg('dis')||'calculator']||'dcalc';
 }
 function _gcFreeMode(){ try{ return (lg('focusMode')||'free')==='free'; }catch(e){ return false; } }
+// 离开即隐身（设置→隐私里可关，默认开）：真正离开过（切后台/打开别的程序/重新打开）
+// 就停在伪装界面，必须在伪装界面输入登录密码才能回到聊天，不再自动放回聊天。
+function _gcStrictStealth(){ try{ return lg('stealthOnLeave')!=='false'; }catch(e){ return true; } }
+// 回来时能不能自动放回原界面：还没进过主界面的不拦；开了离开即隐身就不放；
+// 否则保持原来的规则（自由模式/没设锁屏密码 → 放回）。
+function _autoBackAllowed(){
+  if(!_appWasActive)return true;
+  if(_gcStrictStealth())return false;
+  return !lg('appLockPin')||_gcFreeMode();
+}
+function _initStealthToggle(){var t=document.getElementById('stealthLeaveToggle');if(t)t.className='tog'+(_gcStrictStealth()?' on':'');}
+function toggleStealthOnLeave(){ls('stealthOnLeave',_gcStrictStealth()?'false':'true');_initStealthToggle();}
 function disguiseNow(preemptive){
   try{
     if(_hideDisguised)return;
@@ -4776,7 +4793,10 @@ function disguiseNow(preemptive){
     // 那些前提任何一条不成立，就只剩遮罩这一层 —— 而遮罩本来就抢不过系统截图，
     // 等于大部分用户实际上毫无防护。现在一律切走，只是把「回来要不要验密码」
     // 降级成「自动放行」，这样既不泄露，也不会把人锁在伪装壳里出不来。
-    _disguiseAutoBack = !lg('appLockPin') || !_appWasActive || _gcFreeMode();
+    // 手势预判/失焦（没被证实真的离开）：开了离开即隐身时仍允许"回到全屏后一次触摸"放回，
+    // 免得拉一下控制中心、选张照片都要重新输密码；一旦证实真的离开（visibilitychange/pagehide），
+    // 下面会改成不放回。
+    _disguiseAutoBack = preemptive ? (_autoBackAllowed() || _gcStrictStealth()) : _autoBackAllowed();
     show(target);
     // 切到伪装壳的一瞬间，之前可能还挂着的PWA安装横幅(带👻图标和"安装 天气"
     // 文案)必须立刻藏起来——它跟伪装壳的品牌对不上，是最直接的暴露破绽。
@@ -4806,6 +4826,9 @@ var _edgeY=null,_edgeLiftTimer=null;
 document.addEventListener('touchstart',function(e){
   var t=e.touches&&e.touches[0];
   if(!t){_edgeY=null;return;}
+  // 页面底边下面还有一截死区时（见 _gcVpFix），Home 横条在死区里，上滑手势根本不会从页面里开始；
+  // 页面最底下是输入框/底部导航，不能再当手势带，否则点一下就闪遮罩、甚至误进伪装界面。
+  if(document.documentElement.classList.contains('gc-deadgap')){_edgeY=null;return;}
   // 感应带放到 60px：iOS 很快就把 Home 手势接管走，页面能收到的 touchmove
   // 很少而且位移很小，带子窄一点就整个判定不成立。
   _edgeY=(t.clientY>=window.innerHeight-60)?t.clientY:null;
@@ -4850,7 +4873,7 @@ document.addEventListener('touchend',function(){
 // blur 在部分 WebView 里比 visibilitychange 更早，之前这里只盖遮罩不切界面，
 // 于是「更早」的那条路径反而防护更弱。现在两件事一起做。
 window.addEventListener('blur',function(){ shieldOn(); disguiseNow(true); });
-window.addEventListener('pagehide',shieldOn);
+window.addEventListener('pagehide',function(){ shieldOn(); _preemptive=false; disguiseNow(); if(_hideDisguised)_disguiseAutoBack=_autoBackAllowed(); });
 document.addEventListener('freeze',shieldOn);
 // 误判还原：只认「应用确实回到全屏、而且用户正在操作」。
 // 关键在于卡片状态下应用收不到触摸事件 —— 所以一次落在屏幕上半部的新触摸，
@@ -4868,7 +4891,7 @@ document.addEventListener('touchstart',function(e){
   resumeFromLock(); shieldOff();
 },{passive:true,capture:true});
 
-document.addEventListener('pause',function(){ shieldOn(); disguiseNow(); },false);
+document.addEventListener('pause',function(){ shieldOn(); _preemptive=false; disguiseNow(); if(_hideDisguised)_disguiseAutoBack=_autoBackAllowed(); },false);
 document.addEventListener('resume',function(){
   setTimeout(function(){ _resumeAfterDisguise(); shieldOff(); },0);
 },false);
@@ -4884,6 +4907,7 @@ document.addEventListener('visibilitychange',function(){
     shieldOn();                                  // 先盖，最快的一步放最前面
     ls('lastHiddenAt',String(Date.now()));
     disguiseNow();                               // 再把底下的界面也换掉
+    if(_hideDisguised)_disguiseAutoBack=_autoBackAllowed(); // 证实真的离开：按离开即隐身处理
     return;
   }
   // 回到前台：先把锁屏判断做完，再掀开遮罩。顺序反了的话，chat 界面会在
@@ -4988,13 +5012,13 @@ document.addEventListener('DOMContentLoaded', function(){
   if(_hasLocal&&_tokenOk){
     myId=lg('myId')||'';_fastBootSetName();
     var _freeMode=(lg('focusMode')||'free')==='free';
-    if(sessionStorage.getItem('testGatePassed')==='1'||_freeMode){window._gcFastBoot=true;show('main');_renderChatListCache();}
+    if(sessionStorage.getItem('testGatePassed')==='1'||(_freeMode&&!_gcStrictStealth())){window._gcFastBoot=true;show('main');_renderChatListCache();}
     else{_showStartupStealth();}
   }else if(_hasLocal&&!_tokenOk){
     // ★ Token 过期 → 自由模式直接进聊天；否则显示伪装页，后台静默刷新
     myId=lg('myId')||'';_fastBootSetName();
     var _freeModeExp=(lg('focusMode')||'free')==='free';
-    if(_freeModeExp){window._gcFastBoot=true;show('main');_renderChatListCache();}
+    if(_freeModeExp&&!_gcStrictStealth()){window._gcFastBoot=true;show('main');_renderChatListCache();}
     else{_showStartupStealth();}
     _tryRefreshToken().then(function(ok){
       if(!ok){ls('sessionToken','');ls('gcDevTok','');ls('tokenExpiry','');sessionStorage.setItem('_needsReauth','1');}
@@ -10400,7 +10424,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.04"></script>
+<script src="./chat-core.js?v2.05"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
