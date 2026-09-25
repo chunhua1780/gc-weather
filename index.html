@@ -584,6 +584,9 @@ body.theme-midnight{--theme-bub-glass:rgba(26,22,0,0.82);}
 
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);}
+/* iOS 主屏幕 App 页面底边离屏幕底边还有一截（死区）时，Home 横条在死区里压不到页面，
+   页面再给它留的底部安全距离就是多余空白（见页尾 _gcVpFix） */
+html.gc-deadgap{--safe-bottom:0px;}
 body{
   background-color:var(--theme-bg-solid);
   background-image:
@@ -643,10 +646,10 @@ html,body{height:100%;height:100dvh;margin:0;padding:0;overflow:hidden;position:
 .nav-sm{padding:max(12px,calc(env(safe-area-inset-top,0px) + 8px)) 16px 8px;display:flex;align-items:center;justify-content:space-between;}
 .nav-sm .t{font-size:calc(17px * var(--ui-font-scale,1));font-weight:600;}
 .nav-btn{color:var(--theme-link);font-size:calc(15px * var(--ui-font-scale,1));cursor:pointer;padding:4px 8px;}
-.tabs{background:linear-gradient(var(--theme-navbar),var(--theme-navbar)),var(--theme-bg-solid);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;position:relative;z-index:10;padding-bottom:max(6px,calc(env(safe-area-inset-bottom,0px) - 12px));}
-.tab{flex:1;padding:6px 0 2px;text-align:center;cursor:pointer;font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.tabs{background:linear-gradient(var(--theme-navbar),var(--theme-navbar)),var(--theme-bg-solid);backdrop-filter:blur(20px);border-top:0.5px solid var(--theme-border);display:flex;flex-shrink:0;position:relative;z-index:10;padding-bottom:max(4px,calc(var(--safe-bottom) - 12px));}
+.tab{flex:1;padding:5px 0 1px;text-align:center;cursor:pointer;font-size:calc(10px * var(--ui-font-scale,1));color:#8e8e93;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .tab.on{color:var(--theme-tab-active);}
-.tab svg{width:24px;height:24px;}
+.tab svg{width:22px;height:22px;}
 .scroll{flex:1;overflow-y:auto;background:transparent;min-height:0;-webkit-overflow-scrolling:touch;}
 .card{background:transparent;margin:0 8px;overflow:visible;}
 .row{display:flex;align-items:center;padding:14px 16px;cursor:pointer;gap:12px;background:var(--theme-row-bg);border-radius:16px;margin:6px 8px;}
@@ -4168,7 +4171,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.03';
+var CORE_VERSION='v2.04';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -10397,7 +10400,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.03"></script>
+<script src="./chat-core.js?v2.04"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -10508,6 +10511,7 @@ function updDots(err){
         // v2.01 曾在这里把界面往下补齐 gap，实测这截区域在 iPhone 上显示不出来，天气底部按钮被推出屏幕、
         // 没法输入密码，已撤掉；现在只记录诊断数字，不再改布局。
         root.classList.remove('gc-vpfix');root.style.removeProperty('--gc-vp-gap');
+        root.classList.toggle('gc-deadgap',gap>=20&&gap<=120);
       }
       // 设置页底部版本号后面附上：屏幕高/页面高/底部安全区（补了多少），方便对照截图排查
       window._gcVpDiag=' · '+full+'/'+ih+'/'+safeBottom()+(gap?' gap'+gap:'');
