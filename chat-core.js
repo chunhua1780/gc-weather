@@ -593,7 +593,7 @@ function renderMsgs(){
     // 气泡背景与文字颜色通过CSS变量控制
     var bubSty='';
     if(s&&m.id!=null&&!m.failed&&!m.read){bubSty=' style="background:var(--cs-sent-unread);color:var(--cs-sent-text,#fff);"';}
-    var bubCls='bub'+(s&&m.read&&m.id!=null?' bub-read':'');
+    var bubCls='bub'+(s&&m.read&&m.id!=null?' bub-read':'')+(_isJumboEmoji(m)?' bub-jumbo':'');
     var midAttr=(s&&m.id!=null)?(' data-mid="'+m.id+'"'):'';
     html+='<div class="mr '+(s?'s':'r')+'"><div class="'+bubCls+'"'+midAttr+bubSty+'>'+b+inPaw+'</div><div class="mt">'+_msgTimeLabel(m)+statusTick+'</div></div>';
   }
