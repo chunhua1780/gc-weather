@@ -593,7 +593,17 @@ body{
   background-attachment: fixed;
   color:var(--theme-text);font-family:-apple-system,sans-serif;-webkit-font-smoothing:antialiased;transition:background-color .3s,color .3s;
 }
-.screen{display:none;flex-direction:column;height:100%;overflow:hidden;position:fixed;inset:0;}
+/* height:100% 特意不写——position:fixed 的元素如果 top/bottom（这里由 inset:0
+   给出）和 height 同时都写了具体值，CSS 规范规定这种"过度约束"的情况下浏览器
+   必须扔掉 bottom、只按 height 来算实际高度，inset:0 里的 bottom:0 就等于白写。
+   height:100% 在 iOS 主屏幕全屏模式下算出来的基准有时候不包含最底下 Home
+   指示条那块安全区（这是 iOS 这个具体场景下 vh/dvh 百分比高度的已知怪癖），
+   会导致这些面板矮了一截，底下露出 body 背景色的一条白边——上次只删了天气
+   壳自己覆盖的 position:relative，没删到这一层共用的 height:100%，所以
+   没修干净。#chat（聊天主界面）没有单独写 height，一直没这个问题，也印证
+   了 height:100% 这行才是真正病根。去掉之后单靠 inset:0 定位，没有互相打架
+   的属性，撑满效果才可靠。 */
+.screen{display:none;flex-direction:column;overflow:hidden;position:fixed;inset:0;}
 /* 全局：顶栏底栏锁死，中间滚动 */
 .screen.active{display:flex;}
 .screen > .nav-bar{flex-shrink:0 !important;width:100%;}
