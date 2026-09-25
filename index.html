@@ -771,8 +771,16 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
    字体走 -apple-system，在 iPhone 上拿到的就是系统 SF Pro 本体，所以排版
    能一比一对上；安卓回落到系统无衬线体。图标是自己画的 SVG —— SF Symbols
    是苹果授权字体，不能打进 APK。 */
+/* position 特意不写 relative——本来只是想给内部 .aw-sky/.aw-bar 这些
+   position:absolute 的子元素找个定位参照，但 #dweather.aw 是 ID+class
+   选择器，优先级比 .screen 的 position:fixed 高，写了 relative 反而会
+   把 .screen 上 position:fixed+inset:0（撑满整个视口，包括 iOS 主屏幕
+   模式下的底部 Home 指示条那一块安全区）给覆盖掉，导致天气这个伪装壳
+   下边缘露出 body 背景色的一条白边——calculator/clock/note 这几个伪装壳
+   没单独定义 position，就没这个问题。position:fixed 同样能当子元素的
+   定位参照，不需要 relative。 */
 #dweather.aw{
-  flex-direction:column; position:relative; overflow:hidden;
+  flex-direction:column; overflow:hidden;
   background:#1a2a45; color:#fff;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",sans-serif;
   -webkit-font-smoothing:antialiased;
