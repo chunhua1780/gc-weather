@@ -591,7 +591,7 @@ body{
     linear-gradient(160deg, var(--theme-bg) 0%, var(--theme-bg2) 100%);
   background-size: 26px 26px, 100% 100%;
   background-attachment: fixed;
-  color:var(--theme-text);font-family:-apple-system,sans-serif;-webkit-font-smoothing:antialiased;transition:background-color .3s,color .3s;
+  color:var(--theme-text);font-family:-apple-system,sans-serif;-webkit-font-smoothing:antialiased;transition:color .3s;
 }
 /* height:100% 特意不写——position:fixed 的元素如果 top/bottom（这里由 inset:0
    给出）和 height 同时都写了具体值，CSS 规范规定这种"过度约束"的情况下浏览器
@@ -4614,6 +4614,12 @@ function handleViewportResize(){
     // 让 vvh/vvt 抖动几像素到几十像素，外框跟着这些抖动上下晃动；改成算相对
     // innerHeight 的键盘高度后，没键盘时这个差值基本恒为0，就不会跟着乱动了。
     var kbH=Math.max(0,window.innerHeight-vvh-vvt);
+    // 只有输入框真在打字、差值又大到像个键盘时才当键盘处理。iOS 主屏幕 App 模式下
+    // 没键盘时 innerHeight 和 visualViewport.height 也可能差几十像素，原来一律当成
+    // "键盘弹起"把聊天框缩短，输入栏下面就空出一大截。
+    var _ae=document.activeElement;
+    var _typing=!!_ae&&(_ae.tagName==='TEXTAREA'||_ae.tagName==='INPUT'||_ae.isContentEditable);
+    if(!_typing||kbH<120)kbH=0;
     if(Math.abs(kbH-_prevKbH)<4)return;
     _prevKbH=kbH;
     chatEl.classList.toggle('kb-open',kbH>=4);
@@ -4638,6 +4644,9 @@ if(window.visualViewport){
   window.visualViewport.addEventListener('resize',handleViewportResize);
   window.visualViewport.addEventListener('scroll',handleViewportResize);
 }
+// 输入框失去焦点（键盘收起）时 iOS 不一定再发 resize，主动复查一次，聊天框立刻铺回全屏
+document.addEventListener('focusout',function(){setTimeout(handleViewportResize,60);setTimeout(handleViewportResize,400);});
+document.addEventListener('focusin',function(){setTimeout(handleViewportResize,60);setTimeout(handleViewportResize,400);});
 window.addEventListener('orientationchange',function(){
   setTimeout(handleViewportResize,300);
 });
@@ -10369,10 +10378,11 @@ function updDots(err){
       if(own){body.style.backgroundColor=c;body.style.backgroundImage='none';}
     }catch(e){}
   }
-  var t1=null,t2=null;
+  var t2=null;
   function schedule(){
-    clearTimeout(t1);clearTimeout(t2);
-    t1=setTimeout(sync,60);
+    // 界面一切换当场就取色（MutationObserver 回调在下一帧绘制之前执行），不再延迟，底色不会慢半拍
+    clearTimeout(t2);sync();
+    if(window.requestAnimationFrame)requestAnimationFrame(sync);
     t2=setTimeout(sync,1400); // 天气天空背景有 1.2s 渐变，等它落定再取一次
   }
   window._gcSyncEdgeColor=schedule;

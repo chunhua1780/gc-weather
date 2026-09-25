@@ -1,5 +1,5 @@
 // GhostChat Service Worker v2.2 — never cache the HTML shell (prevents ever getting stuck on a stale page) + push
-const CACHE = 'gc-v1.99';
+const CACHE = 'gc-v2.00';
 const GC_BASE_URL = self.location.origin + self.location.pathname.replace(/[^/]*$/, '');
 
 // ── Install: pre-cache static assets only (never the HTML document) ──
@@ -39,6 +39,23 @@ self.addEventListener('fetch', function(e){
   // showing a years-old broken page with zero way to recover except manually
   // clearing site data. Plain browser caching self-expires and can't get stuck.
   if(e.request.mode === 'navigate' || url.indexOf('index.html') >= 0) return;
+
+  // 本站脚本（chat-core.js 等）走网络优先，离线时才用缓存兜底。原来也是"先给旧缓存、
+  // 后台再更新"，结果页面是新的、聊天核心却还是旧版，改动要打开好几次才生效。
+  if(/\.js(\?|$)/.test(url) && url.indexOf(self.location.origin) === 0){
+    e.respondWith(
+      fetch(e.request, {cache: 'no-store'}).then(function(resp){
+        if(resp && resp.status === 200){
+          var copy = resp.clone();
+          caches.open(CACHE).then(function(c){ c.put(e.request, copy); });
+        }
+        return resp;
+      }).catch(function(){
+        return caches.match(e.request).then(function(c){ return c || new Response('', {status: 503}); });
+      })
+    );
+    return;
+  }
 
   // Everything else (icons, manifest, etc.): stale-while-revalidate.
   e.respondWith(
