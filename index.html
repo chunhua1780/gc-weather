@@ -587,6 +587,14 @@ body.theme-midnight{--theme-bub-glass:rgba(26,22,0,0.82);}
 /* iOS 主屏幕 App 页面底边离屏幕底边还有一截（死区）时，Home 横条在死区里压不到页面，
    页面再给它留的底部安全距离就是多余空白（见页尾 _gcVpFix） */
 html.gc-deadgap{--safe-bottom:0px;}
+/* ═══ 铺满到屏幕底边（gc-fullbleed，见页尾 _gcVpFix）═══
+   iOS 主屏幕 App 的毛病：可视区域比屏幕矮一截，position:fixed 的界面只排到那截上面。
+   只有确认过那截能点（手指在那里点到过），才把界面从 fixed 改成页面内容布局铺到真正的底边；
+   底部安全距离也恢复成系统值，Home 横条不会压到按钮。打字时自动退回 fixed 布局，键盘逻辑不变。 */
+html.gc-fullbleed{position:static;height:100%;overflow:hidden;--safe-bottom:env(safe-area-inset-bottom,0px);}
+html.gc-fullbleed body{position:absolute;top:0;left:0;right:0;height:calc(100% + var(--gc-vp-gap,0px));overflow:hidden;}
+html.gc-fullbleed .screen,html.gc-fullbleed #chat{position:absolute;}
+html.gc-fullbleed #privacyShield{position:absolute;}
 body{
   background-color:var(--theme-bg-solid);
   background-image:
@@ -817,7 +825,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 }
 #dweather.aw *{ box-sizing:border-box; }
 .aw-sky{
-  position:absolute; inset:0; z-index:0; transition:background 1.2s ease;
+  position:absolute; inset:0; z-index:0; transition:none; /* 不做渐变：打开时一步到位，底色不会慢一拍 */
   background:linear-gradient(180deg,#2e5a8c 0%,#3f7cb5 45%,#77a7cf 100%);
 }
 .aw-scroll{
@@ -914,7 +922,7 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
   position:absolute; left:0; right:0; bottom:0; z-index:3;
   height:calc(52px + var(--safe-bottom,0px)); padding-bottom:var(--safe-bottom,0px);
   display:flex; align-items:center; justify-content:space-between; padding-left:20px; padding-right:20px;
-  background:rgba(40,58,86,.34);
+  background:var(--aw-bar-bg,rgba(40,58,86,.34)); /* 实色由 _gcSyncEdgeColor 按天空底色算好写入，跟屏幕最底下那截完全同色 */
   -webkit-backdrop-filter:blur(26px); backdrop-filter:blur(26px);
   border-top:.5px solid rgba(255,255,255,.14);
 }
@@ -4159,7 +4167,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.07';
+var CORE_VERSION='v2.08';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -10417,7 +10425,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.07"></script>
+<script src="./chat-core.js?v2.08"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -10448,6 +10456,18 @@ function updDots(err){
     try{
       var body=document.body;if(!body)return;
       var sc=document.querySelector('.screen.active');
+      // 天气底栏：原来是半透明+毛玻璃，实际显示的颜色跟算出来的底色总差一点，刚打开时天空还在变色差得更明显。
+      // 改成按天空最底下的颜色叠上底栏色调，算出一个实色直接给底栏用，底栏和最底下那截就是同一个颜色。
+      if(sc&&sc.id==='dweather'){
+        var sky=sc.querySelector('.aw-sky');
+        if(sky){
+          var ks=getComputedStyle(sky),kb=[255,255,255];
+          kb=over(kb,rgba(getComputedStyle(sc).backgroundColor));
+          kb=over(kb,rgba(ks.backgroundColor));kb=over(kb,lastStop(ks.backgroundImage));
+          kb=over(kb,[40,58,86,.34]);
+          sc.style.setProperty('--aw-bar-bg','rgb('+Math.round(kb[0])+','+Math.round(kb[1])+','+Math.round(kb[2])+')');
+        }
+      }
       var own=opaque(sc)&&!(window.matchMedia&&matchMedia(DESK).matches);
       if(!own){body.style.backgroundColor='';body.style.backgroundImage='';}
       var c=sample(sc);if(!c)return;
@@ -10463,8 +10483,12 @@ function updDots(err){
   function schedule(){
     // 界面一切换当场就取色（MutationObserver 回调在下一帧绘制之前执行），不再延迟，底色不会慢半拍
     clearTimeout(t2);sync();
-    if(window.requestAnimationFrame)requestAnimationFrame(sync);
-    t2=setTimeout(sync,1400); // 天气天空背景有 1.2s 渐变，等它落定再取一次
+    // 切换后连续 0.7 秒逐帧取色：界面里有任何晚一点才生效的颜色变化，最底下那截都跟着同一帧变
+    if(window.requestAnimationFrame){
+      var t0=Date.now();
+      (function loop(){sync();if(Date.now()-t0<700)requestAnimationFrame(loop);})();
+    }
+    t2=setTimeout(sync,1400);
   }
   window._gcSyncEdgeColor=schedule;
   function watch(){
@@ -10511,6 +10535,8 @@ function updDots(err){
 (function(){
   var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)&&window.navigator.standalone===true;
   var root=document.documentElement,probe=null;
+  // 屏幕最底下那截能不能用：手指在那里点到过一次（触点纵坐标超过 innerHeight）就记住，之后才铺满
+  var stripOK=false;try{stripOK=localStorage.getItem('gcStripOK')==='1';}catch(e){}
   function safeBottom(){
     try{
       if(!probe){probe=document.createElement('div');probe.style.cssText='position:fixed;left:0;bottom:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-bottom:env(safe-area-inset-bottom,0px);';document.body.appendChild(probe);}
@@ -10528,8 +10554,16 @@ function updDots(err){
         // v2.01 曾在这里把界面往下补齐 gap，实测这截区域在 iPhone 上显示不出来，天气底部按钮被推出屏幕、
         // 没法输入密码，已撤掉；现在只记录诊断数字，不再改布局。
         root.classList.remove('gc-vpfix');root.style.removeProperty('--gc-vp-gap');
-        root.classList.toggle('gc-deadgap',gap>=20&&gap<=120);
+        var dead=gap>=20&&gap<=120;
+        root.classList.toggle('gc-deadgap',dead);
+        if(dead)root.style.setProperty('--gc-vp-gap',gap+'px');
+        var fb=dead&&stripOK;
+        if(fb!==root.classList.contains('gc-fullbleed')){
+          root.classList.toggle('gc-fullbleed',fb);
+          try{window.scrollTo(0,0);}catch(e){}
+        }
       }
+      if(ios&&typing&&root.classList.contains('gc-fullbleed'))root.classList.remove('gc-fullbleed'); // 打字时退回原布局，键盘逻辑不变
       // 设置页底部版本号后面附上：屏幕高/页面高/底部安全区（补了多少），方便对照截图排查
       window._gcVpDiag=' · '+full+'/'+ih+'/'+safeBottom()+(gap?' gap'+gap:'');
       var sv=document.getElementById('settingsVerLabel');
@@ -10545,6 +10579,16 @@ function updDots(err){
   window.addEventListener('pageshow',later);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)later();});
   document.addEventListener('focusout',function(){setTimeout(fix,450);});
+  document.addEventListener('focusin',function(){fix();});
+  document.addEventListener('touchstart',function(e){
+    var t=e.touches&&e.touches[0];
+    if(!t||stripOK||!root.classList.contains('gc-deadgap'))return;
+    if(t.clientY>window.innerHeight+2){stripOK=true;try{localStorage.setItem('gcStripOK','1');}catch(x){}fix();}
+  },{passive:true,capture:true});
+  // 铺满模式下页面比可视区高一截，不能让它被整体拖动
+  window.addEventListener('scroll',function(){
+    if(root.classList.contains('gc-fullbleed')&&(window.scrollY||window.scrollX))window.scrollTo(0,0);
+  },{passive:true});
 })();
 </script>
 </body>
