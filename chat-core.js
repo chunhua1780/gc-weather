@@ -584,7 +584,7 @@ function renderMsgs(){
       else if(m.failed)b='<div style="font-size:12px;color:#ff3b30;">⚠️ '+esc(m.fname||'File')+' 发送失败</div>';
       else if(m.src)b='<a href="'+m.src+'" target="_blank" download style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;min-width:160px;"><span style="font-size:24px;">📄</span><div style="overflow:hidden;"><div style="font-weight:600;word-break:break-all;">'+esc(m.fname||'File')+'</div><div style="font-size:12px;opacity:.7;">点击下载</div></div></a>';
       else b='<div>📄 File</div>';
-    }else{var txt=m.text||m.content||'';if(txt.length>500)txt='[Message]';b=esc(txt);}
+    }else{var txt=m.text||m.content||'';if(txt.length>500)txt='[Message]';b=esc(txt);if(_isJumboEmoji(m)){var _jh=_jumboHtml(txt);if(_jh)b=_jh;}}
     // 状态：只保留失败提示，去掉发送中图标
     var statusTick='';
     if(s&&m.failed)statusTick='<span style="color:#ff3b30;font-size:11px;margin-left:2px;cursor:pointer;" title="发送失败，点重试" onclick="retrySendText(this)">⚠️失败</span>';

@@ -754,6 +754,16 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 .ep-kao{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 6px;}
 .ep-kao span{font-size:calc(14px * var(--ui-font-scale,1));padding:7px 10px;border-radius:12px;background:var(--theme-ep-active,rgba(0,0,0,.05));cursor:pointer;color:var(--theme-text);white-space:nowrap;}
 /* 只含 1~3 个表情的消息：不要气泡，显示成大号表情 */
+/* 动画表情：大号会动的表情 + 面板里的「动画」分页 */
+.bub.bub-jumbo img.anim-emo{width:84px;height:84px;display:inline-block;vertical-align:middle;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+.bub.bub-jumbo img.anim-emo.one{width:128px;height:128px;}
+.bub.bub-jumbo .emo-move{display:inline-block;animation:emoBob 1.8s ease-in-out infinite;}
+.bub.bub-jumbo .emo-move.one{font-size:calc(72px * var(--ui-font-scale,1));}
+@keyframes emoBob{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-6px) rotate(-7deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-3px) rotate(7deg)}}
+.ep-anim{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding-bottom:6px;}
+.ep-anim span{display:flex;align-items:center;justify-content:center;padding:6px 0;border-radius:12px;cursor:pointer;min-height:58px;}
+.ep-anim img{width:50px;height:50px;pointer-events:none;}
+.ep-anim span:active{background:var(--theme-ep-active,rgba(0,0,0,.06));transform:scale(.92);}
 .bub.bub-jumbo{background:none!important;border:none!important;box-shadow:none!important;padding:0 2px!important;font-size:calc(46px * var(--ui-font-scale,1))!important;line-height:1.15!important;}
 .ep-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;}
 .ep-grid span{font-size:calc(24px * var(--ui-font-scale,1));text-align:center;cursor:pointer;padding:6px 0;border-radius:8px;line-height:1;}
@@ -4167,7 +4177,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.08';
+var CORE_VERSION='v2.09';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -8007,6 +8017,7 @@ function _oneMsgHtml(m){
     var txt=m.text||m.content||'';
     if(txt.length>500)txt='[Message]';
     b=esc(txt);
+    if(_isJumboEmoji(m)){var _jh=_jumboHtml(txt);if(_jh)b=_jh;}
   }
   var statusTick='';
   var bubExtra='';
@@ -9195,8 +9206,11 @@ function buildEmojiGrid(){
     return '<div class="ep-sec">'+pk[0]+'</div><div class="ep-stk">'+pk[1].map(function(e){return '<span data-send="'+_escAttr(e)+'">'+e+'</span>';}).join('')+'</div>';
   }).join('');
   var kao='<div class="ep-kao">'+KAOMOJI_LIST.map(function(k){return '<span data-ins="'+_escAttr(k)+'">'+_escAttr(k)+'</span>';}).join('')+'</div>';
-  p.innerHTML='<div class="ep-tabs"><span class="on" data-tab="0">表情</span><span data-tab="1">表情包</span><span data-tab="2">颜文字</span></div>'
+  // 动画图片等点开「动画」分页才加载（data-src），不拖慢打开表情面板
+  var anim=ANIM_EMOJI.map(function(a){return '<span data-send="'+_escAttr(a[0])+'"><img data-src="./anim/'+a[1]+'.webp" alt="'+_escAttr(a[0])+'"></span>';}).join('');
+  p.innerHTML='<div class="ep-tabs"><span class="on" data-tab="0">表情</span><span data-tab="1">动画</span><span data-tab="2">表情包</span><span data-tab="3">颜文字</span></div>'
     +'<div class="ep-page on"><div class="ep-grid" id="emojiGrid">'+emo+'</div></div>'
+    +'<div class="ep-page"><div class="ep-tip">点一下直接发送 · 会动的大表情</div><div class="ep-anim">'+anim+'</div></div>'
     +'<div class="ep-page"><div class="ep-tip">点一下直接发送</div>'+stk+'</div>'
     +'<div class="ep-page">'+kao+'</div>';
   p.addEventListener('click',function(ev){
@@ -9206,6 +9220,7 @@ function buildEmojiGrid(){
       [].forEach.call(p.querySelectorAll('.ep-tabs span'),function(x,j){x.classList.toggle('on',j===i);});
       [].forEach.call(p.querySelectorAll('.ep-page'),function(x,j){x.classList.toggle('on',j===i);});
       p.scrollTop=0;
+      [].forEach.call(p.querySelectorAll('.ep-page.on img[data-src]'),function(im){im.src=im.getAttribute('data-src');im.removeAttribute('data-src');});
     }else if(t.dataset.ins!=null){insertEmoji(t.dataset.ins);}
     else if(t.dataset.send!=null){sendSticker(t.dataset.send);}
   });
@@ -9216,6 +9231,26 @@ function sendSticker(s){
   ta.value=s;
   try{sendMsg();}catch(e){}
   ta.value=draft; // 输入框里没发出去的草稿原样留着
+}
+// ═══ 动画表情 ═══
+// 素材：Noto Animated Emoji（Google，CC BY 4.0，见 anim/LICENSE.txt），已转成小尺寸动画 WebP 放在 ./anim/，
+// 不从外部网站加载。发出去仍是普通表情字符，对方旧版本照样能看到；新版本里只含 1~3 个表情的
+// 消息，有动画版的显示成会动的大表情，没有的显示成大号字并轻轻晃动。
+var ANIM_EMOJI=[['😂','1f602'],['🤣','1f923'],['😍','1f60d'],['🥰','1f970'],['😘','1f618'],['😭','1f62d'],['🥺','1f97a'],['😡','1f621'],['🤯','1f92f'],['😱','1f631'],['🥳','1f973'],['😎','1f60e'],['🤔','1f914'],['😴','1f634'],['🤗','1f917'],['🙄','1f644'],['😏','1f60f'],['😅','1f605'],['😇','1f607'],['😤','1f624'],['🤩','1f929'],['😋','1f60b'],['🫣','1fae3'],['🤭','1f92d'],['😜','1f61c'],['🤪','1f92a'],['😊','1f60a'],['😉','1f609'],['👍','1f44d'],['👏','1f44f'],['🙏','1f64f'],['👋','1f44b'],['💪','1f4aa'],['🫶','1faf6'],['👌','1f44c'],['❤️','2764_fe0f'],['💔','1f494'],['🔥','1f525'],['🎉','1f389'],['✨','2728'],['💯','1f4af'],['🌹','1f339'],['🎂','1f382'],['👻','1f47b'],['💋','1f48b'],['🐱','1f431']];
+var _ANIM_MAP={};ANIM_EMOJI.forEach(function(a){_ANIM_MAP[a[1]]=1;});
+function _emoKey(ch){var k=[];for(var i=0;i<ch.length;){var cp=ch.codePointAt(i);k.push(cp.toString(16));i+=cp>0xffff?2:1;}return k.join('_');}
+function _animKey(ch){var k=_emoKey(ch);if(_ANIM_MAP[k])return k;var k2=k.replace(/_fe0f/g,'');if(_ANIM_MAP[k2])return k2;if(_ANIM_MAP[k2+'_fe0f'])return k2+'_fe0f';return null;}
+var _EMO_SPLIT=null;
+try{_EMO_SPLIT=new RegExp('(?:\\p{Extended_Pictographic}|\\p{Regional_Indicator})(?:\\uFE0F|\\p{Emoji_Modifier}|\\u200D(?:\\p{Extended_Pictographic}))*','gu');}catch(e){}
+function _jumboHtml(txt){
+  if(!_EMO_SPLIT)return null;
+  var parts=String(txt||'').replace(/\s+/g,'').match(_EMO_SPLIT)||[];
+  if(!parts.length||parts.length>3)return null;
+  var one=parts.length===1?' one':'';
+  return parts.map(function(p){
+    var k=_animKey(p);
+    return k?'<img class="anim-emo'+one+'" src="./anim/'+k+'.webp" alt="'+p+'" draggable="false">':'<span class="emo-move'+one+'">'+p+'</span>';
+  }).join('');
 }
 var _JUMBO_RE=null;
 try{_JUMBO_RE=new RegExp('^(?:(?:\\p{Extended_Pictographic}|\\p{Regional_Indicator})(?:\\uFE0F|\\p{Emoji_Modifier}|\\u200D(?:\\p{Extended_Pictographic}))*){1,3}$','u');}catch(e){}
@@ -10425,7 +10460,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.08"></script>
+<script src="./chat-core.js?v2.09"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面

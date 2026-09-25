@@ -1,0 +1,4 @@
+Animated emoji in this folder are from Noto Animated Emoji by Google,
+licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+Source: https://googlefonts.github.io/noto-emoji-animation/
+Converted to small animated WebP (144px, 15fps) for use in this app.
