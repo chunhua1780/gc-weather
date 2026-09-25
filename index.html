@@ -638,7 +638,9 @@ html,body{height:100%;height:100dvh;margin:0;padding:0;overflow:hidden;position:
 .btn-red{background:#ff3b30;border:none;color:#fff;padding:16px;border-radius:14px;font-size:calc(17px * var(--ui-font-scale,1));font-weight:600;width:100%;cursor:pointer;}
 .field{background:var(--theme-field-bg);border:0.5px solid var(--theme-field-border);border-radius:12px;padding:14px 16px;color:var(--theme-text);font-size:calc(17px * var(--ui-font-scale,1));width:100%;outline:none;margin-bottom:14px;font-family:inherit;}
 .nav-bar{background:var(--theme-navbar);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--theme-border);flex-shrink:0;;position:relative;z-index:10;}
-.nav-lg{padding:max(16px,calc(8px + var(--safe-top))) 20px 8px;}
+.nav-lg{padding:max(24px,calc(16px + var(--safe-top))) 20px 10px;}
+/* iOS 主屏幕 App 可视高度比屏幕矮时（见页尾 _gcVpFix），界面往下补齐到真正的屏幕底边 */
+html.gc-vpfix .screen,html.gc-vpfix #chat{bottom:calc(-1 * var(--gc-vp-gap,0px));}
 .nav-lg .t{font-size:calc(34px * var(--ui-font-scale,1));font-weight:700;letter-spacing:-.5px;}
 .nav-sm{padding:max(12px,calc(env(safe-area-inset-top,0px) + 8px)) 16px 8px;display:flex;align-items:center;justify-content:space-between;}
 .nav-sm .t{font-size:calc(17px * var(--ui-font-scale,1));font-weight:600;}
@@ -4153,7 +4155,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v1.92';
+var CORE_VERSION='v2.01';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5112,7 +5114,7 @@ window.onload=async function(){
   _ensureLangPack(curLang,function(){applyLang();_applyLangExt();});
   tickClock();
   var _cv=document.getElementById('coreVerBadge');if(_cv)_cv.textContent=CORE_VERSION;
-  var _sv=document.getElementById('settingsVerLabel');if(_sv)_sv.textContent='天气 '+CORE_VERSION;
+  var _sv=document.getElementById('settingsVerLabel');if(_sv)_sv.textContent='天气 '+CORE_VERSION+(window._gcVpDiag||'');
   var si=document.getElementById('myIdShow');if(si)si.textContent='ID: '+myId;
   var na=document.getElementById('nameDisplay');if(na&&lg('myName'))na.textContent=lg('myName');
   var av=document.getElementById('avatarDisplay');if(av&&lg('myName'))av.textContent=lg('myName')[0].toUpperCase();
@@ -6871,7 +6873,7 @@ function applyLang(){
   var _sq=document.getElementById('secQShow');if(_sq&&!lg('secQ'))_sq.textContent=i18nT('secQNotSet');
   if(typeof updHide==='function')updHide();
   if(typeof updNotif==='function')updNotif();
-  var _sv2=document.getElementById('settingsVerLabel');if(_sv2&&typeof CORE_VERSION!=='undefined')_sv2.textContent='天气 '+CORE_VERSION;
+  var _sv2=document.getElementById('settingsVerLabel');if(_sv2&&typeof CORE_VERSION!=='undefined')_sv2.textContent='天气 '+CORE_VERSION+(window._gcVpDiag||'');
 }
 
 function _applyLangExt(){
@@ -10336,7 +10338,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js"></script>
+<script src="./chat-core.js?v2.01"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -10400,6 +10402,68 @@ function updDots(err){
   window.addEventListener('orientationchange',schedule);
   window.addEventListener('pageshow',schedule);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)schedule();});
+})();
+</script>
+<script>
+// 自动更新：打开/回到前台时去服务器核对版本号，发现新版就自动刷新一次。
+// 以前靠"从后台划掉重开"，iOS 主屏幕 App 经常还停在旧页面、旧缓存上，改了也看不到。
+(function(){
+  var running=(typeof CORE_VERSION!=='undefined')?CORE_VERSION:'';
+  var busy=false;
+  function check(){
+    if(busy||!running||!window.fetch)return;
+    var mi=document.getElementById('mi');
+    if(mi&&mi.value&&mi.value.trim())return; // 正在打字就先不刷新，免得草稿丢了
+    busy=true;
+    fetch('./index.html?_vc='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():'';}).then(function(t){
+      busy=false;
+      var m=(t||'').match(/var CORE_VERSION='([^']+)'/);
+      if(!m||m[1]===running)return;
+      try{if(sessionStorage.getItem('gc_reloaded_for')===m[1])return;sessionStorage.setItem('gc_reloaded_for',m[1]);}catch(e){}
+      location.reload();
+    }).catch(function(){busy=false;});
+  }
+  setTimeout(check,2500);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(check,800);});
+})();
+// iOS 主屏幕 App 的已知毛病：页面以为的可视高度（innerHeight）比真实屏幕矮一截，
+// 所有 position:fixed 铺满的界面底下就空出一条（用户截图里输入栏、底部导航下面都多空了约 60pt）。
+// 只在 iOS 主屏幕模式、竖屏、没在打字时，把差值补回去，让界面铺到真正的屏幕底边。
+(function(){
+  var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)&&window.navigator.standalone===true;
+  var root=document.documentElement,probe=null;
+  function safeBottom(){
+    try{
+      if(!probe){probe=document.createElement('div');probe.style.cssText='position:fixed;left:0;bottom:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-bottom:env(safe-area-inset-bottom,0px);';document.body.appendChild(probe);}
+      return Math.round(parseFloat(getComputedStyle(probe).paddingBottom)||0);
+    }catch(e){return 0;}
+  }
+  function fix(){
+    try{
+      var ih=window.innerHeight,iw=window.innerWidth,sh=screen.height,sw=screen.width;
+      var full=ih>iw?Math.max(sh,sw):Math.min(sh,sw);
+      var gap=full-ih;
+      var ae=document.activeElement;
+      var typing=!!ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'||ae.isContentEditable);
+      if(ios&&!typing){
+        if(gap>=20&&gap<=120){root.style.setProperty('--gc-vp-gap',gap+'px');root.classList.add('gc-vpfix');}
+        else{root.classList.remove('gc-vpfix');root.style.removeProperty('--gc-vp-gap');}
+      }
+      // 设置页底部版本号后面附上：屏幕高/页面高/底部安全区（补了多少），方便对照截图排查
+      window._gcVpDiag=' · '+full+'/'+ih+'/'+safeBottom()+(root.classList.contains('gc-vpfix')?' +'+gap:'');
+      var sv=document.getElementById('settingsVerLabel');
+      if(sv&&sv.textContent){sv.textContent=sv.textContent.split(' · ')[0]+window._gcVpDiag;}
+      if(window._gcSyncEdgeColor)window._gcSyncEdgeColor();
+    }catch(e){}
+  }
+  window._gcVpFix=fix;
+  function later(){setTimeout(fix,50);setTimeout(fix,400);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix);else fix();
+  window.addEventListener('resize',later);
+  window.addEventListener('orientationchange',function(){setTimeout(fix,300);setTimeout(fix,800);});
+  window.addEventListener('pageshow',later);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)later();});
+  document.addEventListener('focusout',function(){setTimeout(fix,450);});
 })();
 </script>
 </body>
