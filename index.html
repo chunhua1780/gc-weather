@@ -2438,6 +2438,7 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
       '': '#ff9a9e', business: '#64748b', dark: '#16161d',
       ocean: '#4facfe', forest: '#8bd3a0', neon: '#0d0d1a'
     };
+    if(window._gcSyncEdgeColor){window._gcSyncEdgeColor();return;}
     m.content = colors[t ? t[1] : ''] || '#ff9a9e';
   }
   var _origPickTheme;
@@ -10354,6 +10355,10 @@ function updDots(err){
       if(!own){body.style.backgroundColor='';body.style.backgroundImage='';}
       var c=sample(sc);if(!c)return;
       document.documentElement.style.backgroundColor=c;
+      // Safari 工具条/状态栏用 theme-color 着色，原来写死成主题粉色，跟页面底色撞色；
+      // 改成跟页面底边同一个颜色，系统栏和页面连成一体。
+      var m=document.getElementById('metaThemeColor');
+      if(m){var hx='#'+c.match(/\d+/g).map(function(n){return ('0'+(+n).toString(16)).slice(-2);}).join('');if(m.content!==hx)m.content=hx;}
       if(own){body.style.backgroundColor=c;body.style.backgroundImage='none';}
     }catch(e){}
   }
