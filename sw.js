@@ -1,5 +1,5 @@
 // GhostChat Service Worker v2.2 — never cache the HTML shell (prevents ever getting stuck on a stale page) + push
-const CACHE = 'gc-v2.11';
+const CACHE = 'gc-v2.12';
 const GC_BASE_URL = self.location.origin + self.location.pathname.replace(/[^/]*$/, '');
 
 // ── Install: pre-cache static assets only (never the HTML document) ──
