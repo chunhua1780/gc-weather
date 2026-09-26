@@ -2419,6 +2419,8 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
             if(fromId&&typeof openChat==='function'&&typeof myId!=='undefined'&&myId){
               setTimeout(function(){
                 // 确保在主界面
+                // 还在伪装/验证界面（没输密码）时，点通知绝不直接进聊天：记下目标，输完密码再跳
+                if(_gcIsLocked()){_lockReturnScreen='chat:'+fromId;return;}
                 var mainEl=document.getElementById('main');
                 if(!mainEl||!mainEl.classList.contains('active'))show('main');
                 setTimeout(function(){if(typeof _openChatFromId==='function')_openChatFromId(fromId);},300);
@@ -4177,7 +4179,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.09';
+var CORE_VERSION='v2.10';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -4770,6 +4772,14 @@ function _gcFreeMode(){ try{ return (lg('focusMode')||'free')==='free'; }catch(e
 // 不算离开：点底部导航/按钮/输入框，本页自己弹的确认框，选照片。
 function _gcStrictStealth(){ return !_gcFreeMode(); }
 function _autoBackAllowed(){ return !_appWasActive || _gcFreeMode(); }
+// 非自由模式下"锁上"：清掉本次会话的"已解锁"标记，并标记当前处于伪装/锁定状态。
+// 之后无论页面怎么刷新（自动更新、系统重载），启动时都只会进伪装界面，必须重新输入密码。
+function _gcLockSession(){ window._gcDisguiseMode=true; try{ sessionStorage.removeItem('testGatePassed'); }catch(e){} }
+function _gcIsLocked(){
+  if(window._gcDisguiseMode===true)return true;
+  var a=(document.querySelector('.screen.active')||{}).id||'';
+  return ['dweather','dcalc','dclk','dnote','newsHome','testgate','applock','reg'].indexOf(a)>=0;
+}
 // 本页自己弹的 alert/confirm/prompt、打开相册/文件选择时 iOS 也会触发 window 失焦，不能当成离开
 var _gcDialogAt=0,_gcPickerOpen=false;
 ['alert','confirm','prompt'].forEach(function(n){
@@ -4796,9 +4806,10 @@ function disguiseNow(preemptive){
     // 那些前提任何一条不成立，就只剩遮罩这一层 —— 而遮罩本来就抢不过系统截图，
     // 等于大部分用户实际上毫无防护。现在一律切走，只是把「回来要不要验密码」
     // 降级成「自动放行」，这样既不泄露，也不会把人锁在伪装壳里出不来。
-    // 只有底缘上滑的"手势预判"是猜的（手指可能只是在页面上滑了一下），允许回到全屏后一次触摸放回；
-    // 失焦、切后台、pagehide 都算真的离开，必须输密码。
-    _disguiseAutoBack = preemptive ? true : _autoBackAllowed();
+    // 非自由模式下只要切到伪装界面，一律必须输密码才能回来（包括底缘手势预判），
+    // 不再有"点一下屏幕就放回聊天"的路径。
+    _disguiseAutoBack = _autoBackAllowed();
+    if(!_disguiseAutoBack)_gcLockSession();
     show(target);
     // 切到伪装壳的一瞬间，之前可能还挂着的PWA安装横幅(带👻图标和"安装 天气"
     // 文案)必须立刻藏起来——它跟伪装壳的品牌对不上，是最直接的暴露破绽。
@@ -4882,9 +4893,9 @@ document.addEventListener('touchend',function(){
 window.addEventListener('blur',function(){
   if(_gcPickerOpen||Date.now()-_gcDialogAt<1500)return;   // 本页自己的对话框/选照片，不是离开
   shieldOn(); _preemptive=false; disguiseNow();
-  if(_hideDisguised)_disguiseAutoBack=_autoBackAllowed(); // 上滑到多任务、拉控制中心：按离开处理
+  if(_hideDisguised){_disguiseAutoBack=_autoBackAllowed();if(!_disguiseAutoBack)_gcLockSession();} // 上滑到多任务、拉控制中心：按离开处理
 });
-window.addEventListener('pagehide',function(){ shieldOn(); _preemptive=false; disguiseNow(); if(_hideDisguised)_disguiseAutoBack=_autoBackAllowed(); });
+window.addEventListener('pagehide',function(){ shieldOn(); _preemptive=false; disguiseNow(); if(_hideDisguised){_disguiseAutoBack=_autoBackAllowed();if(!_disguiseAutoBack)_gcLockSession();} });
 document.addEventListener('freeze',shieldOn);
 // 误判还原：只认「应用确实回到全屏、而且用户正在操作」。
 // 关键在于卡片状态下应用收不到触摸事件 —— 所以一次落在屏幕上半部的新触摸，
@@ -4902,7 +4913,7 @@ document.addEventListener('touchstart',function(e){
   resumeFromLock(); shieldOff();
 },{passive:true,capture:true});
 
-document.addEventListener('pause',function(){ shieldOn(); _preemptive=false; disguiseNow(); if(_hideDisguised)_disguiseAutoBack=_autoBackAllowed(); },false);
+document.addEventListener('pause',function(){ shieldOn(); _preemptive=false; disguiseNow(); if(_hideDisguised){_disguiseAutoBack=_autoBackAllowed();if(!_disguiseAutoBack)_gcLockSession();} },false);
 document.addEventListener('resume',function(){
   setTimeout(function(){ _resumeAfterDisguise(); shieldOff(); },0);
 },false);
@@ -4918,7 +4929,7 @@ document.addEventListener('visibilitychange',function(){
     shieldOn();                                  // 先盖，最快的一步放最前面
     ls('lastHiddenAt',String(Date.now()));
     disguiseNow();                               // 再把底下的界面也换掉
-    if(_hideDisguised)_disguiseAutoBack=_autoBackAllowed(); // 证实真的离开：按离开即隐身处理
+    if(_hideDisguised){_disguiseAutoBack=_autoBackAllowed();if(!_disguiseAutoBack)_gcLockSession();} // 证实真的离开：按离开即隐身处理
     return;
   }
   // 回到前台：先把锁屏判断做完，再掀开遮罩。顺序反了的话，chat 界面会在
@@ -5097,7 +5108,7 @@ window.onload=async function(){
       if(window._gcDisguiseMode)return;
       var _m=lg('focusMode')||'free';
       var _c=(typeof FOCUS_MODES!=='undefined'&&FOCUS_MODES[_m])||{lock:false};
-      if(!_c.lock||!lg('appLockPin'))sessionStorage.setItem('testGatePassed','1');
+      if(!_c.lock)sessionStorage.setItem('testGatePassed','1'); // 非自由模式绝不自动写"已解锁"（原来没设锁屏密码时会写，刷新后就绕过了密码）
     }
     if(lg('registered')==='true'&&lg('myId')){
       ls('gatePassedPersist','1');
@@ -5116,6 +5127,7 @@ window.onload=async function(){
           if(ok){
             myId=lg('myId')||'';
             ls('gatePassedPersist','1');
+            if(_gcStrictStealth()){ if(!window._gcDisguiseMode)_showStartupStealth(); return; } // 非自由模式：恢复凭证后也先进伪装界面
             sessionStorage.setItem('testGatePassed','1');
             console.log('[Guard] ✅ 凭证已恢复，重进主界面');
             var mainEl=document.getElementById('main');
@@ -8624,6 +8636,7 @@ function proceedStartup(){
 var _lockReturnScreen=null;
 // 统一处理_lockReturnScreen跳转，支持'chat:uid'格式
 function resumeFromLock(){
+  window._gcDisguiseMode=false;
   var target=_lockReturnScreen;
   _lockReturnScreen=null;
   if(!target){proceedStartup();return;}
@@ -10460,7 +10473,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.09"></script>
+<script src="./chat-core.js?v2.10"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
