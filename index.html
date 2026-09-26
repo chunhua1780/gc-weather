@@ -4179,7 +4179,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.10';
+var CORE_VERSION='v2.11';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -8368,6 +8368,35 @@ function fmtLastTime(ts){
   if(now-d<7*24*60*60*1000){var days=['日','一','二','三','四','五','六'];return'周'+days[d.getDay()];}
   return(d.getMonth()+1)+'/'+(d.getDate());
 }
+// ═══ 消息列表的已读颜色 ═══
+// 列表里不画猫爪、不写"已读"，只用颜色：粉=对方发来我还没看，橙=我发的对方还没读，灰=我发的对方已读。
+// 已读只认列表上显示的这一条本身（按内容+时间在本机记录里找），找不到就当未读——
+// 原来是拿"本机记录里我发的最后一条"来判断，刚发的新消息还没进本机记录时，会把更早那条的已读状态
+// 套到新消息上，没读的也出现猫爪。
+var GC_LIST_COLOR={inUnread:'#e05b9b',outUnread:'#ff8c5a',outRead:'#8e8e93'};
+function _gcListMsgRead(cid,lm){
+  try{
+    var ts=lm&&lm.created_at?new Date(lm.created_at).getTime():0;
+    if(!ts)return false;
+    var cached=loadLocalMsgs(cid);
+    for(var i=cached.length-1;i>=0;i--){
+      var m=cached[i];
+      if(!m||!m.ts)continue;
+      if(m.ts<ts-120000)break;
+      if(!m.sent||Math.abs(m.ts-ts)>=120000)continue;
+      var same=(lm.type==='text'||!lm.type)?((m.text||'')===(lm.content||'')):(m.type===lm.type);
+      if(same)return !!m.read&&m.id!=null;
+    }
+  }catch(e){}
+  return false;
+}
+function _gcListStyle(hasUnread,isMine,isRead,lastStyle,timeStyle){
+  var c=hasUnread?GC_LIST_COLOR.inUnread:(isMine&&!isRead?GC_LIST_COLOR.outUnread:GC_LIST_COLOR.outRead);
+  var bold=hasUnread?'700':(isMine&&!isRead?'600':'normal');
+  lastStyle=lastStyle.replace(/color:[^;]+;/,'color:'+c+';').replace(/font-weight:[^;]+;/,'');
+  timeStyle=timeStyle.replace(/color:[^;]+;/,'color:'+(hasUnread||(isMine&&!isRead)?c:'#aeaeb2')+';');
+  return [lastStyle+'font-weight:'+bold+';',timeStyle];
+}
 function updateLastPreview(cid,content,type,highlight,readState,ts){
   var lastEl=document.getElementById('last-'+String(cid));
   if(!lastEl){
@@ -8403,9 +8432,9 @@ function updateLastPreview(cid,content,type,highlight,readState,ts){
   else if(type==='location')label='[位置]';
   else label='['+type+']';
   lastEl.textContent=label;
-  if(highlight){lastEl.style.color='#d4537e';lastEl.style.fontWeight='600';}
-  else if(readState==='sent'){lastEl.style.color='var(--theme-accent1,#a18cd1)';lastEl.style.fontWeight='600';}
-  else if(readState==='read'){lastEl.style.color='var(--theme-icon,#8e8e93)';lastEl.style.fontWeight='normal';}
+  if(highlight){lastEl.style.color=GC_LIST_COLOR.inUnread;lastEl.style.fontWeight='700';}
+  else if(readState==='sent'||readState==='delivered'){lastEl.style.color=GC_LIST_COLOR.outUnread;lastEl.style.fontWeight='600';}
+  else if(readState==='read'){lastEl.style.color=GC_LIST_COLOR.outRead;lastEl.style.fontWeight='normal';}
   else{lastEl.style.color='';lastEl.style.fontWeight='';}
   var prefixEl=lastEl.parentElement&&lastEl.parentElement.querySelector('.last-prefix');
   if(prefixEl)prefixEl.innerHTML=(readState==='sent'||readState==='read')?'我: ':'';
@@ -9075,14 +9104,8 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
     }
     var hasUnread=(_unread[cid]||0)>0;
     var isMine=lm&&String(lm.sender)===mid;
-    // 已读/未读指示（自己发的消息）：从本地缓存判断
-    var readTick='';
-    if(isMine&&lm&&lm.content){
-      var cached=loadLocalMsgs(cid);
-      var myLast=null;
-      for(var ci=cached.length-1;ci>=0;ci--){if(cached[ci].sent){myLast=cached[ci];break;}}
-      if(myLast){readTick=myLast.read?' <span style="color:var(--theme-accent1,#a18cd1);font-size:calc(11px * var(--ui-font-scale,1));">已读</span>':' <span style="color:var(--theme-icon,#999);font-size:calc(11px * var(--ui-font-scale,1));">未读</span>';}
-    }
+    var readTick=''; // 列表里不画已读标记，只用颜色（见 _gcListStyle）
+    var myLastIsRead=(isMine&&lm&&lm.content)?_gcListMsgRead(cid,lm):false;
     // 视觉规则：未读=主题色加粗，已读=灰色
     var accent='var(--theme-accent1,#a18cd1)';
     var lastStyle,nameStyle,timeStyle;
@@ -9095,6 +9118,7 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
       nameStyle='font-size:calc(17px * var(--ui-font-scale,1));flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
       timeStyle='font-size:calc(12px * var(--ui-font-scale,1));color:var(--theme-icon,#c7c7cc);flex-shrink:0;';
     }
+    var _ls=_gcListStyle(hasUnread,isMine&&lm&&lm.content,myLastIsRead,lastStyle,timeStyle);lastStyle=_ls[0];timeStyle=_ls[1];
     var lastTime=lm&&lm.created_at?fmtLastTime(new Date(lm.created_at).getTime()):'';
     var prefix=isMine?'我: ':'';
 
@@ -10473,7 +10497,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.10"></script>
+<script src="./chat-core.js?v2.11"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面

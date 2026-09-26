@@ -711,9 +711,9 @@ function updateLastPreview(cid,content,type,highlight,readState,ts){
   if(type==='text')label=content;else if(type==='contact')label='[名片]';else if(type==='image')label='[图片]';else if(type==='voice')label='[语音]';else if(type==='video')label='[视频]';else if(type==='file')label='[文件]';else if(type==='location')label='[位置]';else label='['+type+']';
   lastEl.textContent=label;
   // 颜色：收到未读→暖玫瑰；我发未读→暖橙；已读→灰；其余默认
-  if(highlight){lastEl.style.color='#e05b9b';lastEl.style.fontWeight='700';lastEl.style.fontSize='13.5px';}
-  else if(readState==='delivered'||readState==='sent'){lastEl.style.color='#ff8c5a';lastEl.style.fontWeight='600';lastEl.style.fontSize='13.5px';}
-  else if(readState==='read'){lastEl.style.color='var(--theme-icon,#8e8e93)';lastEl.style.fontWeight='normal';lastEl.style.fontSize='';}
+  if(highlight){lastEl.style.color=GC_LIST_COLOR.inUnread;lastEl.style.fontWeight='700';lastEl.style.fontSize='13.5px';}
+  else if(readState==='delivered'||readState==='sent'){lastEl.style.color=GC_LIST_COLOR.outUnread;lastEl.style.fontWeight='600';lastEl.style.fontSize='13.5px';}
+  else if(readState==='read'){lastEl.style.color=GC_LIST_COLOR.outRead;lastEl.style.fontWeight='normal';lastEl.style.fontSize='';}
   else{lastEl.style.color='';lastEl.style.fontWeight='';lastEl.style.fontSize='';}
   var prefixEl=lastEl.parentElement&&lastEl.parentElement.querySelector('.last-prefix');
   if(prefixEl)prefixEl.innerHTML=(readState==='sent'||readState==='delivered'||readState==='read')?'我: ':'';
@@ -863,12 +863,7 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
       else if(lm.type==='image')lastText='[图片]';else if(lm.type==='voice')lastText='[语音]';else if(lm.type==='video')lastText='[视频]';else if(lm.type==='file')lastText='[文件]';else if(lm.type==='location')lastText='[位置]';else if(lm.type==='contact')lastText='[名片]';else lastText='['+lm.type+']';
     }
     var hasUnread=(_unread[cid]||0)>0;var isMine=lm&&String(lm.sender)===mid;var readTick='';var myLastIsRead=false;
-    if(isMine&&lm&&lm.content){
-      var cached=loadLocalMsgs(cid);var myLast=null;
-      for(var ci=cached.length-1;ci>=0;ci--){if(cached[ci].sent){myLast=cached[ci];break;}}
-      myLastIsRead=!!(myLast&&myLast.read);
-      if(myLastIsRead){readTick=' <span style="font-size:11px;opacity:0.55;" title="已读">🐾</span>';}
-    }
+    if(isMine&&lm&&lm.content)myLastIsRead=_gcListMsgRead(cid,lm); // 列表里不画猫爪，只用颜色（见 _gcListStyle）
     var lastStyle,nameStyle,timeStyle;
     if(hasUnread){
       lastStyle='font-size:14.5px;color:#e05b9b;font-weight:700;margin-top:2px;';
@@ -883,6 +878,7 @@ function _renderContacts(contactIds,seen,friendMap,userMap,avatarMap){
       nameStyle='font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
       timeStyle='font-size:12px;color:var(--theme-icon,#c7c7cc);flex-shrink:0;';
     }
+    var _ls=_gcListStyle(hasUnread,isMine&&lm&&lm.content,myLastIsRead,lastStyle,timeStyle);lastStyle=_ls[0];timeStyle=_ls[1];
     var lastTime=lm&&lm.created_at?fmtLastTime(new Date(lm.created_at).getTime()):'';var prefix=isMine?'我: ':'';
     var wrap=document.createElement('div');wrap.className='swipe-wrap';wrap.id='wrap-'+cid;wrap.style.cssText='position:relative;overflow:hidden;margin:6px 8px;border-radius:16px;';
     var actions=document.createElement('div');actions.style.cssText='position:absolute;top:0;right:0;bottom:0;display:flex;width:140px;transform:translateX(140px);';
