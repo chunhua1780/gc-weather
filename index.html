@@ -1399,7 +1399,7 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
   <div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:30px;">
     <div id="callAv" style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#ff9a9e,#a18cd1);display:flex;align-items:center;justify-content:center;font-size:calc(44px * var(--ui-font-scale,1));font-weight:700;color:#fff;box-shadow:0 0 0 14px rgba(161,140,209,.12);"></div>
     <div id="callNm" style="font-size:calc(26px * var(--ui-font-scale,1));font-weight:700;color:#3a3a3c;"></div>
-    <div id="callSt" style="font-size:calc(15px * var(--ui-font-scale,1));color:#a18cd1;">📞 Calling...</div>
+    <div id="callSt" style="font-size:calc(15px * var(--ui-font-scale,1));color:#a18cd1;">正在呼叫…</div>
     <div id="callTimer" style="font-size:calc(14px * var(--ui-font-scale,1));color:#8e8e93;font-variant-numeric:tabular-nums;"></div>
   </div>
   <div style="display:flex;gap:28px;">
@@ -1411,25 +1411,43 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
       <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ff9a9e,#ff6b6b);box-shadow:0 4px 14px rgba(255,107,107,.35);display:flex;align-items:center;justify-content:center;font-size:calc(26px * var(--ui-font-scale,1));">📵</div>
       <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#ff6b6b;margin-top:8px;" id="end-lbl">挂断</div>
     </div>
-    <div style="text-align:center;cursor:pointer;">
-      <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(161,140,209,.18);display:flex;align-items:center;justify-content:center;font-size:calc(26px * var(--ui-font-scale,1));">🔊</div>
-      <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-top:8px;" id="spk-lbl">扬声器</div>
+    <div style="text-align:center;cursor:pointer;" onclick="_gcCallMinimize()">
+      <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(161,140,209,.18);display:flex;align-items:center;justify-content:center;font-size:calc(26px * var(--ui-font-scale,1));">💬</div>
+      <div style="font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;margin-top:8px;">收起</div>
     </div>
   </div>
 </div>
 
 <!-- 视频通话 -->
 <div id="vidscr" class="screen" style="background:#000;position:relative;">
-  <video id="remoteVideo" autoplay playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
-  <video id="localVideo" autoplay playsinline muted style="position:absolute;top:60px;right:16px;width:100px;height:140px;border-radius:14px;object-fit:cover;z-index:10;border:2px solid rgba(255,255,255,.3);"></video>
-  <div style="position:absolute;top:60px;left:16px;z-index:10;">
-    <div id="vidNm" style="color:#fff;font-size:calc(16px * var(--ui-font-scale,1));font-weight:600;"></div>
-    <div id="vidTime" style="color:rgba(255,255,255,.7);font-size:calc(13px * var(--ui-font-scale,1));margin-top:2px;">00:00</div>
+  <video id="remoteVideo" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;"></video>
+  <div id="vidWait" style="position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(170deg,#2b2840,#0e0e14);">
+    <div id="vidAv" style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#ff9a9e,#a18cd1);display:flex;align-items:center;justify-content:center;font-size:calc(42px * var(--ui-font-scale,1));font-weight:700;color:#fff;box-shadow:0 0 0 14px rgba(161,140,209,.15);"></div>
+    <div id="vidWaitNm" style="color:#fff;font-size:calc(22px * var(--ui-font-scale,1));font-weight:700;"></div>
+    <div id="vidSt" style="color:rgba(255,255,255,.75);font-size:calc(15px * var(--ui-font-scale,1));">正在呼叫…</div>
   </div>
-  <div style="position:absolute;bottom:50px;left:0;right:0;display:flex;justify-content:center;gap:20px;z-index:10;">
-    <div onclick="toggleMic()" style="width:60px;height:60px;border-radius:50%;background:rgba(44,44,46,.9);display:flex;align-items:center;justify-content:center;font-size:calc(24px * var(--ui-font-scale,1));cursor:pointer;">🎤</div>
-    <div onclick="endCall()" style="width:70px;height:70px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:calc(28px * var(--ui-font-scale,1));cursor:pointer;">📵</div>
-    <div onclick="toggleCam()" style="width:60px;height:60px;border-radius:50%;background:rgba(44,44,46,.9);display:flex;align-items:center;justify-content:center;font-size:calc(24px * var(--ui-font-scale,1));cursor:pointer;">🔄</div>
+  <video id="localVideo" autoplay playsinline muted style="position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 12px));right:16px;width:100px;height:140px;border-radius:14px;object-fit:cover;z-index:10;border:2px solid rgba(255,255,255,.3);background:#222;transform:scaleX(-1);"></video>
+  <div style="position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 12px));left:16px;z-index:10;">
+    <div id="vidNm" style="color:#fff;font-size:calc(16px * var(--ui-font-scale,1));font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.5);"></div>
+    <div id="vidTime" style="color:rgba(255,255,255,.8);font-size:calc(13px * var(--ui-font-scale,1));margin-top:2px;font-variant-numeric:tabular-nums;text-shadow:0 1px 3px rgba(0,0,0,.5);">00:00</div>
+  </div>
+  <div style="position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 36px);left:0;right:0;display:flex;justify-content:center;align-items:flex-start;gap:18px;z-index:10;">
+    <div style="text-align:center;cursor:pointer;" onclick="toggleMic()">
+      <div id="vidMicBtn" style="width:58px;height:58px;border-radius:50%;background:rgba(44,44,46,.9);display:flex;align-items:center;justify-content:center;font-size:calc(24px * var(--ui-font-scale,1));">🎤</div>
+      <div style="color:rgba(255,255,255,.85);font-size:calc(11px * var(--ui-font-scale,1));margin-top:6px;">静音</div>
+    </div>
+    <div style="text-align:center;cursor:pointer;" onclick="toggleCam()">
+      <div id="vidCamBtn" style="width:58px;height:58px;border-radius:50%;background:rgba(44,44,46,.9);display:flex;align-items:center;justify-content:center;font-size:calc(24px * var(--ui-font-scale,1));">📷</div>
+      <div style="color:rgba(255,255,255,.85);font-size:calc(11px * var(--ui-font-scale,1));margin-top:6px;">摄像头</div>
+    </div>
+    <div style="text-align:center;cursor:pointer;" onclick="endCall()">
+      <div style="width:58px;height:58px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:calc(26px * var(--ui-font-scale,1));">📵</div>
+      <div style="color:rgba(255,255,255,.85);font-size:calc(11px * var(--ui-font-scale,1));margin-top:6px;">挂断</div>
+    </div>
+    <div style="text-align:center;cursor:pointer;" onclick="switchCam()">
+      <div style="width:58px;height:58px;border-radius:50%;background:rgba(44,44,46,.9);display:flex;align-items:center;justify-content:center;font-size:calc(24px * var(--ui-font-scale,1));">🔄</div>
+      <div style="color:rgba(255,255,255,.85);font-size:calc(11px * var(--ui-font-scale,1));margin-top:6px;">翻转</div>
+    </div>
   </div>
 </div>
 
@@ -1438,19 +1456,25 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
   <div style="text-align:center;padding:40px 20px;">
     <div id="incAv" style="width:96px;height:96px;border-radius:50%;background:#007aff;display:flex;align-items:center;justify-content:center;font-size:calc(40px * var(--ui-font-scale,1));font-weight:700;color:#fff;margin:0 auto 16px;box-shadow:0 0 0 16px rgba(0,122,255,.15);animation:pulse 1.5s infinite;"></div>
     <div id="incNm" style="font-size:calc(24px * var(--ui-font-scale,1));font-weight:600;color:#fff;margin-bottom:8px;"></div>
-    <div style="font-size:calc(16px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:56px;">Incoming call...</div>
-    <div style="display:flex;gap:56px;justify-content:center;">
+    <div id="incType" style="font-size:calc(16px * var(--ui-font-scale,1));color:#c7c7cc;margin-bottom:56px;">邀请你语音通话…</div>
+    <div style="display:flex;gap:40px;justify-content:center;align-items:flex-start;">
       <div style="text-align:center;cursor:pointer;" onclick="rejectCall()">
         <div style="width:72px;height:72px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:calc(30px * var(--ui-font-scale,1));">📵</div>
-        <div style="color:#ff3b30;font-size:calc(13px * var(--ui-font-scale,1));margin-top:10px;" id="decline-lbl">Decline</div>
+        <div style="color:#ff3b30;font-size:calc(13px * var(--ui-font-scale,1));margin-top:10px;" id="decline-lbl">拒接</div>
+      </div>
+      <div id="incVoiceBtn" style="text-align:center;cursor:pointer;display:none;" onclick="acceptCall(true)">
+        <div style="width:72px;height:72px;border-radius:50%;background:#5856d6;display:flex;align-items:center;justify-content:center;font-size:calc(30px * var(--ui-font-scale,1));">🎧</div>
+        <div style="color:#b7b5ff;font-size:calc(13px * var(--ui-font-scale,1));margin-top:10px;">语音接听</div>
       </div>
       <div style="text-align:center;cursor:pointer;" onclick="acceptCall()">
         <div style="width:72px;height:72px;border-radius:50%;background:#34c759;display:flex;align-items:center;justify-content:center;font-size:calc(30px * var(--ui-font-scale,1));">📞</div>
-        <div style="color:#34c759;font-size:calc(13px * var(--ui-font-scale,1));margin-top:10px;" id="accept-lbl">Accept</div>
+        <div style="color:#34c759;font-size:calc(13px * var(--ui-font-scale,1));margin-top:10px;" id="accept-lbl">接听</div>
       </div>
     </div>
   </div>
 </div>
+<!-- 通话收起后的顶部小条 -->
+<div id="gcCallPill" onclick="_gcCallRestore()" style="display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);z-index:850;background:#34c759;color:#fff;border-radius:16px;padding:6px 14px;font-size:13px;font-weight:600;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap;">📞 <span id="gcCallPillT">通话中</span></div>
 
 <!-- 设置 -->
 <div id="account-set" class="screen">
@@ -4179,7 +4203,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.12';
+var CORE_VERSION='v2.13';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -7368,14 +7392,23 @@ function setupReadObserver(){
 }
 
 // ═══ WebRTC MODULE v2.0 ═══
-var RTC={pc:null,localStream:null,isCaller:false,callRoom:null,pendingOffer:null,pendingFrom:null,startTime:null,callRecordId:null,callType:'voice'};
+// ═══ 语音 / 视频通话 ═══
+// 信令走 Supabase 的 calls 表（offer / answer / ice / hangup）。
+// 可靠性要点：
+//  1. offer/answer 发出前先等本机网络地址收集好(最多2.5秒)，把地址直接写进 SDP 里一起发，
+//     不再依赖一条条单独的 ice 行 —— 那些行一旦没写进库/没推送到，通话就永远接不通。
+//  2. 每通电话有自己的 gcSid，旧通话残留的信令一律忽略。
+//  3. 对方的地址先到、描述后到时先排队，不丢。
+//  4. 断线自动重连(ICE restart)，最多 3 次。
+//  5. 除 offer/answer 外的信令写库失败时，自动改用 answer 行携带(gcSig 字段)，保证送达。
+var RTC={pc:null,localStream:null,isCaller:false,callRoom:null,pendingOffer:null,pendingFrom:null,startTime:null,callRecordId:null,callType:'voice',
+  peer:null,sid:null,busy:false,answered:false,connected:false,ending:false,descSent:false,iceIn:[],pending:null,timers:{},
+  restarts:0,restarting:false,retScreen:null,minimized:false,micOff:false,camOff:false,noCam:false,facing:'user',needTap:false,missedQ:[],remoteStream:null,lastPeer:null};
 var ICE={iceServers:[
   // Google免费STUN（全球最稳定）
   {urls:'stun:stun.l.google.com:19302'},
   {urls:'stun:stun1.l.google.com:19302'},
   {urls:'stun:stun2.l.google.com:19302'},
-  {urls:'stun:stun3.l.google.com:19302'},
-  {urls:'stun:stun4.l.google.com:19302'},
   // Cloudflare STUN
   {urls:'stun:stun.cloudflare.com:3478'},
   // Twilio STUN
@@ -7395,7 +7428,9 @@ var ICE={iceServers:[
 // 不填的话会自动使用上面的公共TURN作为兜底（不稳定但能用）。
 var METERED_APP='ghostchat88';     // 例如 'ghostchat' -> 对应 https://ghostchat.metered.live
 var METERED_API_KEY='12jRYlmtbX7D_DFkmtkVGGi4nR5LTMBDNeAfDtRmZmD3n2MT';
+var _gcIceCache=null,_gcIceCacheAt=0;
 async function getIceServers(){
+  if(_gcIceCache&&Date.now()-_gcIceCacheAt<20*60*1000)return _gcIceCache;
   // 尝试Metered TURN（带3秒超时）
   if(METERED_APP&&METERED_API_KEY){
     try{
@@ -7412,11 +7447,11 @@ async function getIceServers(){
           // 把Google STUN也加进去，提高成功率
           var combined=servers.concat([
             {urls:'stun:stun.l.google.com:19302'},
-            {urls:'stun:stun1.l.google.com:19302'},
             {urls:'stun:stun.cloudflare.com:3478'}
           ]);
           console.log('[ICE] Using Metered TURN + Google STUN');
-          return {iceServers:combined};
+          _gcIceCache={iceServers:combined};_gcIceCacheAt=Date.now();
+          return _gcIceCache;
         }
       }
     }catch(e){console.log('[ICE] Metered failed, using fallback:',e&&e.message);}
@@ -7452,52 +7487,249 @@ async function checkCallQuota(){
   }
   return remain;
 }
+
+// ── 小工具 ──
+function _gcCallEl(id){return document.getElementById(id);}
+function _gcFmtDur(sec){sec=Math.max(0,sec|0);var m=Math.floor(sec/60),s=sec%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;}
+function _gcNewSid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function _gcRoomOf(a,b){return [String(a),String(b)].sort().join('_call');}
+function _gcCallLocked(){try{return typeof _gcIsLocked==='function'&&_gcIsLocked();}catch(e){return false;}}
+function _gcCallSetSt(t){['callSt','vidSt'].forEach(function(id){var e=_gcCallEl(id);if(e)e.textContent=t;});}
+function _gcCallToast(msg,ms){
+  if(_gcCallLocked())return;
+  try{
+    var t=_gcCallEl('gcCallToast');
+    if(!t){t=document.createElement('div');t.id='gcCallToast';
+      t.style.cssText='position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 58px);transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;padding:9px 16px;border-radius:18px;font-size:14px;z-index:950;pointer-events:none;transition:opacity .25s;opacity:0;max-width:80vw;text-align:center;';
+      document.body.appendChild(t);}
+    t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';},ms||2400);
+  }catch(e){}
+}
+function _gcPeerName(id){
+  id=String(id);var n=null;
+  try{
+    var f=G.friends;
+    if(Array.isArray(f))f.forEach(function(x){if(String(x.friend_id||x.id)===id)n=x.nickname||x.name||n;});
+    else if(f&&f[id])n=f[id].nickname||f[id].name||null;
+  }catch(e){}
+  return n||id;
+}
+async function _gcPeerNameAsync(id){
+  try{
+    var fr=await _sb.from('friends').select('nickname').eq('user_id',String(myId)).eq('friend_id',String(id)).maybeSingle();
+    if(fr&&fr.data&&fr.data.nickname)return fr.data.nickname;
+    var u=await _sb.from('users').select('name').eq('id',parseInt(id)||0).maybeSingle();
+    if(u&&u.data&&u.data.name)return u.data.name;
+  }catch(e){}
+  return null;
+}
+function _gcNameInto(id,ids,avIds){
+  var put=function(n){
+    n=String(n||id);
+    ids.forEach(function(k){var e=_gcCallEl(k);if(e)e.textContent=n;});
+    avIds.forEach(function(k){var e=_gcCallEl(k);if(e)e.textContent=(n[0]||'?').toUpperCase();});
+  };
+  var n=_gcPeerName(id);put(n);
+  if(n===String(id))_gcPeerNameAsync(id).then(function(x){if(x)put(x);});
+  return n;
+}
+function _gcSetPeerUI(id){_gcNameInto(id,['callNm','vidNm','vidWaitNm'],['callAv','vidAv']);}
+
+// ── 信令收发 ──
+var _gcNativeBad={};
+function _gcSend(room,type,obj){
+  if(!room)return Promise.resolve({error:'no room'});
+  var mk=function(t,o){return {room_id:room,type:t,data:JSON.stringify(o||{}),sender:String(myId)};};
+  var viaAnswer=function(){return _sb.from('calls').insert(mk('answer',Object.assign({},obj||{},{gcSig:type})));};
+  try{
+    if(_gcNativeBad[type])return Promise.resolve(viaAnswer());
+    return Promise.resolve(_sb.from('calls').insert(mk(type,obj))).then(function(r){
+      if(r&&r.error&&type!=='offer'&&type!=='answer'){
+        // 数据库不收这种类型的行时，装进 answer 行里送达（旧版本会把它当成无效 answer 忽略掉）
+        console.log('[Call] '+type+' row rejected, using fallback:',r.error.message||r.error);
+        _gcNativeBad[type]=true;return viaAnswer();
+      }
+      return r;
+    }).catch(function(e){console.log('[Call] send err',type,e&&e.message);return {error:e};});
+  }catch(e){return Promise.resolve({error:e});}
+}
+function _gcSendX(room,kind,obj){return _gcSend(room,'answer',Object.assign({},obj||{},{gcSig:kind}));}
+function _gcParseSig(row){
+  var d=null;
+  try{d=typeof row.data==='string'?JSON.parse(row.data):row.data;}catch(e){}
+  if(!d||typeof d!=='object')d={};
+  var k=row.type;if(k==='answer'&&d.gcSig)k=d.gcSig;
+  return {k:k,d:d};
+}
+// 等本机网络地址收集完（拿到中继地址后再等0.4秒，最多等 ms 毫秒）
+function _gcWaitIce(pc,ms){
+  return new Promise(function(res){
+    if(!pc||pc.iceGatheringState==='complete')return res();
+    var done=false,relayT=null;
+    var fin=function(){if(done)return;done=true;clearTimeout(t);clearTimeout(relayT);
+      try{pc.removeEventListener('icegatheringstatechange',chk);pc.removeEventListener('icecandidate',cand);}catch(e){}res();};
+    var chk=function(){if(pc.iceGatheringState==='complete')fin();};
+    var cand=function(e){if(e.candidate&&/ typ relay/.test(e.candidate.candidate||'')&&!relayT)relayT=setTimeout(fin,400);};
+    var t=setTimeout(fin,ms||2500);
+    pc.addEventListener('icegatheringstatechange',chk);pc.addEventListener('icecandidate',cand);
+  });
+}
+
+// ── 媒体 ──
+function _gcIsMediaErr(e){return !!(e&&/^(NotAllowed|Security|NotFound|Overconstrained|NotReadable|Abort|NotSupported)/.test(e.name||''));}
+function _gcMediaErr(e){
+  var n=e&&e.name;
+  if(n==='NotAllowedError'||n==='SecurityError')return '没有麦克风/摄像头权限，请在系统设置里允许后再试';
+  if(n==='NotFoundError'||n==='OverconstrainedError')return '没有找到可用的麦克风/摄像头';
+  if(n==='NotReadableError'||n==='AbortError')return '麦克风/摄像头正被其他App占用';
+  return '无法打开麦克风/摄像头：'+((e&&e.message)||e);
+}
+async function _gcGetMedia(video){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){var er=new Error('当前环境不支持通话');er.name='NotSupported';throw er;}
+  var a={echoCancellation:true,noiseSuppression:true,autoGainControl:true};
+  RTC.noCam=false;
+  if(!video)return navigator.mediaDevices.getUserMedia({audio:a,video:false});
+  try{
+    return await navigator.mediaDevices.getUserMedia({audio:a,video:{facingMode:'user',width:{ideal:640},height:{ideal:480},frameRate:{ideal:24,max:30}}});
+  }catch(e){
+    // 摄像头不行就只用麦克风，照样能接通、能看到对方
+    try{var s=await navigator.mediaDevices.getUserMedia({audio:a,video:false});RTC.noCam=true;return s;}catch(e2){throw e;}
+  }
+}
+function _gcPlay(el){try{var p=el.play();if(p&&p.catch)return p;}catch(e){return Promise.reject(e);}return Promise.resolve();}
+// 在用户点按的那一刻"解锁"声音（iOS 必须在手势里开始播放）
+var _gcRb={ctx:null,iv:null};
+function _gcUnlockAudio(){
+  try{var C=window.AudioContext||window.webkitAudioContext;if(C){if(!_gcRb.ctx)_gcRb.ctx=new C();if(_gcRb.ctx.state==='suspended')_gcRb.ctx.resume();}}catch(e){}
+  try{var ra=_gcCallEl('remoteAudio');if(ra){ra.muted=false;_gcPlay(ra).catch(function(){});}}catch(e){}
+}
+function _gcKickAudio(){
+  var ra=_gcCallEl('remoteAudio'),rv=_gcCallEl('remoteVideo');
+  if(rv&&rv.srcObject)_gcPlay(rv).catch(function(){});
+  if(ra&&ra.srcObject)_gcPlay(ra).then(function(){
+    if(RTC.needTap){RTC.needTap=false;_gcCallSetSt(RTC.connected?'通话中':'正在连接…');}
+  }).catch(function(){RTC.needTap=true;_gcCallSetSt('轻点屏幕开启声音');});
+}
+function _gcAttachRemote(s){
+  var ra=_gcCallEl('remoteAudio'),rv=_gcCallEl('remoteVideo');
+  if(ra&&ra.srcObject!==s){ra.srcObject=s;}
+  // 声音只从 remoteAudio 出，视频元素静音，避免同一路声音放两遍
+  if(rv){rv.muted=true;if(rv.srcObject!==s)rv.srcObject=s;}
+  _gcKickAudio();
+}
+function _gcAttachLocal(){
+  var lv=_gcCallEl('localVideo');if(!lv)return;
+  lv.muted=true;lv.srcObject=RTC.localStream;
+  lv.style.transform=RTC.facing==='user'?'scaleX(-1)':'none';
+  lv.style.display=(RTC.callType==='video'&&!RTC.noCam&&!RTC.camOff)?'':'none';
+  _gcPlay(lv).catch(function(){});
+}
+function _gcHasRemoteVideo(){
+  var s=RTC.remoteStream;if(!s)return false;
+  return s.getVideoTracks().some(function(t){return t.readyState==='live'&&!t.muted;});
+}
+function _gcVidWait(){
+  var w=_gcCallEl('vidWait');if(!w||RTC.callType!=='video')return;
+  var show=!RTC.connected||!_gcHasRemoteVideo();
+  w.style.display=show?'flex':'none';
+  if(RTC.connected&&show)_gcCallSetSt('对方未开启摄像头');
+}
+// 呼叫时的"嘟…嘟…"回铃音
+function _gcRingback(on){
+  try{
+    if(!on){if(_gcRb.iv){clearInterval(_gcRb.iv);_gcRb.iv=null;}return;}
+    if(_gcRb.iv||!_gcRb.ctx)return;
+    var ctx=_gcRb.ctx;if(ctx.state==='suspended')ctx.resume();
+    var beep=function(){try{var o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=450;g.gain.value=0.06;o.connect(g);g.connect(ctx.destination);var t=ctx.currentTime;o.start(t);o.stop(t+1);}catch(e){}};
+    beep();_gcRb.iv=setInterval(beep,4000);
+  }catch(e){}
+}
+var _gcWake=null;
+function _gcWakeLock(on){
+  try{
+    if(on){if(!_gcWake&&navigator.wakeLock&&navigator.wakeLock.request)navigator.wakeLock.request('screen').then(function(w){_gcWake=w;}).catch(function(){});}
+    else if(_gcWake){_gcWake.release();_gcWake=null;}
+  }catch(e){}
+}
+
+// ── 连接 ──
 async function createPC(){
-  var iceServers=await getIceServers();
-  var pc=new RTCPeerConnection(iceServers);
+  var cfg=await getIceServers();
+  var pc=new RTCPeerConnection({iceServers:cfg.iceServers,iceCandidatePoolSize:2});
+  var remote=new MediaStream();RTC.remoteStream=remote;
   pc.ontrack=function(e){
-    console.log('ontrack fired, streams:',e.streams.length);
-    var ra=document.getElementById('remoteAudio');
-    if(ra&&e.streams[0]){
-      ra.srcObject=e.streams[0];
-      // iOS需要用户手势才能播放
-      ra.play().then(function(){
-        console.log('Audio playing!');
-      }).catch(function(err){
-        console.log('Audio play error:',err.message);
-        // 显示播放按钮让用户手动触发
-        document.getElementById('callSt').textContent='Tap to enable audio';
-      });
+    if(pc!==RTC.pc)return;
+    var s=(e.streams&&e.streams[0])||null;
+    if(!s){try{remote.addTrack(e.track);}catch(x){}s=remote;}
+    RTC.remoteStream=s;
+    _gcAttachRemote(s);
+    if(e.track&&e.track.kind==='video'){
+      e.track.onunmute=function(){_gcVidWait();};
+      e.track.onmute=function(){_gcVidWait();};
+      e.track.onended=function(){_gcVidWait();};
     }
-    var rv=document.getElementById('remoteVideo');
-    if(rv&&e.streams[0])rv.srcObject=e.streams[0];
+    _gcVidWait();
   };
   pc.onicecandidate=function(e){
-    if(e.candidate){
-      console.log('ICE candidate:',e.candidate.type);
-      _sb.from('calls').insert({room_id:RTC.callRoom,type:'ice',data:JSON.stringify(e.candidate),sender:myId});
-    }
+    if(pc!==RTC.pc||!e.candidate)return;
+    // 描述还没发出去之前收集到的地址已经写进 SDP 里了，不用再单独发
+    if(!RTC.descSent)return;
+    var c=e.candidate.toJSON?e.candidate.toJSON():{candidate:e.candidate.candidate,sdpMid:e.candidate.sdpMid,sdpMLineIndex:e.candidate.sdpMLineIndex};
+    _gcSend(RTC.callRoom,'ice',Object.assign({},c,{gcSid:RTC.sid}));
   };
-  pc.oniceconnectionstatechange=function(){
-    console.log('ICE state:',pc.iceConnectionState);
-    var st=document.getElementById('callSt');
-    if(st){
-      if(pc.iceConnectionState==='checking'){
-        st.textContent='正在连接...';
-      } else if(pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
-        st.textContent='Connected';
-        startCallTimer();
-        RTC.startTime=new Date();
-        logActiveCandidatePair(pc);
-      } else if(pc.iceConnectionState==='failed'){
-        st.textContent='连接失败，请检查网络后重试';
-        logIceFailureDetails(pc);
-      } else if(pc.iceConnectionState==='disconnected'){
-        st.textContent='网络不稳定，正在重连...';
-      }
-    }
-  };
+  var onState=function(){if(pc===RTC.pc)_gcOnConnState(pc);};
+  pc.oniceconnectionstatechange=onState;
+  pc.onconnectionstatechange=onState;
   return pc;
+}
+function _gcOnConnState(pc){
+  var s=pc.iceConnectionState,cs=pc.connectionState;
+  console.log('ICE state:',s,cs);
+  if(s==='connected'||s==='completed'||cs==='connected'){
+    clearTimeout(RTC.timers.discon);clearTimeout(RTC.timers.connect);
+    RTC.restarting=false;
+    if(!RTC.connected){
+      RTC.connected=true;RTC.answered=true;
+      if(!RTC.startTime)RTC.startTime=new Date();
+      clearTimeout(RTC.timers.ring);_gcRingback(false);
+      startCallTimer();logActiveCandidatePair(pc);_gcKickAudio();_gcWakeLock(true);
+    }
+    if(!RTC.needTap)_gcCallSetSt('通话中');
+    _gcVidWait();
+  }else if(s==='checking'){
+    if(!RTC.connected)_gcCallSetSt('正在连接…');
+  }else if(s==='disconnected'){
+    _gcCallSetSt('网络不稳定，正在重连…');
+    clearTimeout(RTC.timers.discon);
+    RTC.timers.discon=setTimeout(function(){if(pc===RTC.pc&&pc.iceConnectionState==='disconnected')_gcIceRestart();},4000);
+  }else if(s==='failed'||cs==='failed'){
+    logIceFailureDetails(pc);
+    _gcIceRestart();
+  }
+}
+// 断线重连：主叫方重新协商网络路径；被叫方请主叫方来做
+async function _gcIceRestart(){
+  var pc=RTC.pc;if(!pc||RTC.ending||RTC.restarting)return;
+  if(RTC.restarts>=3){
+    _gcFinish('failed',RTC.connected?'网络中断，通话已结束':'连接失败，请检查网络后重试');
+    return;
+  }
+  RTC.restarts++;RTC.restarting=true;
+  setTimeout(function(){if(pc===RTC.pc)RTC.restarting=false;},8000);
+  _gcCallSetSt('网络不稳定，正在重连…');
+  try{
+    if(!RTC.isCaller){_gcSendX(RTC.callRoom,'restartreq',{gcSid:RTC.sid});return;}
+    if(pc.signalingState!=='stable')return;
+    RTC.descSent=false;
+    if(pc.restartIce)try{pc.restartIce();}catch(e){}
+    var o=await pc.createOffer({iceRestart:true});
+    await pc.setLocalDescription(o);
+    await _gcWaitIce(pc,2500);
+    if(pc!==RTC.pc)return;
+    RTC.descSent=true;
+    var d=pc.localDescription;
+    await _gcSendX(RTC.callRoom,'reoffer',{type:'offer',sdp:d.sdp,gcSid:RTC.sid});
+  }catch(e){console.log('[Call] restart err',e&&e.message);RTC.descSent=true;}
 }
 
 // 诊断：连接成功后查看实际使用的是直连/STUN/TURN中转，便于排查跨国连不上的问题
@@ -7528,196 +7760,381 @@ async function logIceFailureDetails(pc){
   }catch(e){console.log('getStats err',e&&e.message);}
 }
 
+// ── 界面 ──
+function _gcShowCallScreen(){
+  var a=document.querySelector('.screen.active');
+  if(a&&a.id!=='callscr'&&a.id!=='vidscr'&&!RTC.retScreen)RTC.retScreen=a.id;
+  RTC.minimized=false;
+  show(RTC.callType==='video'?'vidscr':'callscr');
+  _gcSyncCallBtns();_gcVidWait();_gcIncSync();
+}
+function _gcSyncCallBtns(){
+  var mic=RTC.micOff?'🔇':'🎤';
+  var b=_gcCallEl('micBtn');if(b)b.textContent=mic;
+  var l=_gcCallEl('mute-lbl');if(l)l.textContent=RTC.micOff?'已静音':'静音';
+  var vb=_gcCallEl('vidMicBtn');if(vb){vb.textContent=mic;vb.style.background=RTC.micOff?'#fff':'rgba(44,44,46,.9)';}
+  var cb=_gcCallEl('vidCamBtn');if(cb){cb.textContent=(RTC.camOff||RTC.noCam)?'🚫':'📷';cb.style.background=(RTC.camOff||RTC.noCam)?'#fff':'rgba(44,44,46,.9)';}
+  var lv=_gcCallEl('localVideo');if(lv)lv.style.display=(RTC.callType==='video'&&RTC.localStream&&!RTC.noCam&&!RTC.camOff)?'':'none';
+}
+function _gcResetCallUI(){
+  RTC.micOff=false;RTC.camOff=false;RTC.facing='user';RTC.needTap=false;
+  var t=_gcCallEl('callTimer');if(t)t.textContent='';
+  var vt=_gcCallEl('vidTime');if(vt)vt.textContent='00:00';
+  _gcSyncCallBtns();
+}
+// 语音通话中收起到聊天，顶部留一个"通话中"小条，点一下回来
+function _gcCallMinimize(){
+  if(!RTC.pc&&!RTC.busy)return;
+  RTC.minimized=true;
+  var ret=RTC.retScreen;if(!ret||ret==='callscr'||ret==='vidscr')ret=G.chat?'chat':'main';
+  show(ret);
+}
+function _gcCallRestore(){
+  if(!RTC.pc&&!RTC.busy){RTC.minimized=false;_gcIncSync();return;}
+  _gcShowCallScreen();
+}
+// 来电弹窗 / 通话小条 的显示状态统一在这里算：伪装/锁定时一律不显示，解锁后再出现
+function _gcIncSync(){
+  var lock=_gcCallLocked();
+  var el=_gcCallEl('incCall');
+  if(el){
+    var on=!!RTC.pending&&!lock;
+    if(on&&!el.classList.contains('on')){try{if(navigator.vibrate)navigator.vibrate([300,200,300]);}catch(e){}}
+    el.classList.toggle('on',on);
+  }
+  var pill=_gcCallEl('gcCallPill');
+  if(pill){
+    var a=(document.querySelector('.screen.active')||{}).id;
+    pill.style.display=(RTC.minimized&&(RTC.pc||RTC.busy)&&!lock&&a!=='callscr'&&a!=='vidscr')?'flex':'none';
+  }
+  if(!lock&&RTC.missedQ.length){var m=RTC.missedQ;RTC.missedQ=[];setTimeout(function(){_gcCallToast('📞 未接来电：'+m.join('、'),3500);},300);}
+}
+function _gcLeaveCallScreen(){
+  if(RTC.pc||RTC.busy)return; // 期间又开始了新的通话
+  RTC.minimized=false;
+  var ret=RTC.retScreen;RTC.retScreen=null;
+  if(!ret||ret==='callscr'||ret==='vidscr')ret=G.chat?'chat':'main';
+  if(_gcCallLocked()){
+    // 在伪装界面时不动界面，只把解锁后要回去的地方改掉（不能回到已经结束的通话界面）
+    try{if(typeof _lockReturnScreen!=='undefined'&&(_lockReturnScreen==='callscr'||_lockReturnScreen==='vidscr'))_lockReturnScreen=(ret==='chat'&&G.chat)?('chat:'+G.chat):ret;}catch(e){}
+    _gcIncSync();return;
+  }
+  var a=document.querySelector('.screen.active');
+  if(a&&(a.id==='callscr'||a.id==='vidscr'))show(ret);
+  _gcIncSync();
+}
+
+// ── 发起 ──
 async function initiateCall(name,isVideo){
-  if(RTC.pc){endCall();return;}
-  var remain=await checkCallQuota();
-  if(remain<0)return;
-  RTC.quotaRemainingSec=remain*60;
-  RTC.isCaller=true;
-  RTC.callType=isVideo?'video':'voice';
-  RTC.callRoom=[String(myId),String(name)].sort().join('_call');
-  RTC.sigSince=new Date(Date.now()-1000).toISOString();
+  if(RTC.pc||RTC.busy){_gcShowCallScreen();return;}
+  if(RTC.pending){_gcCallToast('有来电，请先接听或拒接');return;}
+  if(!name||!myId)return;
+  name=String(name);
+  _gcUnlockAudio();
+  RTC.busy=true;RTC.ending=false;RTC.isCaller=true;RTC.answered=false;RTC.connected=false;RTC.descSent=false;RTC.iceIn=[];RTC.restarts=0;RTC.restarting=false;
+  RTC.peer=name;RTC.lastPeer=name;RTC.callType=isVideo?'video':'voice';RTC.sid=_gcNewSid();
+  RTC.callRoom=_gcRoomOf(myId,name);RTC.startTime=null;
+  RTC.sigSince=new Date(Date.now()-5000).toISOString();
+  RTC.retScreen=null;_gcResetCallUI();_gcSetPeerUI(name);
+  _gcCallSetSt('正在呼叫…');
+  _gcShowCallScreen();
+  var sid=RTC.sid;
+  var alive=function(){return RTC.busy&&RTC.sid===sid&&!RTC.ending;};
   try{
-    var constraints={audio:{echoCancellation:true,noiseSuppression:true,sampleRate:44100},video:isVideo};
-    RTC.localStream=await navigator.mediaDevices.getUserMedia(constraints);
-    console.log('Local stream tracks:',RTC.localStream.getTracks().length);
-    if(isVideo){var lv=document.getElementById('localVideo');if(lv)lv.srcObject=RTC.localStream;}
+    var remain=await checkCallQuota();
+    if(!alive())return;
+    if(remain<0){_gcCleanup();_gcLeaveCallScreen();return;}
+    RTC.quotaRemainingSec=remain*60;
+    var stream=await _gcGetMedia(isVideo);
+    if(!alive()){stream.getTracks().forEach(function(t){t.stop();});return;}
+    RTC.localStream=stream;_gcAttachLocal();_gcSyncCallBtns();
     RTC.pc=await createPC();
-    RTC.localStream.getTracks().forEach(function(t){
-      console.log('Adding track:',t.kind);
-      RTC.pc.addTrack(t,RTC.localStream);
-    });
-    var offer=await RTC.pc.createOffer({offerToReceiveAudio:true,offerToReceiveVideo:isVideo});
-    await RTC.pc.setLocalDescription(offer);
-    console.log('Offer created, sending...');
-    await _sb.from('calls').insert({room_id:RTC.callRoom,type:'offer',data:JSON.stringify(offer),sender:String(myId)});
+    if(!alive())return;
+    RTC.localStream.getTracks().forEach(function(t){RTC.pc.addTrack(t,RTC.localStream);});
+    if(isVideo&&RTC.noCam)RTC.pc.addTransceiver('video',{direction:'recvonly'});
     subCallSig();
-    document.getElementById('callAv').textContent=name[0]||'?';
-    document.getElementById('callNm').textContent=name;
-    document.getElementById('callSt').textContent='Calling...';
-    if(isVideo){document.getElementById('vidNm').textContent=name;show('vidscr');}
-    else show('callscr');
+    var offer=await RTC.pc.createOffer({offerToReceiveAudio:true,offerToReceiveVideo:!!isVideo});
+    await RTC.pc.setLocalDescription(offer);
+    await _gcWaitIce(RTC.pc,2500);
+    if(!alive())return;
+    RTC.descSent=true;
+    var d=RTC.pc.localDescription;
+    var r=await _gcSend(RTC.callRoom,'offer',{type:'offer',sdp:d.sdp,gcVideo:!!isVideo,gcSid:sid});
+    if(r&&r.error)throw new Error((r.error&&r.error.message)||'网络错误');
+    if(!alive())return;
+    if(!RTC.answered){_gcCallSetSt(isVideo?'等待对方接受视频通话…':'等待对方接听…');_gcRingback(true);}
+    RTC.timers.ring=setTimeout(function(){if(alive()&&!RTC.answered)_gcFinish('timeout','对方无人接听');},45000);
   }catch(e){
-    alert('Cannot access mic/camera: '+e.message);
     console.log('Call error:',e);
+    if(!alive())return;
+    _gcFinish('error',_gcIsMediaErr(e)?_gcMediaErr(e):('呼叫失败：'+((e&&e.message)||e)));
   }
 }
 
+// ── 收信令 ──
 var _callSigSub=null;
 var _processedSigIds={};
 function subCallSig(){
   if(_callSigSub){try{_callSigSub.unsubscribe();}catch(e){}}
   _processedSigIds={};
-  _callSigSub=_sb.channel('call:'+RTC.callRoom+'_'+Date.now())
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'calls',filter:'room_id=eq.'+RTC.callRoom},function(payload){
+  var room=RTC.callRoom;
+  _callSigSub=_sb.channel('call:'+room+'_'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'calls',filter:'room_id=eq.'+room},function(payload){
       var msg=payload.new;
       if(!msg||String(msg.sender)===String(myId))return;
       if(_processedSigIds[msg.id])return;
       _processedSigIds[msg.id]=true;
-      handleCallSig(payload);
+      handleCallSig(payload,false);
     })
     .subscribe(function(s){
       console.log('Call sig channel:',s);
       if(s==='SUBSCRIBED')loadExistingCallSig();
     });
 }
-// 补上"我订阅之前对方已经发出"的信令（尤其是对方在我接听前就生成的ICE候选），
-// 否则在接听耗时较长时这些候选会被漏掉，导致ICE协商失败、即使同一局域网也连不上
+// 补上"我订阅之前对方已经发出"的信令
 async function loadExistingCallSig(){
   try{
     var since=RTC.sigSince||new Date(Date.now()-30000).toISOString();
     var res=await _sb.from('calls').select('*').eq('room_id',RTC.callRoom).gte('created_at',since).order('created_at',{ascending:true});
-    if(!res.data)return;
-    res.data.forEach(function(row){
-      if(String(row.sender)===String(myId))return;
-      if(row.type!=='answer'&&row.type!=='ice')return;
-      if(_processedSigIds[row.id])return;
+    if(!res||!res.data)return;
+    for(var i=0;i<res.data.length;i++){
+      var row=res.data[i];
+      if(String(row.sender)===String(myId)||row.type==='offer')continue;
+      if(_processedSigIds[row.id])continue;
       _processedSigIds[row.id]=true;
-      handleCallSig({new:row});
-    });
+      await handleCallSig({new:row},true);
+    }
   }catch(e){console.log('loadExistingCallSig err',e&&e.message);}
 }
-
-async function handleCallSig(payload){
-  var msg=payload.new;
-  if(!msg||String(msg.sender)===String(myId))return;
-  console.log('Call signal received:',msg.type);
-  if(msg.type==='answer'&&RTC.pc){
-    try{
-      await RTC.pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(msg.data)));
+function _gcDrainIce(){
+  var pc=RTC.pc;if(!pc||!pc.remoteDescription)return;
+  var q=RTC.iceIn;RTC.iceIn=[];
+  q.forEach(function(c){pc.addIceCandidate(c).catch(function(e){console.log('addIceCandidate error:',e&&e.message);});});
+}
+async function handleCallSig(payload,fromHistory){
+  var row=payload&&payload.new;
+  if(!row||String(row.sender)===String(myId))return;
+  var s=_gcParseSig(row),k=s.k,d=s.d;
+  if(d.gcSid&&RTC.sid&&d.gcSid!==RTC.sid)return; // 别的(旧的)通话留下的
+  if(k==='offer')return; // 来电统一由 listenForCalls 处理
+  var pc=RTC.pc;
+  try{
+    if(k==='hangup'){
+      if(!RTC.busy&&!pc)return;
+      // 历史记录里没有通话编号的挂断信号无法确认是不是这一通的，忽略
+      if(fromHistory&&!(d.gcSid&&d.gcSid===RTC.sid))return;
+      var why=d.reason||'';
+      if(RTC.connected)_gcFinish('remote','对方已挂断',true);
+      else if(RTC.isCaller)_gcFinish(why==='busy'?'busy':why==='rejected'?'rejected':'remote',why==='busy'?'对方忙线中，请稍后再拨':why==='rejected'?'对方已拒绝':'对方已挂断',true);
+      else _gcFinish('remote','对方已取消',true);
+      return;
+    }
+    if(!pc)return;
+    if(k==='answer'){
+      if(!RTC.isCaller||pc.signalingState!=='have-local-offer'||!d.sdp)return;
+      await pc.setRemoteDescription({type:'answer',sdp:d.sdp});
       console.log('Remote description set (answer)');
-    }catch(e){console.log('setRemoteDesc error:',e);}
+      RTC.answered=true;clearTimeout(RTC.timers.ring);_gcRingback(false);
+      if(!RTC.connected)_gcCallSetSt('正在连接…');
+      clearTimeout(RTC.timers.connect);
+      RTC.timers.connect=setTimeout(function(){if(pc===RTC.pc&&!RTC.connected)_gcIceRestart();},20000);
+      _gcDrainIce();
+      return;
+    }
+    if(k==='ice'){
+      var c={candidate:d.candidate,sdpMid:d.sdpMid,sdpMLineIndex:d.sdpMLineIndex};
+      if(d.usernameFragment)c.usernameFragment=d.usernameFragment;
+      if(typeof c.candidate!=='string')return;
+      if(!pc.remoteDescription){RTC.iceIn.push(c);return;}
+      await pc.addIceCandidate(c).catch(function(e){console.log('addIceCandidate error:',e&&e.message);});
+      return;
+    }
+    if(k==='reoffer'&&!RTC.isCaller&&d.sdp){
+      await pc.setRemoteDescription({type:'offer',sdp:d.sdp});
+      RTC.descSent=false;
+      var a=await pc.createAnswer();
+      await pc.setLocalDescription(a);
+      await _gcWaitIce(pc,2500);
+      if(pc!==RTC.pc)return;
+      RTC.descSent=true;
+      _gcSendX(RTC.callRoom,'reanswer',{type:'answer',sdp:pc.localDescription.sdp,gcSid:RTC.sid});
+      _gcDrainIce();
+      return;
+    }
+    if(k==='reanswer'&&RTC.isCaller&&d.sdp){
+      if(pc.signalingState==='have-local-offer')await pc.setRemoteDescription({type:'answer',sdp:d.sdp});
+      _gcDrainIce();
+      return;
+    }
+    if(k==='restartreq'&&RTC.isCaller){RTC.restarting=false;_gcIceRestart();return;}
+  }catch(e){console.log('[Call] signal '+k+' error:',e&&e.message);}
+}
+
+// ── 来电 ──
+function _gcOnCallRow(row){
+  if(!row||!myId||String(row.sender)===String(myId))return;
+  var parts=(row.room_id||'').split('_call');
+  if(parts.length!==2||parts.indexOf(String(myId))<0||parts.indexOf(String(row.sender))<0)return;
+  var s=_gcParseSig(row);
+  if(row.type==='offer'&&s.k==='offer'){_gcIncomingOffer(String(row.sender),s.d,row.created_at,row.room_id);return;}
+  if(s.k==='hangup'){
+    var p=RTC.pending;
+    if(p&&p.room===row.room_id&&(!s.d.gcSid||!p.sid||s.d.gcSid===p.sid))_gcMissed(p);
   }
-  if(msg.type==='ice'&&RTC.pc){
-    try{
-      var candidate=new RTCIceCandidate(JSON.parse(msg.data));
-      await RTC.pc.addIceCandidate(candidate);
-      console.log('ICE candidate added');
-    }catch(e){console.log('addIceCandidate error:',e);}
-  }
-  if(msg.type==='offer'&&!RTC.pc){try{showIncoming(msg.sender,JSON.parse(msg.data),msg.created_at);}catch(e){console.log('[Call] malformed offer data (handleCallSig), ignored:',e&&e.message);}}
-  if(msg.type==='hangup'){
-    console.log('Remote hangup received at:',msg.created_at);
-    // 忽略超过10秒的旧hangup信号
-    var msgTime=new Date(msg.created_at).getTime();
-    var now=Date.now();
-    if(now-msgTime<10000){
-      endCall();
-    } else {
-      console.log('Ignoring old hangup, age:'+(now-msgTime)+'ms');
+}
+function _gcIncomingOffer(from,offer,createdAt,room){
+  if(!offer||!offer.sdp)return;
+  var sid=offer.gcSid||null;
+  var video=!!offer.gcVideo||/\nm=video [1-9]/.test(offer.sdp);
+  if(RTC.pc||RTC.busy){
+    if(room===RTC.callRoom){
+      if(sid&&sid===RTC.sid)return;
+      if(RTC.isCaller&&!RTC.answered){
+        // 两人同时拨给对方：ID大的一方让步，改为接听对方的来电
+        if(String(myId)>String(from)){_gcSend(room,'hangup',{reason:'cancel',gcSid:RTC.sid});_gcCleanup();_gcLeaveCallScreen();}
+        else return;
+      }else{
+        // 对方掉线后重新拨过来：结束这边残留的通话，接新的
+        _gcCleanup();_gcLeaveCallScreen();
+      }
+    }else{
+      _gcSend(room,'hangup',{reason:'busy',gcSid:sid});
+      return;
     }
   }
+  if(RTC.pending&&RTC.pending.room!==room){_gcSend(room,'hangup',{reason:'busy',gcSid:sid});return;}
+  if(RTC.pending&&sid&&RTC.pending.sid===sid)return;
+  var p={from:String(from),offer:offer,sid:sid,room:room,video:video,createdAt:createdAt,at:Date.now()};
+  RTC.pending=p;RTC.pendingFrom=p.from;RTC.pendingOffer=offer;
+  clearTimeout(RTC.timers.incExpire);
+  RTC.timers.incExpire=setTimeout(function(){if(RTC.pending===p)_gcMissed(p);},50000);
+  _gcNameInto(p.from,['incNm'],['incAv']);
+  var it=_gcCallEl('incType');if(it)it.textContent=video?'邀请你视频通话…':'邀请你语音通话…';
+  var vb=_gcCallEl('incVoiceBtn');if(vb)vb.style.display=video?'':'none';
+  getIceServers().catch(function(){});
+  _gcIncSync();
 }
-
+// 兼容旧调用
 function showIncoming(from,offer,createdAt){
-  RTC.pendingFrom=from;RTC.pendingOffer=offer;RTC.sigSince=createdAt||new Date().toISOString();
-  document.getElementById('incAv').textContent=String(from)[0]||'?';
-  document.getElementById('incNm').textContent=from;
-  document.getElementById('incCall').classList.add('on');
+  _gcIncomingOffer(String(from),offer,createdAt,_gcRoomOf(myId,from));
 }
-
-async function acceptCall(){
-  var remain=await checkCallQuota();
-  if(remain<0){rejectCall();return;}
-  RTC.quotaRemainingSec=remain*60;
-  document.getElementById('incCall').classList.remove('on');
-  RTC.isCaller=false;
-  RTC.callType='voice';
-  RTC.callRoom=[String(myId),String(RTC.pendingFrom)].sort().join('_call');
-  try{
-    var constraints={audio:{echoCancellation:true,noiseSuppression:true,sampleRate:44100},video:false};
-    RTC.localStream=await navigator.mediaDevices.getUserMedia(constraints);
-    console.log('Local stream for answer:',RTC.localStream.getTracks().length);
-    RTC.pc=await createPC();
-    RTC.localStream.getTracks().forEach(function(t){
-      console.log('Adding track for answer:',t.kind);
-      RTC.pc.addTrack(t,RTC.localStream);
-    });
-    await RTC.pc.setRemoteDescription(new RTCSessionDescription(RTC.pendingOffer));
-    console.log('Remote description set (offer)');
-    var answer=await RTC.pc.createAnswer();
-    await RTC.pc.setLocalDescription(answer);
-    console.log('Answer created, sending...');
-    await _sb.from('calls').insert({room_id:RTC.callRoom,type:'answer',data:JSON.stringify(answer),sender:String(myId)});
-    subCallSig();
-    document.getElementById('callAv').textContent=String(RTC.pendingFrom)[0]||'?';
-    document.getElementById('callNm').textContent=RTC.pendingFrom;
-    document.getElementById('callSt').textContent='Connecting...';
-    show('callscr');
-    RTC.startTime=new Date();
-  }catch(e){
-    alert('Cannot answer: '+e.message);
-    console.log('Answer error:',e);
-  }
+function _gcMissed(p){
+  if(RTC.pending!==p)return;
+  RTC.pending=null;clearTimeout(RTC.timers.incExpire);
+  RTC.missedQ.push(_gcPeerName(p.from));
+  _gcIncSync();
 }
-
 function rejectCall(){
-  document.getElementById('incCall').classList.remove('on');
-  if(RTC.pendingFrom){
-    var room=[String(myId),String(RTC.pendingFrom)].sort().join('_call');
-    _sb.from('calls').insert({room_id:room,type:'hangup',data:'{}',sender:String(myId)});
-    saveCallRecord(room,RTC.pendingFrom,'rejected',0);
+  var p=RTC.pending;
+  RTC.pending=null;clearTimeout(RTC.timers.incExpire);_gcIncSync();
+  if(p)_gcSend(p.room,'hangup',{reason:'rejected',gcSid:p.sid});
+}
+async function acceptCall(asVoice){
+  var p=RTC.pending;if(!p||RTC.busy||RTC.pc)return;
+  _gcUnlockAudio();
+  RTC.pending=null;clearTimeout(RTC.timers.incExpire);
+  RTC.busy=true;RTC.ending=false;RTC.isCaller=false;RTC.answered=false;RTC.connected=false;RTC.descSent=false;RTC.iceIn=[];RTC.restarts=0;RTC.restarting=false;
+  RTC.peer=p.from;RTC.lastPeer=p.from;RTC.sid=p.sid;RTC.callRoom=p.room;RTC.startTime=null;
+  RTC.pendingFrom=p.from;RTC.pendingOffer=p.offer;
+  var wantVideo=p.video&&asVoice!==true;
+  RTC.callType=wantVideo?'video':'voice';
+  var t0=new Date(p.createdAt||Date.now()).getTime();
+  RTC.sigSince=new Date((isNaN(t0)?Date.now():t0)-15000).toISOString();
+  RTC.retScreen=null;_gcResetCallUI();_gcSetPeerUI(p.from);
+  _gcCallSetSt('正在接通…');
+  _gcShowCallScreen();
+  var sid=RTC.sid,room=RTC.callRoom;
+  var alive=function(){return RTC.busy&&RTC.callRoom===room&&RTC.sid===sid&&!RTC.ending;};
+  try{
+    var remain=await checkCallQuota();
+    if(!alive())return;
+    if(remain<0){_gcSend(room,'hangup',{reason:'rejected',gcSid:sid});_gcCleanup();_gcLeaveCallScreen();return;}
+    RTC.quotaRemainingSec=remain*60;
+    var stream=await _gcGetMedia(wantVideo);
+    if(!alive()){stream.getTracks().forEach(function(t){t.stop();});return;}
+    RTC.localStream=stream;_gcAttachLocal();_gcSyncCallBtns();
+    RTC.pc=await createPC();
+    if(!alive())return;
+    subCallSig();
+    RTC.localStream.getTracks().forEach(function(t){RTC.pc.addTrack(t,RTC.localStream);});
+    await RTC.pc.setRemoteDescription({type:'offer',sdp:p.offer.sdp});
+    if(p.video&&!wantVideo){
+      // 视频来电选了"语音接听"：双方都不传画面
+      RTC.pc.getTransceivers().forEach(function(tr){try{if(tr.receiver&&tr.receiver.track&&tr.receiver.track.kind==='video')tr.direction='inactive';}catch(e){}});
+    }
+    _gcDrainIce();
+    var ans=await RTC.pc.createAnswer();
+    await RTC.pc.setLocalDescription(ans);
+    await _gcWaitIce(RTC.pc,2500);
+    if(!alive())return;
+    RTC.descSent=true;
+    var r=await _gcSend(room,'answer',{type:'answer',sdp:RTC.pc.localDescription.sdp,gcSid:sid});
+    if(r&&r.error)throw new Error((r.error&&r.error.message)||'网络错误');
+    RTC.answered=true;
+    if(!RTC.connected)_gcCallSetSt('正在连接…');
+    RTC.timers.connect=setTimeout(function(){if(alive()&&!RTC.connected)_gcIceRestart();},20000);
+  }catch(e){
+    console.log('Answer error:',e);
+    if(!alive())return;
+    _gcSend(room,'hangup',{reason:'error',gcSid:sid});
+    _gcFinish('error',_gcIsMediaErr(e)?_gcMediaErr(e):('接听失败：'+((e&&e.message)||e)),true);
   }
 }
 
+// ── 计时 ──
 function startCallTimer(){
   if(G.callI)return;
-  G.callI=setInterval(function(){
+  var tick=function(){
     if(!RTC.startTime)return;
     var sec=Math.floor((Date.now()-RTC.startTime.getTime())/1000);
-    var mm=Math.floor(sec/60),ss=sec%60;
-    var t=document.getElementById('callTimer');
-    if(t)t.textContent=(mm<10?'0':'')+mm+':'+(ss<10?'0':'')+ss;
+    var f=_gcFmtDur(sec);
+    var t=_gcCallEl('callTimer');if(t)t.textContent=f;
+    var vt=_gcCallEl('vidTime');if(vt)vt.textContent=f;
+    var pt=_gcCallEl('gcCallPillT');if(pt)pt.textContent='通话中 '+f;
     if(RTC.quotaRemainingSec!=null){
       var left=RTC.quotaRemainingSec-sec;
-      if(left===60){var st=document.getElementById('callSt');if(st)st.textContent='⏰ 本月通话时长还剩1分钟';}
-      if(left<=0){
-        alert('本月通话时长已用完（限'+CALL_MONTHLY_LIMIT_MIN+'分钟），通话已自动结束。');
-        endCall();
-      }
+      if(left===60)_gcCallSetSt('⏰ 本月通话时长还剩1分钟');
+      if(left<=0)_gcFinish('quota','本月通话时长已用完（限'+CALL_MONTHLY_LIMIT_MIN+'分钟）');
     }
-  },1000);
+  };
+  tick();G.callI=setInterval(tick,1000);
 }
 function stopCallTimer(){
   if(G.callI){clearInterval(G.callI);G.callI=null;}
-  var t=document.getElementById('callTimer');if(t)t.textContent='';
 }
 
-function endCall(){
-  console.log('endCall called');
-  var dur=RTC.startTime?Math.round((new Date()-RTC.startTime)/1000):0;
-  if(RTC.callRoom){
-    _sb.from('calls').insert({room_id:RTC.callRoom,type:'hangup',data:'{}',sender:String(myId)});
-    saveCallRecord(RTC.callRoom,RTC.isCaller?G.chat:RTC.pendingFrom,'completed',dur);
-  }
-  if(dur>0)addCallUsage(dur/60);
-  if(RTC.pc){try{RTC.pc.close();}catch(e){}RTC.pc=null;}
-  if(RTC.localStream){RTC.localStream.getTracks().forEach(function(t){t.stop();});RTC.localStream=null;}
+// ── 结束 ──
+function _gcCleanup(){
+  var T=RTC.timers;Object.keys(T).forEach(function(k){if(k!=='incExpire'){clearTimeout(T[k]);delete T[k];}});
+  _gcRingback(false);_gcWakeLock(false);stopCallTimer();
+  var pc=RTC.pc;RTC.pc=null;
+  if(pc){try{pc.ontrack=null;pc.onicecandidate=null;pc.oniceconnectionstatechange=null;pc.onconnectionstatechange=null;pc.close();}catch(e){}}
+  if(RTC.localStream){RTC.localStream.getTracks().forEach(function(t){try{t.stop();}catch(e){}});RTC.localStream=null;}
   if(_callSigSub){try{_callSigSub.unsubscribe();}catch(e){}}_callSigSub=null;
-  stopCallTimer();
-  RTC.callRoom=null;RTC.startTime=null;RTC.quotaRemainingSec=null;
-  var ra=document.getElementById('remoteAudio');if(ra){ra.srcObject=null;}
-  show('chat');
+  ['remoteAudio','remoteVideo','localVideo'].forEach(function(id){var e=_gcCallEl(id);if(e){try{e.srcObject=null;}catch(x){}}});
+  RTC.busy=false;RTC.ending=false;RTC.answered=false;RTC.connected=false;RTC.descSent=false;RTC.iceIn=[];
+  RTC.callRoom=null;RTC.startTime=null;RTC.quotaRemainingSec=null;RTC.remoteStream=null;RTC.restarting=false;RTC.needTap=false;
+}
+function _gcFinish(reason,msg,noSignal){
+  if(RTC.ending)return;
+  if(!RTC.pc&&!RTC.busy){_gcLeaveCallScreen();return;}
+  RTC.ending=true;
+  var room=RTC.callRoom,peer=RTC.peer,sid=RTC.sid,wasConn=RTC.connected,isCaller=RTC.isCaller;
+  var dur=RTC.startTime?Math.round((Date.now()-RTC.startTime.getTime())/1000):0;
+  if(room&&!noSignal)_gcSend(room,'hangup',{reason:reason,gcSid:sid});
+  if(room&&isCaller)saveCallRecord(room,peer,wasConn?'completed':(reason==='timeout'?'missed':reason==='busy'?'busy':reason==='rejected'?'rejected':reason==='error'||reason==='failed'?'failed':'cancelled'),dur);
+  if(dur>0)addCallUsage(dur/60);
+  _gcCleanup();
+  _gcCallSetSt(msg||(wasConn?'通话结束 '+_gcFmtDur(dur):'已取消'));
+  var tm=_gcCallEl('callTimer');if(tm)tm.textContent='';
+  var w=_gcCallEl('vidWait');if(w)w.style.display='flex';
+  // 通话界面停一下让人看清结果，再回到原来的界面
+  setTimeout(_gcLeaveCallScreen,msg?1600:700);
+}
+// 挂断按钮
+function endCall(){
+  if(!RTC.pc&&!RTC.busy){_gcLeaveCallScreen();return;}
+  _gcFinish(RTC.connected?'end':(RTC.isCaller?'cancel':'end'),null);
 }
 
 function saveCallRecord(room,otherId,status,dur){
@@ -7725,19 +8142,60 @@ function saveCallRecord(room,otherId,status,dur){
     caller_id:String(myId),callee_id:String(otherId||''),
     room_id:room,call_type:RTC.callType||'voice',duration:dur||0,status:status,
     end_time:new Date().toISOString()
-  }).then(function(r){if(r.error)console.log('call record err:',r.error.message);});
+  }).then(function(r){if(r&&r.error)console.log('call record err:',r.error.message);});
 }
 
 function startCall(){if(G.chat)initiateCall(G.chat,false);}
 function startVideo(){if(G.chat)initiateCall(G.chat,true);}
 
 function toggleMic(){
-  if(RTC.localStream)RTC.localStream.getAudioTracks().forEach(function(t){t.enabled=!t.enabled;});
-  var b=document.getElementById('micBtn');if(b)b.textContent=b.textContent==='🎤'?'🔇':'🎤';
+  if(!RTC.localStream)return;
+  RTC.micOff=!RTC.micOff;
+  RTC.localStream.getAudioTracks().forEach(function(t){t.enabled=!RTC.micOff;});
+  _gcSyncCallBtns();
 }
+// 开/关自己的摄像头
 function toggleCam(){
-  if(RTC.localStream)RTC.localStream.getVideoTracks().forEach(function(t){t.enabled=!t.enabled;});
+  if(!RTC.localStream||RTC.noCam)return;
+  RTC.camOff=!RTC.camOff;
+  RTC.localStream.getVideoTracks().forEach(function(t){t.enabled=!RTC.camOff;});
+  _gcSyncCallBtns();
 }
+// 前后摄像头切换
+async function switchCam(){
+  if(!RTC.localStream||!RTC.pc||RTC.noCam||RTC._switching)return;
+  RTC._switching=true;
+  var nx=RTC.facing==='user'?'environment':'user';
+  var old=RTC.localStream.getVideoTracks()[0];
+  var sender=RTC.pc.getSenders().filter(function(x){return x.track&&x.track.kind==='video';})[0];
+  var get=function(f){return navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:f},width:{ideal:640},height:{ideal:480}}}).catch(function(){return navigator.mediaDevices.getUserMedia({video:{facingMode:f}});});};
+  try{
+    if(old)old.stop(); // iOS 同一时间只能开一个摄像头
+    var s;
+    try{s=await get(nx);}catch(e){s=await get(RTC.facing);nx=RTC.facing;_gcCallToast('没有找到另一个摄像头');}
+    var nt=s.getVideoTracks()[0];
+    if(!RTC.localStream||!RTC.pc){nt.stop();return;}
+    nt.enabled=!RTC.camOff;
+    if(sender)await sender.replaceTrack(nt);
+    if(old)RTC.localStream.removeTrack(old);
+    RTC.localStream.addTrack(nt);
+    RTC.facing=nx;_gcAttachLocal();
+  }catch(e){console.log('switchCam err',e&&e.message);_gcCallToast('切换摄像头失败');}
+  finally{RTC._switching=false;}
+}
+// 界面切换时同步来电弹窗/通话小条（伪装界面上绝不显示）
+(function(){
+  if(typeof show!=='function'||show._gcCallWrap)return;
+  var o=show;
+  show=function(){var r=o.apply(this,arguments);try{_gcIncSync();}catch(e){}return r;};
+  show._gcCallWrap=true;
+})();
+document.addEventListener('touchend',function(){if(RTC.needTap)_gcKickAudio();},true);
+document.addEventListener('click',function(){if(RTC.needTap)_gcKickAudio();},true);
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden)return;
+  setTimeout(function(){try{_gcIncSync();if(RTC.pc||RTC.busy)_gcKickAudio();else if(typeof _gcCheckRinging==='function')_gcCheckRinging();}catch(e){}},600);
+});
 
 // ═══ Conversations 表：每次发/收消息后 upsert，维护最后一条消息预览 ═══
 function _upsertConv(roomId,content,type,sender,ts){
@@ -7923,15 +8381,30 @@ function listenForCalls(){
   if(_callSub)return;
   _callSub=_sb.channel('inc:'+myId+'_'+Date.now())
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'calls'},function(p){
-      var msg=p.new;
-      if(!msg||String(msg.sender)===String(myId))return;
-      // 精确匹配房间号里的两个ID，避免"2"误匹配到"12_25"这种房间
-      var roomParts=(msg.room_id||'').split('_call');
-      if(msg.type==='offer'&&roomParts.indexOf(String(myId))>=0){
-        console.log('Incoming call from:',msg.sender);
-        try{showIncoming(msg.sender,JSON.parse(msg.data),msg.created_at);}catch(e){console.log('[Call] malformed offer data, ignored:',e&&e.message);}
-      }
-    }).subscribe();
+      // 房间号里精确匹配两个ID（在 _gcOnCallRow 里），避免"2"误匹配到"12_25"这种房间
+      try{_gcOnCallRow(p.new);}catch(e){console.log('[Call] incoming signal error:',e&&e.message);}
+    }).subscribe(function(s){if(s==='SUBSCRIBED')_gcCheckRinging();});
+}
+// 打开App时对方可能已经在拨了（App在后台收不到实时推送）：查一下最近40秒内还在响的来电
+var _gcRingCheckAt=0;
+async function _gcCheckRinging(){
+  if(!myId||RTC.pc||RTC.busy||RTC.pending||Date.now()-_gcRingCheckAt<5000)return;
+  _gcRingCheckAt=Date.now();
+  try{
+    var r=await _sb.from('calls').select('*').eq('type','offer').gte('created_at',new Date(Date.now()-40000).toISOString()).order('created_at',{ascending:false}).limit(30);
+    if(!r||!r.data||!r.data.length)return;
+    for(var i=0;i<r.data.length;i++){
+      var row=r.data[i];
+      if(String(row.sender)===String(myId))continue;
+      var parts=(row.room_id||'').split('_call');
+      if(parts.length!==2||parts.indexOf(String(myId))<0||parts.indexOf(String(row.sender))<0)continue;
+      // 这通之后已经有人接听/挂断，就不再响
+      var later=await _sb.from('calls').select('type,data').eq('room_id',row.room_id).gt('created_at',row.created_at).limit(50);
+      var over=(later&&later.data||[]).some(function(x){var k=_gcParseSig(x).k;return k==='hangup'||k==='answer';});
+      if(!over&&!RTC.pc&&!RTC.busy)_gcOnCallRow(row);
+      return;
+    }
+  }catch(e){console.log('[Call] ring check err',e&&e.message);}
 }
 
 
@@ -10497,7 +10970,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.12"></script>
+<script src="./chat-core.js?v2.13"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面

@@ -478,16 +478,7 @@ function listenForAllMessages(){
     }).subscribe(function(s){console.log('All msgs sub:',s);});
 }
 
-var _callSub=null;
-function listenForCalls(){
-  if(_callSub)return;
-  _callSub=_sb.channel('inc:'+myId+'_'+Date.now())
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'calls'},function(p){
-      var msg=p.new;if(!msg||String(msg.sender)===String(myId))return;
-      var roomParts=(msg.room_id||'').split('_call');
-      if(msg.type==='offer'&&roomParts.indexOf(String(myId))>=0){console.log('Incoming call from:',msg.sender);showIncoming(msg.sender,JSON.parse(msg.data),msg.created_at);}
-    }).subscribe();
-}
+// 来电监听(listenForCalls)用页面里的版本（v2.13 起支持视频来电、挂断/忙线/未接、伪装时不弹窗）
 
 // ── 打开聊天 ──
 function openChat(name,ini,color,displayName){
