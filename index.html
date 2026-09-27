@@ -2,7 +2,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<script src="cordova.js"></script>
+<script>
+// 秒开：cordova.js 只在原生App里存在，网页版不再每次白等一次 404
+if((location.protocol!=='https:'&&location.protocol!=='http:')||location.hostname==='localhost')document.write('<script src="cordova.js"><\/script>');
+// 上次关掉时的底色先铺上，打开时不会先闪一下别的颜色
+(function(){
+  try{var c=localStorage.getItem('gcEdgeBg');if(c)document.documentElement.style.backgroundColor=c;}catch(e){}
+  function save(){try{var c=document.documentElement.style.backgroundColor;if(c)localStorage.setItem('gcEdgeBg',c);var m=document.getElementById('metaThemeColor');if(m&&m.content)localStorage.setItem('gcEdgeTheme',m.content);}catch(e){}}
+  document.addEventListener('visibilitychange',function(){if(document.hidden)setTimeout(save,60);});
+  window.addEventListener('pagehide',save);
+  setInterval(save,5000);
+})();
+</script>
 <script>
 // ═══ 白屏自救：全自动，不需要用户做任何操作 ═══
 // 首屏渲染失败(报错/6秒无内容)，或者曾经渲染成功后又变白(持续监控)，
@@ -88,6 +99,8 @@
   // 说明"能显示几秒又白"，同样自动修复。
   var checks=0;
   var timer=setInterval(function(){
+    // 页面还在下载时不算（网慢不等于坏了）；以前网慢超过6秒就清空全部缓存重来，反而更慢
+    if(document.readyState==='loading')return;
     checks++;
     var ok=hasContent();
     if(ok){ booted=true; blankStreak=0; return; }
@@ -100,7 +113,7 @@
   },2000);
 })();
 </script>
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" async></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
@@ -151,13 +164,14 @@
 
 <!-- ═══ Android / Chrome 主题色 ═══ -->
 <meta name="theme-color" content="#2e5a8c" id="metaThemeColor">
+<script>try{var _gtc=localStorage.getItem('gcEdgeTheme');if(_gtc)document.getElementById('metaThemeColor').content=_gtc;}catch(e){}</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="天气">
 
 <!-- ═══ 防止被搜索引擎索引 ═══ -->
 <meta name="robots" content="noindex,nofollow">
 
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{
   --theme-bg:#fef4f8;
@@ -2430,7 +2444,8 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
 // 那个逻辑本身在极端情况下（连续检测到新版本）会导致反复自动刷新，表现为白屏。
 (function(){
   if('serviceWorker' in navigator){
-    window.addEventListener('load', function(){
+    // 页面一就绪就注册（以前等 load，要等推送/字体这些外部文件全部下完，网慢时要很久）
+    (document.readyState==='loading'?function(f){document.addEventListener('DOMContentLoaded',function(){setTimeout(f,1200);});}:function(f){setTimeout(f,1200);})(function(){
       navigator.serviceWorker.register('./sw.js', {scope: './'}).then(function(reg){
         console.log('[PWA] SW registered, scope:', reg.scope);
         // SW消息监听：后台sync通知
@@ -4203,7 +4218,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.14';
+var CORE_VERSION='v2.15';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -7002,7 +7017,7 @@ function pickLang(code){
 // ═══ Supabase ═══
 </script>
 <script src="./vendor/supabase-js.js"></script>
-<script src="./vendor/jsQR.js"></script>
+<script src="./vendor/jsQR.js" async></script>
 <script>
 var _sb=supabase.createClient('https://mztoenhgfuomzrashrqk.supabase.co','sb_publishable_pOM3IfVWYiscQ-cz9vAwvA_F2Ht6zg1',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 
@@ -10706,6 +10721,21 @@ function removeWxCity(i){
 }
 
 var G_wxCurrent=null;
+// 存下来的天气过了一阵再拿出来用时，按"现在"这个钟点从逐小时预报里取当前温度/天气，过去的日子去掉
+function _gcWxAged(d){
+  try{
+    var h=d.hourly;if(!h||!h.time)return d;
+    var nowStr=new Date(Date.now()+(d.utc_offset_seconds||0)*1000).toISOString().slice(0,13);
+    var i=-1;for(var k=0;k<h.time.length;k++){if(h.time[k].slice(0,13)===nowStr){i=k;break;}}
+    if(i<0)return d;
+    var cur=Object.assign({},d.current,{time:h.time[i]});
+    ['temperature_2m','weather_code','is_day'].forEach(function(f){if(h[f]&&h[f][i]!=null)cur[f]=h[f][i];});
+    var o=Object.assign({},d,{current:cur});
+    var di=(d.daily&&d.daily.time)?d.daily.time.indexOf(nowStr.slice(0,10)):0;
+    if(di>0){var dd={};Object.keys(d.daily).forEach(function(k){dd[k]=Array.isArray(d.daily[k])?d.daily[k].slice(di):d.daily[k];});o.daily=dd;}
+    return o;
+  }catch(e){return d;}
+}
 async function loadWeather(lat,lon,name){
   G_wxCurrent={lat:lat,lon:lon,name:name};
   var nameEl=document.getElementById('wxCityName'); if(nameEl)nameEl.textContent=name;
@@ -10716,8 +10746,18 @@ async function loadWeather(lat,lon,name){
       +'&hourly=temperature_2m,weather_code,precipitation_probability,is_day'
       +'&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum'
       +'&timezone=auto&forecast_days=10';
-    var r=await fetch(url);
-    var d=await r.json();
+    var d=null,_wxShown=false;
+    if(arguments[3]){d=arguments[3];}
+    else{
+      // 秒开：先用上次存下的天气立刻画出来，再去网上取最新的覆盖上去
+      var _wk='gcWx:'+location.pathname+':'+(+lat).toFixed(2)+','+(+lon).toFixed(2);
+      try{var _wc=JSON.parse(localStorage.getItem(_wk)||'null');if(_wc&&_wc.current){await loadWeather(lat,lon,name,_gcWxAged(_wc));_wxShown=true;}}catch(e){}
+      var r=await fetch(url);
+      d=await r.json();
+      if(!d||!d.current)throw new Error('bad weather data');
+      if(G_wxCurrent&&(G_wxCurrent.lat!==lat||G_wxCurrent.lon!==lon))return;
+      try{localStorage.setItem(_wk,JSON.stringify(d));}catch(e){}
+    }
     var c=d.current, day=d.daily, isDay=c.is_day===1;
 
     var bg=document.getElementById('wxBg');
@@ -10823,7 +10863,7 @@ async function loadWeather(lat,lon,name){
     }
   }catch(e){
     var dsc=document.getElementById('wxDescTxt');
-    if(dsc)dsc.textContent='无法获取天气，请检查网络';
+    if(dsc&&!_wxShown)dsc.textContent='无法获取天气，请检查网络';
   }
   var cities=getWxCities();
   var exists=cities.some(function(x){return Math.abs(x.lat-lat)<0.01&&Math.abs(x.lon-lon)<0.01;});
@@ -11022,7 +11062,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.14"></script>
+<script src="./chat-core.js?v2.15"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11120,7 +11160,16 @@ function updDots(err){
       var m=(t||'').match(/var CORE_VERSION='([^']+)'/);
       if(!m||m[1]===running)return;
       try{if(sessionStorage.getItem('gc_reloaded_for')===m[1])return;sessionStorage.setItem('gc_reloaded_for',m[1]);}catch(e){}
-      location.reload();
+      // 新页面直接写进本机缓存再刷新（缓存里的是秒开用的那份）
+      var gone=false,go=function(){if(gone)return;gone=true;location.reload();};
+      try{
+        if(window.caches&&t.indexOf('var CORE_VERSION=')>=0){
+          var key=new URL('./index.html',location.href).href.split('?')[0].split('#')[0];
+          caches.open('gc-shell').then(function(c){return c.put(key,new Response(t,{headers:{'Content-Type':'text/html; charset=utf-8'}}));}).then(go,go);
+          setTimeout(go,1500);return;
+        }
+      }catch(e){}
+      go();
     }).catch(function(){busy=false;});
   }
   setTimeout(check,2500);
