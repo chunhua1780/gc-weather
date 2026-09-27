@@ -4203,7 +4203,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.13';
+var CORE_VERSION='v2.14';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -7147,12 +7147,12 @@ async function joinRoom(name){
         var upto=p.payload.upto||0;
         var list=G.msgs[name]||[];
         var changed=false;
-        list.forEach(function(m){if(m.sent&&!m.read&&m.ts<=upto){m.read=true;changed=true;}});
+        list.forEach(function(m){if(m.sent&&!m.read&&_gcSrvTs(m)<=upto){m.read=true;changed=true;}});_gcStoreUpto(name,upto);
         if(changed){
           if(G.chat===name)renderMsgs();
           saveLocalMsgs(name,list);
           var lastM=list[list.length-1];
-          if(lastM&&lastM.sent)updateLastPreview(name,lastM.type==='text'?lastM.text:('['+lastM.type+']'),lastM.type,false,lastM.read?'read':'sent',lastM.ts);
+          if(lastM&&lastM.sent)updateLastPreview(name,(lastM.type||'text')==='text'?lastM.text:('['+lastM.type+']'),lastM.type||'text',false,lastM.read?'read':'sent',lastM.ts);
         }
       })
       .subscribe();
@@ -7234,7 +7234,7 @@ async function syncRoomMessages(name){
   // 已读状态只能从"未读"变"已读"，不能反过来：即时广播标记为已读后，
   // 即使本轮数据库查询结果是"未读"也不再回退，避免颜色/爪印来回闪烁
   // 对方最近一次已读回执单独查：只看最近50条的话，聊得多了回执会被挤出窗口，爪印就全掉了
-  try{var _rr=await _rrP;if(_rr&&_rr.data&&_rr.data[0]){var _v0=parseInt(_rr.data[0].content)||0;if(_v0>otherLastRead)otherLastRead=_v0;}}catch(e){}var prevReadIds={};
+  try{var _rr=await _rrP;if(_rr&&_rr.data&&_rr.data[0]){var _v0=parseInt(_rr.data[0].content)||0;if(_v0>otherLastRead)otherLastRead=_v0;}}catch(e){}var _gcPU=_gcPeerUpto(name);if(_gcPU>otherLastRead)otherLastRead=_gcPU;_gcStoreUpto(name,otherLastRead);var prevReadIds={};
   (G.msgs[name]||[]).forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});localMsgs.forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});
   if(res.data&&res.data.length>0){
     serverMsgs=res.data.filter(function(m){return m.type!=='gc_del';}).map(function(m){
@@ -7330,6 +7330,54 @@ async function syncRoomMessages(name){
 
 // 把"我读到哪了"记录到read_receipts表（每对用户一行，upsert是原子操作，
 // 不会像之前的jsonb读-改-写方案那样在多个对话同时标记已读时互相覆盖丢失）
+// ═══ 对方"已读到"哪儿（v2.14）═══
+// 1. 已读一律按服务器时间判断：我发的消息记下服务器时间 sts，手机时钟快了也不会把对方已读的当成未读。
+// 2. 对方的已读回执不管我在不在那个聊天里都接收（以前只在聊天界面里才收，回到列表就一直是"未读"色）。
+// 3. 最近一次"读到哪儿"存在本机，列表刷新/重开App时也按它上色，并会去服务器补查。
+function _gcSrvTs(m){return (m&&(m.sts||m.ts))||0;}
+function _gcSetSts(m,row){try{var t=row&&row.created_at?new Date(row.created_at).getTime():0;if(m&&t)m.sts=t;}catch(e){}}
+function _gcPeerUpto(peer){try{var o=JSON.parse(localStorage.getItem('gcPeerReadUpto')||'{}');return +o[String(peer)]||0;}catch(e){return 0;}}
+function _gcStoreUpto(peer,upto){
+  upto=+upto||0;if(!peer||!upto)return;
+  try{var o=JSON.parse(localStorage.getItem('gcPeerReadUpto')||'{}');if(!(o[String(peer)]>=upto)){o[String(peer)]=upto;localStorage.setItem('gcPeerReadUpto',JSON.stringify(o));}}catch(e){}
+}
+function _gcNoteRead(peer,upto){
+  peer=String(peer);_gcStoreUpto(peer,upto);
+  var up=Math.max(+upto||0,_gcPeerUpto(peer));if(!up)return false;
+  var mark=function(list){var ch=false;(list||[]).forEach(function(m){if(m&&m.sent&&!m.read&&m.id!=null&&!m.failed&&_gcSrvTs(m)<=up){m.read=true;ch=true;}});return ch;};
+  var list=(G.msgs&&G.msgs[peer]&&G.msgs[peer].length)?G.msgs[peer]:null;
+  if(!list)list=loadLocalMsgs(peer);
+  if(!mark(list))return false;
+  saveLocalMsgs(peer,list);
+  if(G.chat===peer&&typeof renderMsgs==='function'){var _ce=document.getElementById('chat');if(_ce&&_ce.classList.contains('active'))renderMsgs();}
+  var lastM=null;for(var i=list.length-1;i>=0;i--){var x=list[i];if(x&&x.type!=='read_receipt'&&x.type!=='recall'){lastM=x;break;}}
+  if(lastM&&lastM.sent&&lastM.read&&document.getElementById('last-'+peer)){
+    var _lt=lastM.type||'text';try{updateLastPreview(peer,_lt==='text'?lastM.text:('['+_lt+']'),_lt,false,'read',lastM.ts);}catch(e){}
+  }
+  return true;
+}
+// 列表里最后一条是我发的、本机还显示未读的聊天，去服务器查一下对方最新的已读回执
+async function _gcFetchPeerReads(ids,seen){
+  try{
+    var mid=String(myId);var jobs=[];
+    (ids||[]).forEach(function(cid){
+      var lm=seen&&seen[cid];if(!lm||!lm.content||String(lm.sender)!==mid||jobs.length>=15)return;
+      if(typeof _gcListMsgRead==='function'&&_gcListMsgRead(cid,lm))return;
+      var room=roomIdOf(parseInt(mid)||mid,parseInt(cid)||cid);
+      jobs.push(Promise.resolve(_sb.from('messages').select('content').eq('room_id',room).eq('type','read_receipt').eq('sender',String(cid)).order('created_at',{ascending:false}).limit(1))
+        .then(function(r){if(r&&r.data&&r.data[0])_gcNoteRead(cid,parseInt(r.data[0].content)||0);}).catch(function(){}));
+    });
+    if(jobs.length)await Promise.race([Promise.all(jobs),new Promise(function(res){setTimeout(res,4000);})]);
+  }catch(e){}
+}
+// 节流期间来的新消息：过一会儿补发一次已读回执（以前直接丢掉，对方那边这几条就一直"未读"）
+var _gcTrailT={};
+function _gcTrailRead(name){
+  if(_gcTrailT[name])return;
+  var last=(typeof _lastMarkReadAt!=='undefined'&&_lastMarkReadAt[name])||0;
+  var wait=Math.max(300,3000-(Date.now()-last)+150);
+  _gcTrailT[name]=setTimeout(function(){_gcTrailT[name]=null;scheduleMarkRoomRead(name);},wait);
+}
 async function markRoomRead(otherId){
   try{
     // 回执时间取本机时钟和这段对话里最新一条消息（服务器时间）的较大值：手机时钟稍慢时，
@@ -7349,7 +7397,7 @@ function scheduleMarkRoomRead(name){
     // ★ 关键：APP在后台时不发已读回执，对方不会看到"已读"
     if(document.hidden||document.visibilityState!=='visible')return;
     // 节流3秒
-    if(Date.now()-(_lastMarkReadAt[name]||0)<3000)return;
+    if(Date.now()-(_lastMarkReadAt[name]||0)<3000){_gcTrailRead(name);return;}
     _lastMarkReadAt[name]=Date.now();
     markRoomRead(name);
     // 本地立即标记所有收到的消息为已读
@@ -7378,7 +7426,7 @@ function setupReadObserver(){
       // 本地立即把所有对方消息标已读
       (G.msgs[G.chat]||[]).forEach(function(m){if(!m.sent)m.read=true;});
       // 节流写DB
-      if(Date.now()-(_lastMarkReadAt[G.chat]||0)>3000){
+      if(Date.now()-(_lastMarkReadAt[G.chat]||0)<=3000)_gcTrailRead(G.chat);else{
         _lastMarkReadAt[G.chat]=Date.now();
         markRoomRead(G.chat);
       }
@@ -8255,7 +8303,8 @@ function listenForAllMessages(){
       if(!m||!m.room_id)return;
       var parts=m.room_id.split('_');
       if(parts.indexOf(mid)<0)return;
-      if(String(m.sender)===mid)return;
+      if(String(m.sender)===mid){try{if(m.id!=null&&m.type!=='read_receipt'){var _pp=parts[0]===mid?parts[1]:parts[0];(G.msgs[_pp]||[]).forEach(function(x){if(x&&x.id===m.id)_gcSetSts(x,m);});}}catch(e){}return;}
+        if(m.type==='read_receipt'){try{_gcNoteRead(parts[0]===mid?parts[1]:parts[0],parseInt(m.content)||0);}catch(e){}return;}
       if(m.type==='read_receipt'||m.type==='gc_del')return;
       var senderId=parts[0]===mid?parts[1]:parts[0];
       if(isBlocked(senderId))return;
@@ -8781,7 +8830,7 @@ async function _doSendText(msgObj,chatAtSend,room){
     ]);
     clearTimeout(_tmr);
     if(r&&r.data&&!r.error){
-      msgObj.id=r.data.id;msgObj.failed=false;msgObj.failCount=0;
+      msgObj.id=r.data.id;_gcSetSts(msgObj,r.data);msgObj.failed=false;msgObj.failCount=0;
       saveLocalMsgs(chatAtSend,G.msgs[chatAtSend]||[]);
       if(G.chat===chatAtSend)renderMsgs();
       triggerPushToUser(String(chatAtSend),msgObj.text);
@@ -8858,8 +8907,10 @@ function _gcListMsgRead(cid,lm){
       if(m.ts<ts-120000)break;
       if(!m.sent||Math.abs(m.ts-ts)>=120000)continue;
       var same=(lm.type==='text'||!lm.type)?((m.text||'')===(lm.content||'')):(m.type===lm.type);
-      if(same)return !!m.read&&m.id!=null;
+      if(same)return (!!m.read&&m.id!=null)||(m.id!=null&&!m.failed&&_gcPeerUpto(cid)>=_gcSrvTs(m));
     }
+    // 本机没有这条的记录：按对方最近一次已读回执判断
+    var _up=_gcPeerUpto(cid);if(_up&&_up>=ts)return true;
   }catch(e){}
   return false;
 }
@@ -9524,6 +9575,7 @@ async function loadContacts(){
     }catch(e){}
 
     // ── 6. 保存缓存 + 渲染 ──
+    await _gcFetchPeerReads(contactIds,seen);
     _saveChatListCache(contactIds,seen,friendMap,userMap,avatarMap);
     _renderContacts(contactIds,seen,friendMap,userMap,avatarMap);
     if(AdManager._ready)AdManager.showInChatList();
@@ -9905,7 +9957,7 @@ async function onImg(e){
       if(r.data){
         var msgs3=G.msgs[chatAtSend]||[];
         for(var k=msgs3.length-1;k>=0;k--){
-          if(msgs3[k].type==='image'&&msgs3[k].src===url){msgs3[k].id=r.data.id;break;}
+          if(msgs3[k].type==='image'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
         }
         saveLocalMsgs(chatAtSend,msgs3);
         _upsertConv(roomAtSend,'[图片]','image',myId,Date.now());
@@ -9948,7 +10000,7 @@ function onVid(e){
       if(r.data){_upsertConv(roomAtSend,'[视频]','video',myId,Date.now());
         var msgs3=G.msgs[chatAtSend]||[];
         for(var k=msgs3.length-1;k>=0;k--){
-          if(msgs3[k].type==='video'&&msgs3[k].src===url){msgs3[k].id=r.data.id;break;}
+          if(msgs3[k].type==='video'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
         }
         saveLocalMsgs(chatAtSend,msgs3);
       }
@@ -9976,7 +10028,7 @@ function doLoc(){
     if(roomAtLoc){
       _sb.from('messages').insert({room_id:roomAtLoc,sender:String(myId),content:addr+'|'+mapUrl,type:'location'}).select().single().then(function(r){
         if(r.error){alert('Location send error: '+r.error.message);return;}
-        if(r.data){locMsg.id=r.data.id;saveLocalMsgs(chatAtLoc,G.msgs[chatAtLoc]||[]);_upsertConv(roomAtLoc,'[位置]','location',myId,Date.now());}
+        if(r.data){locMsg.id=r.data.id;_gcSetSts(locMsg,r.data);saveLocalMsgs(chatAtLoc,G.msgs[chatAtLoc]||[]);_upsertConv(roomAtLoc,'[位置]','location',myId,Date.now());}
       });
     }
   },function(err){
@@ -10017,7 +10069,7 @@ function onFile(e){
       if(r.data){
         var msgs3=G.msgs[chatAtSend]||[];
         for(var k=msgs3.length-1;k>=0;k--){
-          if(msgs3[k].type==='file'&&msgs3[k].src===url){msgs3[k].id=r.data.id;break;}
+          if(msgs3[k].type==='file'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
         }
         saveLocalMsgs(chatAtSend,msgs3);
         _upsertConv(roomAtSend,'[文件]','file',myId,Date.now());
@@ -10095,7 +10147,7 @@ function recStop(){
           if(r.data){
             var msgs3=G.msgs[chatAtStop]||[];
             for(var k=msgs3.length-1;k>=0;k--){
-              if(msgs3[k].type==='voice'&&msgs3[k].src===url){msgs3[k].id=r.data.id;break;}
+              if(msgs3[k].type==='voice'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
             }
             saveLocalMsgs(chatAtStop,msgs3);
             _upsertConv(roomAtStop,'[语音]','voice',myId,Date.now());
@@ -10970,7 +11022,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.13"></script>
+<script src="./chat-core.js?v2.14"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面

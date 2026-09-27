@@ -164,10 +164,10 @@ async function joinRoom(name){
       .on('broadcast',{event:'read'},function(p){
         if(!p.payload||String(p.payload.from)===String(myId))return;
         var upto=p.payload.upto||0;var list=G.msgs[name]||[];var changed=false;
-        list.forEach(function(m){if(m.sent&&!m.read&&m.ts<=upto){m.read=true;changed=true;}});
+        list.forEach(function(m){if(m.sent&&!m.read&&_gcSrvTs(m)<=upto){m.read=true;changed=true;}});_gcStoreUpto(name,upto);
         if(changed){if(G.chat===name)renderMsgs();saveLocalMsgs(name,list);
           var lastM=list[list.length-1];
-          if(lastM&&lastM.sent)updateLastPreview(name,lastM.type==='text'?lastM.text:('['+lastM.type+']'),lastM.type,false,lastM.read?'read':(lastM.delivered?'delivered':'sent'),lastM.ts);}
+          if(lastM&&lastM.sent)updateLastPreview(name,(lastM.type||'text')==='text'?lastM.text:('['+lastM.type+']'),lastM.type||'text',false,lastM.read?'read':(lastM.delivered?'delivered':'sent'),lastM.ts);}
       }).subscribe();
   }catch(e){console.log('typing channel setup failed:',e&&e.message);}
   try{
@@ -233,7 +233,7 @@ async function syncRoomMessages(name){
       });
     }
     // 对方最近一次已读回执单独查：只看最近50条的话，聊得多了回执会被挤出窗口，爪印就全掉了
-    try{var _rr=await _rrP;if(_rr&&_rr.data&&_rr.data[0]){var _v0=parseInt(_rr.data[0].content)||0;if(_v0>otherLastRead)otherLastRead=_v0;}}catch(e){}var prevReadIds={};
+    try{var _rr=await _rrP;if(_rr&&_rr.data&&_rr.data[0]){var _v0=parseInt(_rr.data[0].content)||0;if(_v0>otherLastRead)otherLastRead=_v0;}}catch(e){}var _gcPU=_gcPeerUpto(name);if(_gcPU>otherLastRead)otherLastRead=_gcPU;_gcStoreUpto(name,otherLastRead);var prevReadIds={};
     (G.msgs[name]||[]).forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});localMsgs.forEach(function(m){if(m.sent&&m.read&&m.id!=null)prevReadIds[m.id]=true;});
     if(res.data&&res.data.length>0){
       serverMsgs=res.data
@@ -315,6 +315,54 @@ async function syncRoomMessages(name){
   }
 }
 
+// ═══ 对方"已读到"哪儿（v2.14）═══
+// 1. 已读一律按服务器时间判断：我发的消息记下服务器时间 sts，手机时钟快了也不会把对方已读的当成未读。
+// 2. 对方的已读回执不管我在不在那个聊天里都接收（以前只在聊天界面里才收，回到列表就一直是"未读"色）。
+// 3. 最近一次"读到哪儿"存在本机，列表刷新/重开App时也按它上色，并会去服务器补查。
+function _gcSrvTs(m){return (m&&(m.sts||m.ts))||0;}
+function _gcSetSts(m,row){try{var t=row&&row.created_at?new Date(row.created_at).getTime():0;if(m&&t)m.sts=t;}catch(e){}}
+function _gcPeerUpto(peer){try{var o=JSON.parse(localStorage.getItem('gcPeerReadUpto')||'{}');return +o[String(peer)]||0;}catch(e){return 0;}}
+function _gcStoreUpto(peer,upto){
+  upto=+upto||0;if(!peer||!upto)return;
+  try{var o=JSON.parse(localStorage.getItem('gcPeerReadUpto')||'{}');if(!(o[String(peer)]>=upto)){o[String(peer)]=upto;localStorage.setItem('gcPeerReadUpto',JSON.stringify(o));}}catch(e){}
+}
+function _gcNoteRead(peer,upto){
+  peer=String(peer);_gcStoreUpto(peer,upto);
+  var up=Math.max(+upto||0,_gcPeerUpto(peer));if(!up)return false;
+  var mark=function(list){var ch=false;(list||[]).forEach(function(m){if(m&&m.sent&&!m.read&&m.id!=null&&!m.failed&&_gcSrvTs(m)<=up){m.read=true;ch=true;}});return ch;};
+  var list=(G.msgs&&G.msgs[peer]&&G.msgs[peer].length)?G.msgs[peer]:null;
+  if(!list)list=loadLocalMsgs(peer);
+  if(!mark(list))return false;
+  saveLocalMsgs(peer,list);
+  if(G.chat===peer&&typeof renderMsgs==='function'){var _ce=document.getElementById('chat');if(_ce&&_ce.classList.contains('active'))renderMsgs();}
+  var lastM=null;for(var i=list.length-1;i>=0;i--){var x=list[i];if(x&&x.type!=='read_receipt'&&x.type!=='recall'){lastM=x;break;}}
+  if(lastM&&lastM.sent&&lastM.read&&document.getElementById('last-'+peer)){
+    var _lt=lastM.type||'text';try{updateLastPreview(peer,_lt==='text'?lastM.text:('['+_lt+']'),_lt,false,'read',lastM.ts);}catch(e){}
+  }
+  return true;
+}
+// 列表里最后一条是我发的、本机还显示未读的聊天，去服务器查一下对方最新的已读回执
+async function _gcFetchPeerReads(ids,seen){
+  try{
+    var mid=String(myId);var jobs=[];
+    (ids||[]).forEach(function(cid){
+      var lm=seen&&seen[cid];if(!lm||!lm.content||String(lm.sender)!==mid||jobs.length>=15)return;
+      if(typeof _gcListMsgRead==='function'&&_gcListMsgRead(cid,lm))return;
+      var room=roomIdOf(parseInt(mid)||mid,parseInt(cid)||cid);
+      jobs.push(Promise.resolve(_sb.from('messages').select('content').eq('room_id',room).eq('type','read_receipt').eq('sender',String(cid)).order('created_at',{ascending:false}).limit(1))
+        .then(function(r){if(r&&r.data&&r.data[0])_gcNoteRead(cid,parseInt(r.data[0].content)||0);}).catch(function(){}));
+    });
+    if(jobs.length)await Promise.race([Promise.all(jobs),new Promise(function(res){setTimeout(res,4000);})]);
+  }catch(e){}
+}
+// 节流期间来的新消息：过一会儿补发一次已读回执（以前直接丢掉，对方那边这几条就一直"未读"）
+var _gcTrailT={};
+function _gcTrailRead(name){
+  if(_gcTrailT[name])return;
+  var last=(typeof _lastMarkReadAt!=='undefined'&&_lastMarkReadAt[name])||0;
+  var wait=Math.max(300,3000-(Date.now()-last)+150);
+  _gcTrailT[name]=setTimeout(function(){_gcTrailT[name]=null;scheduleMarkRoomRead(name);},wait);
+}
 // ── 已读回执 ──
 async function markRoomRead(otherId){
   try{
@@ -334,7 +382,7 @@ function scheduleMarkRoomRead(name){
     if(G.chat!==name)return;
     if(document.hidden||document.visibilityState!=='visible')return;
     var _cs=document.getElementById('chat');if(!_cs||!_cs.classList.contains('active'))return;
-    if(Date.now()-(_lastMarkReadAt[name]||0)<3000)return;
+    if(Date.now()-(_lastMarkReadAt[name]||0)<3000){_gcTrailRead(name);return;}
     _lastMarkReadAt[name]=Date.now();markRoomRead(name);
     (G.msgs[name]||[]).forEach(function(m){if(!m.sent)m.read=true;});renderMsgs();
   },300);
@@ -348,7 +396,7 @@ function setupReadObserver(){
     if(hasUnread&&G.chat){
       if(document.hidden||document.visibilityState!=='visible')return;
       (G.msgs[G.chat]||[]).forEach(function(m){if(!m.sent)m.read=true;});
-      if(Date.now()-(_lastMarkReadAt[G.chat]||0)>3000){_lastMarkReadAt[G.chat]=Date.now();markRoomRead(G.chat);}
+      if(Date.now()-(_lastMarkReadAt[G.chat]||0)<=3000)_gcTrailRead(G.chat);else{_lastMarkReadAt[G.chat]=Date.now();markRoomRead(G.chat);}
     }
   },{threshold:0.5});
   document.querySelectorAll('#chatMsgs .mr.r').forEach(function(el){el.dataset.unread='1';_readObserver.observe(el);});
@@ -398,7 +446,8 @@ function listenForAllMessages(){
       try{
         var m=p.new;if(!m||!m.room_id)return;
         var parts=m.room_id.split('_');if(parts.indexOf(mid)<0)return;
-        if(String(m.sender)===mid)return;
+        if(String(m.sender)===mid){try{if(m.id!=null&&m.type!=='read_receipt'){var _pp=parts[0]===mid?parts[1]:parts[0];(G.msgs[_pp]||[]).forEach(function(x){if(x&&x.id===m.id)_gcSetSts(x,m);});}}catch(e){}return;}
+        if(m.type==='read_receipt'){try{_gcNoteRead(parts[0]===mid?parts[1]:parts[0],parseInt(m.content)||0);}catch(e){}return;}
         if(m.type==='read_receipt'||m.type==='gc_del')return;
         var senderId=parts[0]===mid?parts[1]:parts[0];
         if(isBlocked(senderId))return;
@@ -639,7 +688,7 @@ async function _doSendText(msgObj,chatAtSend,room){
     var r=await Promise.race([_sb.from('messages').insert({room_id:room,sender:String(myId),content:msgObj.text,type:'text'}).select().single(),_timeout]);
     clearTimeout(_tmr);
     if(r&&r.data&&!r.error){
-      msgObj.id=r.data.id;msgObj.failed=false;msgObj.failCount=0;
+      msgObj.id=r.data.id;_gcSetSts(msgObj,r.data);msgObj.failed=false;msgObj.failCount=0;
       saveLocalMsgs(chatAtSend,G.msgs[chatAtSend]||[]);
       if(G.chat===chatAtSend)renderMsgs();
       triggerPushToUser(String(chatAtSend),msgObj.text);
@@ -817,6 +866,7 @@ async function loadContacts(){
     var users=await _sb.from('users').select('id,name,avatar_url').in('id',uids);
     var userMap={},avatarMap={};if(users.data)users.data.forEach(function(u){userMap[String(u.id)]=u.name;if(u.avatar_url)avatarMap[String(u.id)]=u.avatar_url;});
     try{var _ec2=JSON.parse(localStorage.getItem('chatListCache')||'null');if(_ec2){contactIds.forEach(function(cid){if(!userMap[cid]&&_ec2.um&&_ec2.um[cid])userMap[cid]=_ec2.um[cid];if(!avatarMap[cid]&&_ec2.am&&_ec2.am[cid])avatarMap[cid]=_ec2.am[cid];});}}catch(e){}
+    await _gcFetchPeerReads(contactIds,seen);
     _saveChatListCache(contactIds,seen,friendMap,userMap,avatarMap);
     _renderContacts(contactIds,seen,friendMap,userMap,avatarMap);
     if(typeof AdManager!=='undefined'&&AdManager._ready)AdManager.showInChatList();
