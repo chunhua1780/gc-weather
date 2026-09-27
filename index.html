@@ -4218,7 +4218,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.15';
+var CORE_VERSION='v2.16';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11062,7 +11062,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.15"></script>
+<script src="./chat-core.js?v2.16"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11259,6 +11259,102 @@ function updDots(err){
   window.addEventListener('scroll',function(){
     if(root.classList.contains('gc-fullbleed')&&(window.scrollY||window.scrollX))window.scrollTo(0,0);
   },{passive:true});
+})();
+</script>
+<script>
+// ═══ 离开即隐身·加固（v2.16）═══
+// 上滑进多任务、切后台、拉控制中心/通知中心、来电时，iOS 拍多任务卡片快照的时机往往早于网页收到
+// visibilitychange。这里再加几道更早的信号，任何一道触发就立刻盖上并切到伪装界面：
+//  1. 页面失去焦点：每 100 毫秒看一次 document.hasFocus()，App 一"失活"它就变成 false；
+//  2. 手指从屏幕最底下（Home 横条那一条，包括页面下面那截死区）往上划，或被系统接管（touchcancel）；
+//  3. window blur（旧版外壳原来没有这一道）。
+// 自由模式完全不隐身。本页自己的弹窗、选照片/文件不算离开。
+(function(){
+  var core=typeof shieldOn==='function'&&typeof disguiseNow==='function';
+  function free(){try{return (localStorage.getItem('focusMode')||'free')==='free';}catch(e){return false;}}
+  var picker=false,dlgAt=0;
+  ['alert','confirm','prompt'].forEach(function(n){
+    var o=window[n];if(typeof o!=='function')return;
+    window[n]=function(){dlgAt=Date.now();try{return o.apply(window,arguments);}finally{dlgAt=Date.now();}};
+  });
+  document.addEventListener('click',function(e){var t=e.target;if(t&&t.tagName==='INPUT'&&t.type==='file')picker=true;},true);
+  window.addEventListener('focus',function(){picker=false;});
+  function ownUi(){
+    if(picker||Date.now()-dlgAt<1500)return true;
+    try{if(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen)return true;if(typeof _gcDialogAt!=='undefined'&&Date.now()-_gcDialogAt<1500)return true;}catch(e){}
+    var ae=document.activeElement;return !!(ae&&ae.tagName==='IFRAME');
+  }
+  // 旧版外壳没有遮罩：预先建好一层（平时几乎透明），离开时只改透明度，赶在快照之前
+  var cov=null;
+  function paint(){
+    if(!cov)return;
+    var d='';try{d=(typeof G!=='undefined'&&G.dis)||localStorage.getItem('dis')||'';}catch(e){}
+    var s={calculator:['#1c1c1e','#fff','0'],weather:['linear-gradient(160deg,#7b6ad6,#4a90d9)','#fff','⛅'],clock:['#000','#fff','--:--'],note:['#fdfaf3','#3a3a3a','📝']}[d]||['#000','#fff','--:--'];
+    cov.style.background=s[0];cov.style.color=s[1];cov.textContent=s[2];
+  }
+  function mkCover(){
+    if(core||cov||!document.body)return;
+    cov=document.createElement('div');cov.id='gcLeaveCover';cov.setAttribute('aria-hidden','true');
+    cov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;min-height:100vh;z-index:2147483646;display:flex;align-items:center;justify-content:center;font:200 60px -apple-system,BlinkMacSystemFont,sans-serif;opacity:.004;pointer-events:none;transform:translateZ(0);transition:none;';
+    document.body.appendChild(cov);paint();
+  }
+  function coverOn(){
+    if(core){shieldOn();return;}
+    mkCover();if(!cov)return;
+    cov.style.opacity='1';cov.style.pointerEvents='auto';void cov.offsetHeight;
+  }
+  function coverOff(){if(cov){cov.style.opacity='.004';cov.style.pointerEvents='none';paint();}}
+  function leave(){
+    if(free())return;
+    try{if(localStorage.getItem('registered')!=='true')return;}catch(e){}
+    coverOn();
+    try{
+      if(core){_preemptive=false;disguiseNow();if(_hideDisguised){_disguiseAutoBack=_autoBackAllowed();if(!_disguiseAutoBack)_gcLockSession();}}
+      else if(typeof _gcStealthLeave==='function')_gcStealthLeave();
+    }catch(e){}
+  }
+  window._gcLeaveNow=leave;
+  // 1. 失去焦点
+  var had=null;
+  setInterval(function(){
+    if(document.hidden){had=false;return;}
+    var f;try{f=document.hasFocus();}catch(e){return;}
+    if(f){if(had===false&&!core)coverOff();had=true;return;}
+    if(had===true&&!ownUi())leave();
+    had=false;
+  },100);
+  // 3. blur（新版外壳本来就有，这里只补旧版）
+  if(!core)window.addEventListener('blur',function(){if(!ownUi())leave();});
+  // 旧版：回到前台、手指点回来时把遮罩撤掉（底下已经是伪装界面）
+  if(!core){
+    window.addEventListener('focus',function(){if(!document.hidden)coverOff();});
+    document.addEventListener('visibilitychange',function(){if(!document.hidden&&document.hasFocus())coverOff();else if(document.hidden)leave();});
+  }
+  // 2. 底缘上划：只认屏幕最底下那一条（有死区时就是死区本身，Home 横条在里面）
+  var ey=null;
+  function band(){
+    var ih=window.innerHeight,sh=(window.screen&&screen.height)||ih;
+    if(document.documentElement.classList.contains('gc-deadgap'))return Math.min(ih,sh-34);
+    return ih-24; // 没有死区：最底下 24px（Home 横条那一条），不管下面是不是输入栏/底部导航
+  }
+  // 落在底部导航/输入栏/按钮上时，手指轻微一抖不能算（以前点底部菜单会闪伪装界面）：
+  // 这种情况只认系统接管（touchcancel）或明显往上划 18px；空白处 6px 就算
+  var need=6;
+  document.addEventListener('touchstart',function(e){
+    ey=null;if(free())return;
+    var t=e.touches&&e.touches[0];if(!t||e.touches.length>1)return;
+    var b=band();if(b==null||t.clientY<b)return;
+    ey=t.clientY;
+    var tg=e.target;
+    need=(tg&&tg.closest&&tg.closest('.tabs,.tab,.ibar,.aw-bar,.aw-sheet,button,input,textarea,select,a,[onclick],.row'))?18:6;
+  },{passive:true,capture:true});
+  document.addEventListener('touchmove',function(e){
+    if(ey==null)return;var t=e.touches&&e.touches[0];if(!t)return;
+    if(ey-t.clientY>=need){ey=null;leave();}
+  },{passive:true,capture:true});
+  document.addEventListener('touchcancel',function(){if(ey==null)return;ey=null;leave();},{passive:true,capture:true});
+  document.addEventListener('touchend',function(){ey=null;},{passive:true,capture:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mkCover);else mkCover();
 })();
 </script>
 </body>
