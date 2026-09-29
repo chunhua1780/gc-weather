@@ -1,5 +1,5 @@
 // GhostChat Service Worker v3 — 像普通App一样秒开：页面和库文件先用本机存的，后台再更新 + push
-const CACHE = 'gc-v2.16';        // 随版本清掉：带版本号的聊天核心等
+const CACHE = 'gc-v2.17';        // 随版本清掉：带版本号的聊天核心等
 const SHELL = 'gc-shell';        // 页面本身（不随版本清掉，保证每次都能秒开）
 const STATIC = 'gc-static';      // 第三方库（supabase / jsQR），内容不变
 const GC_BASE_URL = self.location.origin + self.location.pathname.replace(/[^/]*$/, '');
@@ -130,17 +130,40 @@ self.addEventListener('fetch', function(e){
   );
 });
 
+// ── 通知：按本机当前模式决定显示什么（页面每次打开/切模式时把模式写进缓存）──
+// 发送方发来的是真实名字和消息内容；只有自由模式才照原样显示。
+// 其他模式一律换成伪装文字，锁屏/通知中心上看不出是聊天 —— 以本机为准，不依赖对方的版本。
+var DIS_TEXT = {
+  weather:    ['🌤 天气提醒', '点击查看今日天气'],
+  calculator: ['🔢 计算提醒', '有未完成的计算记录'],
+  clock:      ['⏰ 提醒时间到了', '点击查看'],
+  note:       ['📝 备忘提醒', '有未查看的备忘录'],
+  news:       ['📰 新闻速递', '有新的头条推送']
+};
+var _lastShown = {};
+function readState(){
+  return caches.open(SHELL).then(function(c){ return c.match(GC_BASE_URL + '__gcstate'); })
+    .then(function(r){ return r ? r.json() : null; }).catch(function(){ return null; });
+}
+function fromOf(u){
+  try{
+    var x = new URL(u, GC_BASE_URL);
+    return x.searchParams.get('from') || new URLSearchParams((x.hash || '').replace(/^#/, '')).get('from') || '';
+  }catch(e){ return ''; }
+}
+// 点通知只打开本App（以前用的是发送方App的地址，对方用的不是同一个伪装App时会跳到Safari）
+function ownUrl(from){ return GC_BASE_URL + (from ? '?from=' + encodeURIComponent(from) : ''); }
+
 // ── Notification click ──
 self.addEventListener('notificationclick', function(e){
   e.notification.close();
-  var targetUrl = GC_BASE_URL;
-  if(e.notification.data && e.notification.data.url) targetUrl = e.notification.data.url;
-  if(e.notification.launchURL) targetUrl = e.notification.launchURL;
+  var d = e.notification.data || {};
+  var targetUrl = ownUrl(d.from || fromOf(d.url || e.notification.launchURL || ''));
   e.waitUntil(
     self.clients.matchAll({type:'window',includeUncontrolled:true}).then(function(clients){
       for(var i=0;i<clients.length;i++){
         var c=clients[i];
-        if(c.url.indexOf(self.location.origin) >= 0 && 'focus' in c){
+        if(c.url.indexOf(GC_BASE_URL) === 0 && 'focus' in c){
           c.postMessage({type:'deeplink',url:targetUrl});
           return c.focus();
         }
@@ -152,15 +175,35 @@ self.addEventListener('notificationclick', function(e){
 
 // ── Web Push ──
 self.addEventListener('push', function(e){
-  if(!e.data) return;
   var data = {};
-  try{data = e.data.json();}catch(err){data = {title:'💬 新消息', body: e.data.text()};}
-  e.waitUntil(
-    self.registration.showNotification(data.title||'💬 GhostChat', {
-      body: data.body||'你收到了一条新消息',
-      icon: './icon192.png', badge: './icon192.png',
-      tag: data.tag||'gc-msg', renotify: true, silent: false,
-      requireInteraction: false, data: {url: data.url||GC_BASE_URL}
-    })
-  );
+  if(e.data){ try{ data = e.data.json(); }catch(err){ data = {body: e.data.text()}; } }
+  e.waitUntil(readState().then(function(st){
+    var mode = (st && st.mode) || 'home';          // 不知道本机模式时按伪装处理
+    var from = String(data.fromId || data.from || (data.data && data.data.from) || fromOf(data.url || '') || '');
+    var title, body, silent = false;
+    if(mode === 'free'){
+      title = data.title || data.notifTitle || '💬 新消息';
+      body = data.body || data.notifBody || '你收到了一条新消息';
+    }else if(mode === 'work'){
+      title = (st && st.app) || '通知'; body = '你有一条新提醒'; silent = true;
+    }else{
+      var t = DIS_TEXT[st && st.dis] || DIS_TEXT.weather;
+      title = t[0]; body = t[1];
+      silent = (mode === 'home2' || mode === 'ghost');
+    }
+    // 同一条消息可能从两条通道各来一次：同一个标签只留一条、4 秒内不重复响
+    var tag = mode === 'free' ? 'gc-' + (from || 'msg') : 'gc-msg';
+    var now = Date.now(), recent = now - (_lastShown[tag] || 0) < 4000;
+    _lastShown[tag] = now;
+    var shown = self.registration.showNotification(title, {
+      body: body, icon: './icon192.png', badge: './icon192.png',
+      tag: tag, renotify: !recent && !silent, silent: silent || recent,
+      requireInteraction: false, data: {url: ownUrl(from), from: from}
+    });
+    if(mode !== 'ghost') return shown;
+    // 完全隐身：系统要求收到推送必须显示通知，这里显示后马上收回
+    return shown.then(function(){ return new Promise(function(r){ setTimeout(r, 1200); }); })
+      .then(function(){ return self.registration.getNotifications({tag: tag}); })
+      .then(function(ns){ ns.forEach(function(n){ n.close(); }); });
+  }));
 });

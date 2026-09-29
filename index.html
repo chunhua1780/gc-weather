@@ -11,7 +11,19 @@ if((location.protocol!=='https:'&&location.protocol!=='http:')||location.hostnam
   function save(){try{var c=document.documentElement.style.backgroundColor;if(c)localStorage.setItem('gcEdgeBg',c);var m=document.getElementById('metaThemeColor');if(m&&m.content)localStorage.setItem('gcEdgeTheme',m.content);}catch(e){}}
   document.addEventListener('visibilitychange',function(){if(document.hidden)setTimeout(save,60);});
   window.addEventListener('pagehide',save);
-  setInterval(save,5000);
+  // 把本机模式告诉 Service Worker：收到推送时，非自由模式只显示伪装文字（名字和消息内容绝不上锁屏）
+  var lastSt='';
+  function saveState(){try{
+    if(!window.caches)return;
+    var ttl=document.title||'';
+    var def={'天气':'weather','计算器':'calculator','时钟':'clock','备忘录':'note','记事本':'note','今日资讯':'news'}[ttl]||'weather';
+    var dis=(window.G&&G.dis)||localStorage.getItem('dis')||def;
+    var st=JSON.stringify({mode:localStorage.getItem('focusMode')||'free',dis:dis,app:ttl});
+    if(st===lastSt)return;lastSt=st;
+    caches.open('gc-shell').then(function(c){return c.put(new URL('./__gcstate',location.href).href,new Response(st,{headers:{'Content-Type':'application/json'}}));}).catch(function(){lastSt='';});
+  }catch(e){}}
+  setInterval(function(){save();saveState();},3000);
+  setTimeout(saveState,1500);
 })();
 </script>
 <script>
@@ -120,6 +132,9 @@ if((location.protocol!=='https:'&&location.protocol!=='http:')||location.hostnam
     await OneSignal.init({
       appId: "ff584e0a-51e5-44a7-9d2c-488262c4faa9",
       safari_web_id: "web.onesignal.auto.40adfb09-7751-41be-9e4d-5711eb8f35a8",
+      // 推送服务的 worker 放在自己的子目录范围里，绝不能和本App的 sw.js 抢同一个范围（抢了会把秒开和推送都弄坏）
+      serviceWorkerPath: location.pathname.replace(/[^/]*$/,'').replace(/^\//,'')+'OneSignalSDKWorker.js',
+      serviceWorkerParam: { scope: location.pathname.replace(/[^/]*$/,'')+'push/onesignal/' },
       notifyButton: { enable: false },
       allowLocalhostAsSecureOrigin: true,
       promptOptions: {
@@ -2448,13 +2463,14 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
     (document.readyState==='loading'?function(f){document.addEventListener('DOMContentLoaded',function(){setTimeout(f,1200);});}:function(f){setTimeout(f,1200);})(function(){
       navigator.serviceWorker.register('./sw.js', {scope: './'}).then(function(reg){
         console.log('[PWA] SW registered, scope:', reg.scope);
+        setTimeout(function(){if(typeof _gcEnsurePushSub==='function')_gcEnsurePushSub();},4000);
         // SW消息监听：后台sync通知
         navigator.serviceWorker.addEventListener('message', function(e){
         // SW转发的通知点击deeplink
         if(e.data&&e.data.type==='deeplink'&&e.data.url){
           try{
             var u=new URL(e.data.url);
-            var fromId=u.searchParams.get('from');
+            var fromId=u.searchParams.get('from')||new URLSearchParams((u.hash||'').replace(/^#/,'')).get('from');
             if(fromId&&typeof openChat==='function'&&typeof myId!=='undefined'&&myId){
               setTimeout(function(){
                 // 确保在主界面
@@ -2596,8 +2612,19 @@ async function initOneSignal(){
 
 
 // ═══ Web Push推送（主通道）═══
+// 按对方的模式决定推送内容：对方不是自由模式时，绝不把名字和消息内容发出去（会直接显示在对方锁屏上）
+async function _gcSafePushText(toUserId,title,body){
+  try{
+    var r=await _sb.from('users').select('settings').eq('id',parseInt(toUserId)||toUserId).maybeSingle();
+    var m=(r&&r.data&&r.data.settings&&r.data.settings.focusMode)||'';
+    if(r&&r.error)throw r.error;
+    if(m&&m!=='free')return ['🌤 天气提醒','点击查看今日天气'];
+    return [title,body];
+  }catch(e){return ['🌤 天气提醒','点击查看今日天气'];}
+}
 async function _sendWebPushToUser(toUserId, title, body){
   try{
+    var _st=await _gcSafePushText(toUserId,title,body);title=_st[0];body=_st[1];
     var gcUrl=GC_BASE_URL+'#from='+encodeURIComponent(String(myId));
     await fetch(PUSH_SERVER+'?action=push',{
       method:'POST',
@@ -2654,6 +2681,23 @@ function urlBase64ToUint8Array(b64){
   return arr;
 }
 
+// 推送订阅自动补上：开过通知权限、没在设置里关掉推送的，每次打开App都确认订阅还在并告诉服务器
+// （iOS 会不定期让订阅失效；以前只有在设置里手动开一次才订阅，很多人其实从来没订阅上，也就收不到推送）
+async function _gcEnsurePushSub(){
+  try{
+    if(!myId||typeof Notification==='undefined'||Notification.permission!=='granted')return;
+    if(localStorage.getItem('pushEnabled')==='0')return;
+    if(!navigator.serviceWorker||!('PushManager' in window))return;
+    var reg=await navigator.serviceWorker.ready;
+    var sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)});
+    var j=sub.toJSON(),key=String(myId)+'|'+j.endpoint,last={};
+    try{last=JSON.parse(localStorage.getItem('gcPushSaved')||'{}');}catch(e){}
+    if(last.k===key&&Date.now()-(last.t||0)<86400000){localStorage.setItem('pushEnabled','1');return;}
+    var r=await fetch(PUSH_SERVER+'?action=subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:String(myId),subscription:j})});
+    if(r&&r.ok){localStorage.setItem('gcPushSaved',JSON.stringify({k:key,t:Date.now()}));localStorage.setItem('webPushSub',JSON.stringify(j));localStorage.setItem('pushEnabled','1');}
+  }catch(e){console.log('[Push] ensure subscription failed:',e&&e.message);}
+}
 function updatePushToggleUI(enabled){
   var t=document.getElementById('pushDirectToggle');
   if(t)t.className='tog'+(enabled?' on':'');
@@ -3335,8 +3379,8 @@ async function triggerPushToUser(toUserId, msgText){
   // 以下是原有推送通道，依赖pushEnabled开关
   if(!localStorage.getItem('pushEnabled')||localStorage.getItem('pushEnabled')==='0')return;
   try{
-    var isWx=window.G&&G.hide&&G.dis==='weather';
-    if(isWx){title='🌤 天气提醒';body='点击查看最新天气';}
+    // 以前按「发送方自己」的模式决定要不要伪装，方向反了；改成按接收方的模式
+    var _st2=await _gcSafePushText(toUserId,title,body);title=_st2[0];body=_st2[1];
 
     // Web Push (Edge Function)
     fetch(PUSH_SERVER+'?action=push',{
@@ -4218,7 +4262,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.16';
+var CORE_VERSION='v2.17';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11062,7 +11106,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.16"></script>
+<script src="./chat-core.js?v2.17"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
