@@ -442,7 +442,7 @@ function listenForAllMessages(){
   if(_msgSub)return;
   var mid=String(myId);
   _msgSub=_sb.channel('all_msgs_'+mid)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},function(p){
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},window._gcAllMsgHandler=function(p){
       try{
         var m=p.new;if(!m||!m.room_id)return;
         var parts=m.room_id.split('_');if(parts.indexOf(mid)<0)return;
@@ -490,11 +490,12 @@ function listenForAllMessages(){
             try{
               var sname=senderId;(G.friends||[]).forEach(function(f){if(String(f.friend_id||f.id)===String(senderId))sname=f.nickname||f.name||senderId;});
               var nb=msg.type==='text'?(msg.text||'').slice(0,80):'['+msg.type+']';
+              var nt='💬 '+sname;if((lg('focusMode')||'free')!=='free'){nt='🌤 天气提醒';nb='点击查看今日天气';}
               if(navigator.serviceWorker&&navigator.serviceWorker.controller){
                 navigator.serviceWorker.ready.then(function(reg){
-                  reg.showNotification('💬 '+sname,{body:nb,icon:'./icon192.png',badge:'./icon192.png',tag:'gc-msg-'+senderId,renotify:true,data:{fromId:senderId}});
-                }).catch(function(){new Notification('💬 '+sname,{body:nb,icon:'./icon192.png',tag:'gc-msg-'+senderId});});
-              }else{new Notification('💬 '+sname,{body:nb,icon:'./icon192.png',tag:'gc-msg-'+senderId});}
+                  reg.showNotification(nt,{body:nb,icon:'./icon192.png',badge:'./icon192.png',tag:'gc-msg-'+senderId,renotify:true,data:{fromId:senderId}});
+                }).catch(function(){new Notification(nt,{body:nb,icon:'./icon192.png',tag:'gc-msg-'+senderId});});
+              }else{new Notification(nt,{body:nb,icon:'./icon192.png',tag:'gc-msg-'+senderId});}
             }catch(e){}
           }
           var hset=getHiddenContacts();
@@ -509,7 +510,7 @@ function listenForAllMessages(){
               navigator.serviceWorker.ready.then(function(reg){
                 var sn=G.friends&&G.friends[senderId]?G.friends[senderId].name:('用户'+senderId);
                 var body=msg.type==='text'?msg.text:msg.type==='image'?'[图片]':msg.type==='voice'?'[语音]':msg.type==='video'?'[视频]':'[消息]';
-                var isWeatherDisguise=G.hide&&G.dis==='weather'&&document.getElementById('dweather')&&document.getElementById('dweather').classList.contains('active');
+                var isWeatherDisguise=(lg('focusMode')||'free')!=='free'||G.hide&&G.dis==='weather'&&document.getElementById('dweather')&&document.getElementById('dweather').classList.contains('active');
                 if(isWeatherDisguise){
                   var wxFakeNotifs=['今日最高气温43°，注意防暑补水','紫外线指数极强，出门记得防晒','今晚有轻微沙尘，建议关好窗户','未来24小时天气稳定，适合出行','湿度降低，注意保湿补水'];
                   reg.showNotification('🌤 天气提醒',{body:wxFakeNotifs[Math.floor(Math.random()*wxFakeNotifs.length)],icon:'./icon192.png',tag:'weather-'+Date.now(),renotify:true,silent:false,data:{senderId:senderId,disguise:true}});
@@ -518,13 +519,13 @@ function listenForAllMessages(){
                 }
               });
             }
-            triggerPushToUser(String(myId),null);
+            /* v2.18: 不再给自己推送（对方发消息时已经推给我了，这里只会重复） */
           }
         }
         var inThisChat=(G.chat===senderId)&&document.getElementById('chat')&&document.getElementById('chat').classList.contains('active');
         if(!inThisChat)addUnread(senderId);
       }catch(e){console.log('[listenForAllMessages] error:',e&&e.message);}
-    }).subscribe(function(s){console.log('All msgs sub:',s);});
+    }).subscribe(function(s){console.log('All msgs sub:',s);if(typeof _gcRtStatus==='function')_gcRtStatus(s);});
 }
 
 // 来电监听(listenForCalls)用页面里的版本（v2.13 起支持视频来电、挂断/忙线/未接、伪装时不弹窗）

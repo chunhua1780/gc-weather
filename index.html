@@ -2613,9 +2613,25 @@ async function initOneSignal(){
 
 // ═══ Web Push推送（主通道）═══
 // 按对方的模式决定推送内容：对方不是自由模式时，绝不把名字和消息内容发出去（会直接显示在对方锁屏上）
+// 对方的设置缓存 60 秒（推送前要看对方的模式；Bark 和 Web Push 共用一次查询，发得更快）
+var _gcPeerSetCache={};
+function _gcPeerSettings(id){
+  id=String(id);var c=_gcPeerSetCache[id];
+  if(c&&Date.now()-c.t<60000)return c.p;
+  var p=Promise.resolve(_sb.from('users').select('settings').eq('id',parseInt(id)||id).maybeSingle())
+    .then(function(r){if(!r||r.error)delete _gcPeerSetCache[id];return r;},function(e){delete _gcPeerSetCache[id];throw e;});
+  _gcPeerSetCache[id]={t:Date.now(),p:p};return p;
+}
+// 图片/语音/视频/文件/位置/名片发出去后也推送给对方（以前只有文字消息才推送）
+function _gcPushForRoom(room,label){
+  try{
+    var mid=String(myId),parts=String(room||'').split('_'),peer=parts[0]===mid?parts[1]:parts[0];
+    if(peer&&typeof triggerPushToUser==='function')triggerPushToUser(String(peer),label);
+  }catch(e){}
+}
 async function _gcSafePushText(toUserId,title,body){
   try{
-    var r=await _sb.from('users').select('settings').eq('id',parseInt(toUserId)||toUserId).maybeSingle();
+    var r=await _gcPeerSettings(toUserId);
     var m=(r&&r.data&&r.data.settings&&r.data.settings.focusMode)||'';
     if(r&&r.error)throw r.error;
     if(m&&m!=='free')return ['🌤 天气提醒','点击查看今日天气'];
@@ -3405,7 +3421,7 @@ async function triggerPushToUser(toUserId, msgText){
 // 从Supabase读取对方的Bark URL并推送（发送方执行，完全不依赖接收方浏览器）
 async function _sendBarkToUser(toUserId, title, body){
   try{
-    var r=await _sb.from('users').select('settings').eq('id',parseInt(toUserId)||toUserId).maybeSingle();
+    var r=await _gcPeerSettings(toUserId);
     if(!r.data||!r.data.settings)return;
     var barkUrl=(r.data.settings.barkUrl||'').trim();
     if(!barkUrl){console.log('[Bark] 对方未设置Bark URL');return;}
@@ -4262,7 +4278,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.17';
+var CORE_VERSION='v2.18';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -6565,7 +6581,7 @@ async function sendContactCard(targetId){
   var content=JSON.stringify(_shareCardCtx);
   var r=await _sb.from('messages').insert({room_id:room,sender:String(myId),content:content,type:'contact'});
   if(r.error){alert('发送失败: '+r.error.message);return;}
-  _upsertConv(room,'[名片]','contact',myId,Date.now());
+  _gcPushForRoom(room,'[名片]');_upsertConv(room,'[名片]','contact',myId,Date.now());
   alert('已推荐给好友');
   _shareCardCtx=null;
 }
@@ -7063,7 +7079,7 @@ function pickLang(code){
 <script src="./vendor/supabase-js.js"></script>
 <script src="./vendor/jsQR.js" async></script>
 <script>
-var _sb=supabase.createClient('https://mztoenhgfuomzrashrqk.supabase.co','sb_publishable_pOM3IfVWYiscQ-cz9vAwvA_F2Ht6zg1',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+var _sb=supabase.createClient('https://mztoenhgfuomzrashrqk.supabase.co','sb_publishable_pOM3IfVWYiscQ-cz9vAwvA_F2Ht6zg1',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{heartbeatIntervalMs:15000,timeout:10000}});
 
 // ═══════════════════════════════════════════════════════════
 // 商业广告模块接口（预留空壳，当前不生效，方便以后接入）
@@ -8356,7 +8372,7 @@ function listenForAllMessages(){
   if(_msgSub)return;
   var mid=String(myId);
   _msgSub=_sb.channel('all_msgs_'+mid)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},function(p){
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},window._gcAllMsgHandler=function(p){
       try{
       var m=p.new;
       if(!m||!m.room_id)return;
@@ -8405,6 +8421,7 @@ function listenForAllMessages(){
             });
             var notifTitle2='💬 '+senderName2;
             var notifBody2=msg.type==='text'?(msg.text||'').slice(0,80):'['+msg.type+']';
+            if((lg('focusMode')||'free')!=='free'){notifTitle2='🌤 天气提醒';notifBody2='点击查看今日天气';}
             if(navigator.serviceWorker&&navigator.serviceWorker.controller){
               navigator.serviceWorker.ready.then(function(reg){
                 reg.showNotification(notifTitle2,{body:notifBody2,icon:'./icon192.png',badge:'./icon192.png',tag:'gc-msg-'+senderId,renotify:true,data:{fromId:senderId,url:GC_BASE_URL}});
@@ -8437,7 +8454,7 @@ function listenForAllMessages(){
               var sname=G.friends&&G.friends[senderId]?G.friends[senderId].name:('用户'+senderId);
               var body=msg.type==='text'?msg.text:msg.type==='image'?'[图片]':msg.type==='voice'?'[语音]':msg.type==='video'?'[视频]':'[消息]';
               // 天气伪装模式：通知伪装成天气预报
-              var isWeatherDisguise=G.hide&&G.dis==='weather'&&
+              var isWeatherDisguise=(lg('focusMode')||'free')!=='free'||G.hide&&G.dis==='weather'&&
                 document.getElementById('dweather')&&
                 document.getElementById('dweather').classList.contains('active');
               if(isWeatherDisguise){
@@ -8470,7 +8487,7 @@ function listenForAllMessages(){
               }
             });
           }
-          triggerPushToUser(String(myId), null);
+          /* v2.18: 不再给自己推送（对方发消息时已经推给我了，这里只会重复） */
         }
       }
       // 未读提醒：只要不在当前聊天界面就提醒，与already无关
@@ -8480,7 +8497,7 @@ function listenForAllMessages(){
       }
       }catch(e){console.log('[listenForAllMessages] error:',e&&e.message,e&&e.stack);}
     }).subscribe(function(s){
-      console.log('All msgs sub:',s);
+      console.log('All msgs sub:',s);if(typeof _gcRtStatus==='function')_gcRtStatus(s);
     });
 }
 
@@ -10019,7 +10036,7 @@ async function onImg(e){
           if(msgs3[k].type==='image'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
         }
         saveLocalMsgs(chatAtSend,msgs3);
-        _upsertConv(roomAtSend,'[图片]','image',myId,Date.now());
+        _gcPushForRoom(roomAtSend,'[图片]');_upsertConv(roomAtSend,'[图片]','image',myId,Date.now());
       }
     });
   });
@@ -10056,7 +10073,7 @@ function onVid(e){
     saveLocalMsgs(chatAtSend,msgs);
     if(roomAtSend)_sb.from('messages').insert({room_id:roomAtSend,sender:String(myId),content:url,type:'video'}).select().single().then(function(r){
       if(r.error){console.log('video insert err:',r.error.message);alert('视频发送失败: '+r.error.message);return;}
-      if(r.data){_upsertConv(roomAtSend,'[视频]','video',myId,Date.now());
+      if(r.data){_gcPushForRoom(roomAtSend,'[视频]');_upsertConv(roomAtSend,'[视频]','video',myId,Date.now());
         var msgs3=G.msgs[chatAtSend]||[];
         for(var k=msgs3.length-1;k>=0;k--){
           if(msgs3[k].type==='video'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
@@ -10087,7 +10104,7 @@ function doLoc(){
     if(roomAtLoc){
       _sb.from('messages').insert({room_id:roomAtLoc,sender:String(myId),content:addr+'|'+mapUrl,type:'location'}).select().single().then(function(r){
         if(r.error){alert('Location send error: '+r.error.message);return;}
-        if(r.data){locMsg.id=r.data.id;_gcSetSts(locMsg,r.data);saveLocalMsgs(chatAtLoc,G.msgs[chatAtLoc]||[]);_upsertConv(roomAtLoc,'[位置]','location',myId,Date.now());}
+        if(r.data){locMsg.id=r.data.id;_gcSetSts(locMsg,r.data);saveLocalMsgs(chatAtLoc,G.msgs[chatAtLoc]||[]);_gcPushForRoom(roomAtLoc,'[位置]');_upsertConv(roomAtLoc,'[位置]','location',myId,Date.now());}
       });
     }
   },function(err){
@@ -10131,7 +10148,7 @@ function onFile(e){
           if(msgs3[k].type==='file'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
         }
         saveLocalMsgs(chatAtSend,msgs3);
-        _upsertConv(roomAtSend,'[文件]','file',myId,Date.now());
+        _gcPushForRoom(roomAtSend,'[文件]');_upsertConv(roomAtSend,'[文件]','file',myId,Date.now());
       }
     });
   });
@@ -10209,7 +10226,7 @@ function recStop(){
               if(msgs3[k].type==='voice'&&msgs3[k].src===url){msgs3[k].id=r.data.id;_gcSetSts(msgs3[k],r.data);break;}
             }
             saveLocalMsgs(chatAtStop,msgs3);
-            _upsertConv(roomAtStop,'[语音]','voice',myId,Date.now());
+            _gcPushForRoom(roomAtStop,'[语音]');_upsertConv(roomAtStop,'[语音]','voice',myId,Date.now());
           }
         });
       } else {
@@ -11106,7 +11123,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.17"></script>
+<script src="./chat-core.js?v2.18"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11399,6 +11416,82 @@ function updDots(err){
   document.addEventListener('touchcancel',function(){if(ey==null)return;ey=null;leave();},{passive:true,capture:true});
   document.addEventListener('touchend',function(){ey=null;},{passive:true,capture:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mkCover);else mkCover();
+})();
+</script>
+<script>
+// ═══ 消息实时性加固（v2.18）═══
+// 以前"全部消息"的实时通道一旦断开（iOS 切后台会断、网络切换会断）就再也不会重连，
+// 只能等 15 秒一次的轮询，甚至一直收不到；回到前台也不会去补漏掉的消息。
+//  1. 通道出错/超时/关闭 → 2 秒后自动重连（逐步退避到最多 30 秒），重连成功立刻补消息；
+//  2. 回到前台、网络恢复 → 立即重连并补齐这段时间漏掉的消息（和实时收到的走同一套处理，不会重复）；
+//  3. 通道不正常时每 4 秒补一次，正常时每 20 秒兜底一次；
+//  4. 发送失败的消息自动重发（以前只在"网络恢复"那一刻才重发）。
+(function(){
+  var healthy=false,busy=false,lastRun=0,backoff=2000,resubT=null;
+  window._gcRtStatus=function(s){
+    if(s==='SUBSCRIBED'){var was=healthy;healthy=true;backoff=2000;if(!was)setTimeout(function(){catchUp();},300);}
+    else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){
+      healthy=false;clearTimeout(resubT);resubT=setTimeout(resub,backoff);backoff=Math.min(backoff*2,30000);
+    }
+  };
+  function resub(){
+    try{
+      if(healthy||typeof myId==='undefined'||!myId||typeof listenForAllMessages!=='function')return;
+      if(typeof _msgSub!=='undefined'&&_msgSub){try{_msgSub.unsubscribe();}catch(e){}_msgSub=null;}
+      listenForAllMessages();
+    }catch(e){}
+  }
+  function kick(){ // 让底层连接马上重连，不等心跳超时
+    try{var rt=_sb&&_sb.realtime;if(rt&&rt.isConnected&&!rt.isConnected()&&rt.connect)rt.connect();}catch(e){}
+  }
+  function rooms(){
+    var mid=String(myId),ids={};
+    try{var f=G.friends;if(Array.isArray(f))f.forEach(function(x){ids[String(x.friend_id||x.id)]=1;});else if(f)Object.keys(f).forEach(function(k){ids[k]=1;});}catch(e){}
+    try{var c=JSON.parse(localStorage.getItem('chatListCache')||'{}');(c.ids||[]).forEach(function(i){ids[String(i)]=1;});}catch(e){}
+    try{Object.keys(G.msgs||{}).forEach(function(i){ids[i]=1;});}catch(e){}
+    delete ids[mid];delete ids[''];
+    return Object.keys(ids).slice(0,80).map(function(id){return roomIdOf(parseInt(mid)||mid,parseInt(id)||id);});
+  }
+  async function catchUp(){
+    if(busy||typeof myId==='undefined'||!myId||typeof _sb==='undefined'||typeof window._gcAllMsgHandler!=='function')return;
+    if(Date.now()-lastRun<1500)return;
+    var last=+localStorage.getItem('gcLastMsgSync')||0;
+    if(!last){localStorage.setItem('gcLastMsgSync',String(Date.now()));return;} // 第一次：只从现在开始记
+    busy=true;lastRun=Date.now();
+    try{
+      var rs=rooms();if(!rs.length)return;
+      var t0=Date.now();
+      var since=new Date(last-120000).toISOString(); // 往前多看 2 分钟，防手机时钟不准；重复的会被去重
+      var r=await _sb.from('messages').select('*').in('room_id',rs).gt('created_at',since).order('created_at',{ascending:true}).limit(300);
+      if(r&&r.data&&!r.error){
+        r.data.forEach(function(m){try{window._gcAllMsgHandler({new:m});}catch(e){}});
+        localStorage.setItem('gcLastMsgSync',String(t0));
+        if(r.data.length&&typeof G!=='undefined'&&G.chat&&typeof syncRoomMessages==='function'){
+          var ce=document.getElementById('chat');if(ce&&ce.classList.contains('active'))syncRoomMessages(G.chat).catch(function(){});
+        }
+      }
+    }catch(e){console.log('[catchUp]',e&&e.message);}
+    finally{busy=false;}
+  }
+  window._gcCatchUp=catchUp;
+  var lastRetry=0;
+  function retry(){if(Date.now()-lastRetry<15000)return;lastRetry=Date.now();try{if(typeof retryFailedMsgs==='function')retryFailedMsgs();}catch(e){}}
+  function wake(){kick();setTimeout(function(){if(!healthy)resub();catchUp();lastRetry=0;retry();},400);}
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)wake();});
+  window.addEventListener('online',wake);
+  window.addEventListener('pageshow',function(){if(!document.hidden)wake();});
+  setInterval(function(){
+    if(document.hidden)return;
+    if(!healthy){kick();catchUp();}
+    else if(Date.now()-lastRun>20000)catchUp();
+    retry();
+  },4000);
+  // 打开聊天时先把对方的设置拿好，发消息后推送能立刻发出去
+  if(typeof openChat==='function'&&!openChat._gcWarm){
+    var oc=openChat;
+    openChat=function(n){try{if(typeof _gcPeerSettings==='function'&&n)_gcPeerSettings(n);}catch(e){}return oc.apply(this,arguments);};
+    openChat._gcWarm=true;
+  }
 })();
 </script>
 </body>

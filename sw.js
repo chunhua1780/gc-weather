@@ -1,5 +1,5 @@
 // GhostChat Service Worker v3 — 像普通App一样秒开：页面和库文件先用本机存的，后台再更新 + push
-const CACHE = 'gc-v2.17';        // 随版本清掉：带版本号的聊天核心等
+const CACHE = 'gc-v2.18';        // 随版本清掉：带版本号的聊天核心等
 const SHELL = 'gc-shell';        // 页面本身（不随版本清掉，保证每次都能秒开）
 const STATIC = 'gc-static';      // 第三方库（supabase / jsQR），内容不变
 const GC_BASE_URL = self.location.origin + self.location.pathname.replace(/[^/]*$/, '');
