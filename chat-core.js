@@ -281,7 +281,7 @@ async function syncRoomMessages(name){
     _gcAdopt(serverMsgs,localMsgs);_gcAdopt(serverMsgs,G.msgs[name]||[]); // 本机显示失败、服务器其实已有的：合成一条，不再显示两条
     var pendingMsgs=(G.msgs[name]||[]).filter(function(m){return m.id==null;});
     var serverIds={};serverMsgs.forEach(function(m){if(m.id!=null)serverIds[m.id]=true;});
-    var merged=localMsgs.filter(function(m){return !(m.id!=null&&serverIds[m.id]);}).concat(serverMsgs);
+    var merged=localMsgs.filter(function(m){return !(m.id!=null&&serverIds[m.id])&&!_gcGone(m,serverMsgs,res);}).concat(serverMsgs);
     var mergedTs=new Set(merged.map(function(m){return m.ts+'_'+m.text;}));
     pendingMsgs.forEach(function(m){if(!mergedTs.has(m.ts+'_'+m.text))merged.push(m);});
     // ★ 补丢消息：上面这段是用调用一开始快照的localMsgs算出来的，但这次await服务器
@@ -292,10 +292,11 @@ async function syncRoomMessages(name){
     var mergedKeys=new Set(merged.map(function(m){return m.id!=null?('id:'+m.id):('k:'+m.ts+'_'+m.text);}));
     (G.msgs[name]||[]).forEach(function(m){
       var key=m.id!=null?('id:'+m.id):('k:'+m.ts+'_'+m.text);
-      if(!mergedKeys.has(key)){merged.push(m);mergedKeys.add(key);}
+      if(!mergedKeys.has(key)&&!_gcGone(m,serverMsgs,res)){merged.push(m);mergedKeys.add(key);}
     });
     merged.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
     var prevLen=(G.msgs[name]||[]).length;
+    try{merged.forEach(function(m){if(m&&m.sent&&m.id==null&&m.failed&&m.text&&(!m.type||m.type==='text')&&Date.now()-(m._ots||m.ts||0)>120000){var k='stuck:'+name+':'+(m._ots||m.ts)+':'+m.text;if(!window[k]){window[k]=1;setTimeout(function(){_gcResolveStuck(m,roomIdOf(parseInt(myId)||myId,parseInt(name)||name),name);},500);}}});var _jq=window._gcJunkQ||[];window._gcJunkQ=[];_jq.forEach(function(j){setTimeout(function(){_gcCleanJunk(j,roomIdOf(parseInt(myId)||myId,parseInt(name)||name),name);},300);});}catch(e){}
     G.msgs[name]=merged;
     if(G.chat===name)renderMsgs();
     saveLocalMsgs(name,merged);
@@ -406,11 +407,13 @@ function _gcAdopt(server,list){
     var used={};(list||[]).forEach(function(m){if(m&&m.id!=null)used[String(m.id)]=1;});
     (list||[]).forEach(function(m){
       if(!m||!m.sent||m.id!=null||(m.type&&m.type!=='text')||!m.text)return;
-      for(var i=0;i<(server||[]).length;i++){
-        var s=server[i];
+      var _srv=(server||[]).slice().sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+      for(var i=0;i<_srv.length;i++){
+        var s=_srv[i];
         if(!s||!s.sent||s.id==null||used[String(s.id)]||(s.type&&s.type!=='text')||s.text!==m.text)continue;
         if(s.nonce&&m.nonce&&s.nonce!=m.nonce)continue;
         if(Math.abs((s.ts||0)-(m.ts||0))>600000)continue;
+        if(m.failed&&Date.now()-(m._ots||m.ts||0)>120000)(window._gcJunkQ=window._gcJunkQ||[]).push({text:m.text,id:s.id,sts:s.ts});m._ots=m._ots||m.ts;
         m.id=s.id;m.failed=false;m.failCount=0;m.sts=s.ts;m.ts=s.ts;if(s.read)m.read=true;used[String(s.id)]=1;n++;break;
       }
     });
@@ -421,18 +424,71 @@ function _gcAfterAdopt(peer){
   try{var l=G.msgs[peer]||[];saveLocalMsgs(peer,l);_gcResortSoon();if(typeof _gcNoteRead==='function')_gcNoteRead(peer,0);if(G.chat===peer&&typeof renderMsgs==='function')renderMsgs();}catch(e){}
 }
 async function _gcAlreadySent(msgObj,room,peer){
+  // v2.21：这条消息在服务器上是否已经有了。有就认领（优先指纹一致的那条），不再重发。
   try{
-    var r=await _sb.from('messages').select('id,created_at,content').eq('room_id',room).eq('sender',String(myId)).eq('type','text').eq('content',msgObj.text).eq('duration',_gcNonce(msgObj)).gte('created_at',new Date((msgObj.ts||Date.now())-600000).toISOString()).order('created_at',{ascending:true}).limit(5);
+    if(msgObj.id!=null)return true;
+    var since=new Date((msgObj._ots||msgObj.ts||Date.now())-600000).toISOString();
+    var r=await _sb.from('messages').select('id,created_at,content,duration').eq('room_id',room).eq('sender',String(myId)).eq('type','text').eq('content',msgObj.text).gte('created_at',since).order('created_at',{ascending:true}).limit(50);
     if(!r||!r.data||!r.data.length||msgObj.id!=null)return msgObj.id!=null;
-    var srv=r.data.map(function(x){return {id:x.id,sent:true,type:'text',text:x.content,ts:new Date(x.created_at).getTime()};});
     var list=G.msgs[peer]||[];var used={};list.forEach(function(m){if(m&&m.id!=null)used[String(m.id)]=1;});
-    for(var i=0;i<srv.length;i++){
-      var s=srv[i];if(used[String(s.id)]||Math.abs(s.ts-(msgObj.ts||0))>600000)continue;
-      msgObj.id=s.id;msgObj.failed=false;msgObj.failCount=0;msgObj.sts=s.ts;msgObj.ts=s.ts;
-      _gcAfterAdopt(peer);return true;
-    }
+    var cand=r.data.filter(function(x){return !used[String(x.id)];});
+    if(!cand.length)return false;
+    var pick=cand.filter(function(x){return msgObj.nonce&&x.duration==msgObj.nonce;})[0]||cand[0];
+    msgObj._ots=msgObj._ots||msgObj.ts;
+    msgObj.id=pick.id;msgObj.failed=false;msgObj.failCount=0;msgObj.sts=new Date(pick.created_at).getTime();msgObj.ts=msgObj.sts;if(pick.duration)msgObj.nonce=pick.duration;
+    _gcPropagate(peer,msgObj);
+    return true;
   }catch(e){}
   return false;
+}
+// 卡住超过 2 分钟的"失败"消息：服务器上同内容的副本，最早那条就是它，之后的都是被反复重发的 —— 留一条，其余删掉
+async function _gcResolveStuck(msgObj,room,peer){
+  try{
+    if(msgObj.id!=null)return true;
+    var o=msgObj._ots||msgObj.ts||Date.now();
+    var r=await _sb.from('messages').select('id,created_at,content,duration').eq('room_id',room).eq('sender',String(myId)).eq('type','text').eq('content',msgObj.text).gte('created_at',new Date(o-120000).toISOString()).order('created_at',{ascending:true}).limit(50);
+    if(!r||!r.data||!r.data.length||msgObj.id!=null)return msgObj.id!=null;
+    var pick=r.data[0],drop={};
+    r.data.slice(1).forEach(function(x){drop[String(x.id)]=1;Promise.resolve(_sb.from('messages').delete().eq('id',x.id).eq('sender',String(myId))).catch(function(){});});
+    var list=G.msgs[peer]||[];
+    for(var i=list.length-1;i>=0;i--){if(list[i]&&list[i].id!=null&&drop[String(list[i].id)])list.splice(i,1);}
+    msgObj._ots=o;msgObj.id=pick.id;msgObj.failed=false;msgObj.failCount=0;msgObj.sts=new Date(pick.created_at).getTime();msgObj.ts=msgObj.sts;if(pick.duration)msgObj.nonce=pick.duration;
+    _gcPropagate(peer,msgObj);
+    return true;
+  }catch(e){}
+  return false;
+}
+// 卡住的消息在同步时被认领后：它之后服务器上同内容的副本都是被反复重发出去的，删掉
+async function _gcCleanJunk(m,room,peer){
+  try{
+    var r=await _sb.from('messages').select('id,created_at').eq('room_id',room).eq('sender',String(myId)).eq('type','text').eq('content',m.text).gte('created_at',new Date((m.sts||m.ts)-1000).toISOString()).order('created_at',{ascending:true}).limit(50);
+    var drop={},n=0;
+    ((r&&r.data)||[]).forEach(function(x){if(String(x.id)!==String(m.id)){drop[String(x.id)]=1;n++;Promise.resolve(_sb.from('messages').delete().eq('id',x.id).eq('sender',String(myId))).catch(function(){});}});
+    if(!n)return;
+    var list=G.msgs[peer]||[];for(var i=list.length-1;i>=0;i--){if(list[i]&&list[i].id!=null&&drop[String(list[i].id)])list.splice(i,1);}
+    _gcAfterAdopt(peer);
+  }catch(e){}
+}
+// 发送成功/认领后，把结果同步到界面上和本机存的那一份（同步时消息对象会被换成副本，以前结果只写在旧对象上）
+function _gcPropagate(peer,src){
+  try{
+    var list=G.msgs[peer]||[],o=src._ots||src.ts;
+    list.forEach(function(x){
+      if(!x||x===src||x.id!=null||!x.sent||x.text!==src.text)return;
+      if((x.nonce&&src.nonce&&x.nonce==src.nonce)||Math.abs((x._ots||x.ts||0)-o)<2000){x.id=src.id;x.failed=false;x.failCount=0;x.sts=src.sts;x.ts=src.ts;x.nonce=src.nonce;x._ots=o;}
+    });
+    if(typeof _gcDedupe==='function')_gcDedupe(list);
+    _gcAfterAdopt(peer);
+  }catch(e){}
+}
+// 服务器上已经删掉的消息（撤掉的重复副本、对方双删清空的记录），本机也不再保留
+function _gcGone(m,server,res){
+  try{
+    if(!m||m.id==null||!server||!server.length)return false;
+    var mn=Infinity,mx=0;server.forEach(function(s){if(s.ts<mn)mn=s.ts;if(s.ts>mx)mx=s.ts;});
+    var full=res&&res.data&&res.data.length<50;
+    return m.ts<=mx&&(m.ts>=mn||full);
+  }catch(e){return false;}
 }
 // 自己发的消息从实时通道回来时：对上编号就记服务器时间；对不上（发送结果丢了）就认领
 function _gcOwnEcho(peer,m){
