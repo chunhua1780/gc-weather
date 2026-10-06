@@ -278,6 +278,7 @@ async function syncRoomMessages(name){
       localMsgs=localMsgs.filter(function(m){return m.ts>cutoff;});
     }
     toCleanup.forEach(function(item){cleanupMediaMessage(item.id,item.src,item.expired);});
+    _gcAdopt(serverMsgs,localMsgs);_gcAdopt(serverMsgs,G.msgs[name]||[]); // 本机显示失败、服务器其实已有的：合成一条，不再显示两条
     var pendingMsgs=(G.msgs[name]||[]).filter(function(m){return m.id==null;});
     var serverIds={};serverMsgs.forEach(function(m){if(m.id!=null)serverIds[m.id]=true;});
     var merged=localMsgs.filter(function(m){return !(m.id!=null&&serverIds[m.id]);}).concat(serverMsgs);
@@ -320,7 +321,66 @@ async function syncRoomMessages(name){
 // 2. 对方的已读回执不管我在不在那个聊天里都接收（以前只在聊天界面里才收，回到列表就一直是"未读"色）。
 // 3. 最近一次"读到哪儿"存在本机，列表刷新/重开App时也按它上色，并会去服务器补查。
 function _gcSrvTs(m){return (m&&(m.sts||m.ts))||0;}
-function _gcSetSts(m,row){try{var t=row&&row.created_at?new Date(row.created_at).getTime():0;if(m&&t)m.sts=t;}catch(e){}}
+// 我发的消息以服务器时间为准（排序、已读都用它）：手机时钟快慢不再让消息顺序错乱（v2.19）
+function _gcSetSts(m,row){try{var t=row&&row.created_at?new Date(row.created_at).getTime():0;if(m&&t){m.sts=t;if(m.sent&&m.ts!==t){m.ts=t;_gcResortSoon();}}}catch(e){}}
+var _gcResortT=null;
+function _gcResortSoon(){
+  if(_gcResortT)return;
+  _gcResortT=setTimeout(function(){
+    _gcResortT=null;
+    try{Object.keys(G.msgs||{}).forEach(function(k){
+      var a=G.msgs[k];if(!a||a.length<2)return;
+      var ok=true;for(var i=1;i<a.length;i++){if((a[i-1].ts||0)>(a[i].ts||0)){ok=false;break;}}
+      if(ok)return;
+      a.sort(function(x,y){return (x.ts||0)-(y.ts||0);});saveLocalMsgs(k,a);
+      if(G.chat===k&&typeof renderMsgs==='function')renderMsgs();
+    });}catch(e){}
+  },60);
+}
+// 发送超时但其实已经到了服务器的消息：认领服务器上那一条（拿到编号和服务器时间），不再重发。
+// 以前这种消息会被当成失败重发一遍 —— 对方收到两条，自己这边还一直显示未读。
+function _gcAdopt(server,list){
+  var n=0;
+  try{
+    var used={};(list||[]).forEach(function(m){if(m&&m.id!=null)used[String(m.id)]=1;});
+    (list||[]).forEach(function(m){
+      if(!m||!m.sent||m.id!=null||(m.type&&m.type!=='text')||!m.text)return;
+      for(var i=0;i<(server||[]).length;i++){
+        var s=server[i];
+        if(!s||!s.sent||s.id==null||used[String(s.id)]||(s.type&&s.type!=='text')||s.text!==m.text)continue;
+        if(Math.abs((s.ts||0)-(m.ts||0))>600000)continue;
+        m.id=s.id;m.failed=false;m.failCount=0;m.sts=s.ts;m.ts=s.ts;if(s.read)m.read=true;used[String(s.id)]=1;n++;break;
+      }
+    });
+  }catch(e){}
+  return n;
+}
+function _gcAfterAdopt(peer){
+  try{var l=G.msgs[peer]||[];saveLocalMsgs(peer,l);_gcResortSoon();if(typeof _gcNoteRead==='function')_gcNoteRead(peer,0);if(G.chat===peer&&typeof renderMsgs==='function')renderMsgs();}catch(e){}
+}
+async function _gcAlreadySent(msgObj,room,peer){
+  try{
+    var r=await _sb.from('messages').select('id,created_at,content').eq('room_id',room).eq('sender',String(myId)).eq('type','text').eq('content',msgObj.text).gte('created_at',new Date((msgObj.ts||Date.now())-600000).toISOString()).order('created_at',{ascending:true}).limit(5);
+    if(!r||!r.data||!r.data.length||msgObj.id!=null)return msgObj.id!=null;
+    var srv=r.data.map(function(x){return {id:x.id,sent:true,type:'text',text:x.content,ts:new Date(x.created_at).getTime()};});
+    var list=G.msgs[peer]||[];var used={};list.forEach(function(m){if(m&&m.id!=null)used[String(m.id)]=1;});
+    for(var i=0;i<srv.length;i++){
+      var s=srv[i];if(used[String(s.id)]||Math.abs(s.ts-(msgObj.ts||0))>600000)continue;
+      msgObj.id=s.id;msgObj.failed=false;msgObj.failCount=0;msgObj.sts=s.ts;msgObj.ts=s.ts;
+      _gcAfterAdopt(peer);return true;
+    }
+  }catch(e){}
+  return false;
+}
+// 自己发的消息从实时通道回来时：对上编号就记服务器时间；对不上（发送结果丢了）就认领
+function _gcOwnEcho(peer,m){
+  try{
+    var list=G.msgs[peer]||[],hit=false;
+    list.forEach(function(x){if(x&&x.id===m.id){_gcSetSts(x,m);hit=true;}});
+    if(hit||(m.type&&m.type!=='text'))return;
+    if(_gcAdopt([{id:m.id,sent:true,type:'text',text:m.content,ts:new Date(m.created_at).getTime()||Date.now()}],list))_gcAfterAdopt(peer);
+  }catch(e){}
+}
 function _gcPeerUpto(peer){try{var o=JSON.parse(localStorage.getItem('gcPeerReadUpto')||'{}');return +o[String(peer)]||0;}catch(e){return 0;}}
 function _gcStoreUpto(peer,upto){
   upto=+upto||0;if(!peer||!upto)return;
@@ -446,7 +506,7 @@ function listenForAllMessages(){
       try{
         var m=p.new;if(!m||!m.room_id)return;
         var parts=m.room_id.split('_');if(parts.indexOf(mid)<0)return;
-        if(String(m.sender)===mid){try{if(m.id!=null&&m.type!=='read_receipt'){var _pp=parts[0]===mid?parts[1]:parts[0];(G.msgs[_pp]||[]).forEach(function(x){if(x&&x.id===m.id)_gcSetSts(x,m);});}}catch(e){}return;}
+        if(String(m.sender)===mid){try{if(m.id!=null&&m.type!=='read_receipt'){var _pp=parts[0]===mid?parts[1]:parts[0];_gcOwnEcho(_pp,m);}}catch(e){}return;}
         if(m.type==='read_receipt'){try{_gcNoteRead(parts[0]===mid?parts[1]:parts[0],parseInt(m.content)||0);}catch(e){}return;}
         if(m.type==='read_receipt'||m.type==='gc_del')return;
         var senderId=parts[0]===mid?parts[1]:parts[0];
