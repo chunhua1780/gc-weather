@@ -177,7 +177,7 @@ async function joinRoom(name){
         if(m.type==='read_receipt'||m.type==='gc_del')return;
         var createdMs=new Date(m.created_at).getTime()||Date.now();
         var dl=new Date(createdMs);
-        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(dl),ts:createdMs};
+        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(dl),ts:createdMs};if(m.duration&&(!m.type||m.type==='text'))msg.nonce=m.duration;
         if(m.type==='image'){var ip=(m.content||'').split('|');msg.src=ip[0];if(ip[1])msg.thumb=ip[1];}
         if(m.type==='voice'){msg.src=m.content&&m.content.startsWith('http')?m.content:null;msg.dur=m.duration||(m.content&&m.content.match(/\d+/)?m.content.match(/\d+/)[0]:'?');}
         if(m.type==='location'){var lp=(m.content||'').split('|');msg.addr=lp[0];msg.mapUrl=lp[1]||('https://maps.google.com/?q='+lp[0]);}
@@ -189,7 +189,7 @@ async function joinRoom(name){
           if(tgt){tgt.type='recalled';tgt.text='';tgt.src=null;if(G.chat===name)renderMsgs();saveLocalMsgs(name,G.msgs[name]);}
           return;
         }
-        var already=(G.msgs[name]||[]).some(function(x){return x.id===m.id;});
+        var already=(G.msgs[name]||[]).some(function(x){return x.id===m.id||(m.duration&&x.nonce==m.duration&&x.text===m.content);});
         if(!already){
           msg.delivered=true;msg.read=false;addMsg(msg);sendNotif();
           _sb.from('messages').update({delivered:true}).eq('id',m.id).then(function(){});
@@ -243,7 +243,7 @@ async function syncRoomMessages(name){
             var content=m.content||'';
             var createdMs=new Date(m.created_at).getTime()||Date.now();
             var dlocal=new Date(createdMs);
-            var msg={id:m.id,text:content,type:m.type||'text',sent:String(m.sender)===String(myId),t:_fmtMsgTime(dlocal),ts:createdMs};
+            var msg={id:m.id,text:content,type:m.type||'text',sent:String(m.sender)===String(myId),t:_fmtMsgTime(dlocal),ts:createdMs};if(m.duration&&(!m.type||m.type==='text'))msg.nonce=m.duration;
             if(m.type==='image'){var ip=content.split('|');msg.src=ip[0];if(ip[1])msg.thumb=ip[1];}
             if(m.type==='voice'){msg.src=content.startsWith('http')?content:null;var vm=content.match(/\d+/);msg.dur=m.duration||(vm?vm[0]:'?');}
             if(m.type==='location'){var lp=content.split('|');msg.addr=lp[0];msg.mapUrl=lp[1];}
@@ -320,6 +320,67 @@ async function syncRoomMessages(name){
 // 1. 已读一律按服务器时间判断：我发的消息记下服务器时间 sts，手机时钟快了也不会把对方已读的当成未读。
 // 2. 对方的已读回执不管我在不在那个聊天里都接收（以前只在聊天界面里才收，回到列表就一直是"未读"色）。
 // 3. 最近一次"读到哪儿"存在本机，列表刷新/重开App时也按它上色，并会去服务器补查。
+// ═══ 消息指纹 + 去重（v2.20）═══
+// 每条文字消息带一个指纹（存在 duration 字段，文字消息原来不用这个字段）。重发用同一个指纹：
+// 服务器上按指纹精确查重；两边手机上同一指纹的只显示一条（服务器上已有的重复也不再显示）。
+// 故意连发两条一样的内容，指纹不同，照样是两条。
+function _gcNonce(m){if(m&&!m.nonce)m.nonce=1+Math.floor(Math.random()*32000);return m.nonce;}
+function _gcDedupe(list){
+  var n=0;
+  try{
+    var seen={};
+    for(var i=0;i<(list||[]).length;i++){
+      var m=list[i];if(!m)continue;
+      var keys=[];
+      if(m.id!=null)keys.push('id:'+m.id);
+      if(m.nonce&&(!m.type||m.type==='text'))keys.push('n:'+(m.sent?1:0)+':'+m.nonce+':'+(m.text||''));
+      var dup=keys.some(function(k){return seen[k];});
+      if(dup){
+        // 留下有编号/已读的那一份
+        var keep=null;for(var j=0;j<i;j++){var x=list[j];if(x&&((m.id!=null&&x.id===m.id)||(m.nonce&&x.nonce===m.nonce&&x.text===m.text&&!!x.sent===!!m.sent))){keep=x;break;}}
+        if(keep){if(keep.id==null&&m.id!=null){keep.id=m.id;keep.failed=false;keep.sts=m.sts;keep.ts=m.ts;}if(m.read)keep.read=true;}
+        list.splice(i,1);i--;n++;continue;
+      }
+      keys.forEach(function(k){seen[k]=1;});
+    }
+  }catch(e){}
+  return n;
+}
+// ═══ 删除对话（v2.20）═══
+// 只有自己删：本机全部清掉，服务器上留一个看不见的删除记号，对方的聊天记录不受影响。
+// 双方都删了（对方最近一次删除晚于这段对话最后一条消息）：最后删除的人把服务器上这段对话
+// 全部清掉 —— 消息、已读回执、删除记号、会话、通话信令和通话记录、图片/语音/视频/文件。
+async function _gcServerDelete(cid){
+  var mid=String(myId),cidStr=String(cid);
+  var rooms=[roomIdOf(parseInt(mid)||mid,parseInt(cidStr)||cidStr)];
+  var legacy=[mid,cidStr].sort().join('_');if(rooms.indexOf(legacy)<0)rooms.push(legacy);
+  for(var ri=0;ri<rooms.length;ri++){
+    var r=rooms[ri];
+    try{
+      var del=await _sb.from('messages').select('created_at').eq('room_id',r).eq('type','gc_del').eq('sender',cidStr).order('created_at',{ascending:false}).limit(1);
+      var recent=await _sb.from('messages').select('created_at,type').eq('room_id',r).order('created_at',{ascending:false}).limit(50);
+      var lastReal=null;((recent&&recent.data)||[]).some(function(x){if(x.type!=='gc_del'&&x.type!=='read_receipt'){lastReal=x;return true;}return false;});
+      var peerDel=del&&del.data&&del.data[0]?del.data[0].created_at:null;
+      if(peerDel&&(!lastReal||new Date(peerDel).getTime()>=new Date(lastReal.created_at).getTime())){
+        // 双方都删了：清掉服务器上的一切
+        try{
+          var media=await _sb.from('messages').select('content,type').eq('room_id',r).in('type',['image','video','file','voice']);
+          var files=[];((media&&media.data)||[]).forEach(function(x){String(x.content||'').split('|').forEach(function(u){var p=u.split('/storage/v1/object/public/media/')[1];if(p)files.push(decodeURIComponent(p.split('?')[0]));});});
+          if(files.length)await _sb.storage.from('media').remove(files);
+        }catch(e){}
+        await _sb.from('messages').delete().eq('room_id',r);
+        await _sb.from('conversations').delete().eq('room_id',r);
+        try{await _sb.from('calls').delete().eq('room_id',[mid,cidStr].sort().join('_call'));}catch(e){}
+        try{await _sb.from('call_records').delete().eq('caller_id',mid).eq('callee_id',cidStr);await _sb.from('call_records').delete().eq('caller_id',cidStr).eq('callee_id',mid);}catch(e){}
+      }else{
+        await _sb.from('messages').insert({room_id:r,sender:mid,type:'gc_del',content:'1'});
+      }
+    }catch(e){
+      try{await _sb.from('messages').insert({room_id:r,sender:mid,type:'gc_del',content:'1'});}catch(e2){}
+    }
+  }
+  try{var o=JSON.parse(localStorage.getItem('gcPeerReadUpto')||'{}');delete o[cidStr];localStorage.setItem('gcPeerReadUpto',JSON.stringify(o));}catch(e){}
+}
 function _gcSrvTs(m){return (m&&(m.sts||m.ts))||0;}
 // 我发的消息以服务器时间为准（排序、已读都用它）：手机时钟快慢不再让消息顺序错乱（v2.19）
 function _gcSetSts(m,row){try{var t=row&&row.created_at?new Date(row.created_at).getTime():0;if(m&&t){m.sts=t;if(m.sent&&m.ts!==t){m.ts=t;_gcResortSoon();}}}catch(e){}}
@@ -348,6 +409,7 @@ function _gcAdopt(server,list){
       for(var i=0;i<(server||[]).length;i++){
         var s=server[i];
         if(!s||!s.sent||s.id==null||used[String(s.id)]||(s.type&&s.type!=='text')||s.text!==m.text)continue;
+        if(s.nonce&&m.nonce&&s.nonce!=m.nonce)continue;
         if(Math.abs((s.ts||0)-(m.ts||0))>600000)continue;
         m.id=s.id;m.failed=false;m.failCount=0;m.sts=s.ts;m.ts=s.ts;if(s.read)m.read=true;used[String(s.id)]=1;n++;break;
       }
@@ -360,7 +422,7 @@ function _gcAfterAdopt(peer){
 }
 async function _gcAlreadySent(msgObj,room,peer){
   try{
-    var r=await _sb.from('messages').select('id,created_at,content').eq('room_id',room).eq('sender',String(myId)).eq('type','text').eq('content',msgObj.text).gte('created_at',new Date((msgObj.ts||Date.now())-600000).toISOString()).order('created_at',{ascending:true}).limit(5);
+    var r=await _sb.from('messages').select('id,created_at,content').eq('room_id',room).eq('sender',String(myId)).eq('type','text').eq('content',msgObj.text).eq('duration',_gcNonce(msgObj)).gte('created_at',new Date((msgObj.ts||Date.now())-600000).toISOString()).order('created_at',{ascending:true}).limit(5);
     if(!r||!r.data||!r.data.length||msgObj.id!=null)return msgObj.id!=null;
     var srv=r.data.map(function(x){return {id:x.id,sent:true,type:'text',text:x.content,ts:new Date(x.created_at).getTime()};});
     var list=G.msgs[peer]||[];var used={};list.forEach(function(m){if(m&&m.id!=null)used[String(m.id)]=1;});
@@ -528,7 +590,7 @@ function listenForAllMessages(){
         var cutoff=getDeletedCutoff(senderId);
         if(cutoff>0&&msgTs<=cutoff)return;
         var msgDate=new Date(msgTs);
-        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(msgDate),ts:msgTs};
+        var msg={id:m.id,text:m.content,type:m.type||'text',sent:false,t:_fmtMsgTime(msgDate),ts:msgTs};if(m.duration&&(!m.type||m.type==='text'))msg.nonce=m.duration;
         if(m.type==='image'){var ip=(m.content||'').split('|');msg.src=ip[0];if(ip[1])msg.thumb=ip[1];}
         if(m.type==='voice'){msg.src=m.content&&m.content.startsWith('http')?m.content:null;msg.dur=m.duration||'?';}
         if(m.type==='location'){var lp=(m.content||'').split('|');msg.addr=lp[0];msg.mapUrl=lp[1];}
@@ -537,7 +599,7 @@ function listenForAllMessages(){
         if(m.type==='file'){var fp=(m.content||'').split('|');msg.src=fp[0];msg.fname=decodeURIComponent(fp[1]||'File');}
         // 这个联系人本次还没打开过：先把本机已存的聊天记录接上再追加，否则下面 saveLocalMsgs 会用只有这一条的数组把整段历史（连同已读状态）覆盖掉
         if(!G.msgs[senderId]||!G.msgs[senderId].length){var _seed=loadLocalMsgs(senderId);var _co=(typeof getDeletedCutoff==='function')?getDeletedCutoff(senderId):0;G.msgs[senderId]=_co>0?_seed.filter(function(x){return x.ts>_co;}):_seed;}
-        var already=G.msgs[senderId].some(function(x){return x.id===m.id;});
+        var already=G.msgs[senderId].some(function(x){return x.id===m.id||(m.duration&&x.nonce==m.duration&&x.text===m.content);});
         if(!already){
           var chatOpenNow=(G.chat===senderId)&&document.getElementById('chat')&&document.getElementById('chat').classList.contains('active');
           msg.delivered=true;msg.read=false;
@@ -746,7 +808,7 @@ async function _doSendText(msgObj,chatAtSend,room){
   if(!room)return;var _tmr=null;
   try{
     var _timeout=new Promise(function(_,rej){_tmr=setTimeout(function(){rej(new Error('send_timeout'));},8000);});
-    var r=await Promise.race([_sb.from('messages').insert({room_id:room,sender:String(myId),content:msgObj.text,type:'text'}).select().single(),_timeout]);
+    var r=await Promise.race([_sb.from('messages').insert({room_id:room,sender:String(myId),content:msgObj.text,type:'text',duration:_gcNonce(msgObj)}).select().single(),_timeout]);
     clearTimeout(_tmr);
     if(r&&r.data&&!r.error){
       msgObj.id=r.data.id;_gcSetSts(msgObj,r.data);msgObj.failed=false;msgObj.failCount=0;
@@ -859,7 +921,8 @@ async function deleteContact(cid){
   if(currentRoom===room){if(realtimeSub){try{realtimeSub.unsubscribe();}catch(e){}realtimeSub=null;}currentRoom=null;}
   // 7. 刷新列表
   _lastContactsLoad=0;loadContacts();
-  // ★ 不发送 gc_del，不删除服务器数据，不影响对方
+  // v2.20：只自己删 → 服务器留删除记号；双方都删了 → 最后删除的人清掉服务器上的全部记录
+  _gcServerDelete(cidStr);
 }
 
 function attachSwipe(el,actionsEl){
