@@ -1293,11 +1293,14 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
       <div id="reg-form" style="display:none;">
         <div style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:600;margin-bottom:18px;text-align:center;" data-i18n="createAccount">Create your account</div>
         <input id="regName" class="field" placeholder="Nickname" data-i18n-ph="nicknamePh" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <input id="regEmail" type="email" class="field" placeholder="Email address" maxlength="80" autocomplete="email" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input id="regAcct" class="field" placeholder="账号（4-8位数字）" maxlength="8" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" onblur="_gcCheckAcct()" style="letter-spacing:2px;text-align:center;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:-8px 4px 12px;font-size:calc(12px * var(--ui-font-scale,1));"><span id="regAcctTip" style="color:#8e8e93;text-align:left;">账号 4-8 位数字，可以自己挑</span><span onclick="document.getElementById('regAcct').value='';_gcPrefillReg(true)" style="color:#a18cd1;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:8px;">🎲 换一个</span></div>
         <input id="regPin" type="password" class="field" placeholder="Password (4-8 digits)" data-i18n-ph="passwordPh2" maxlength="8" style="letter-spacing:4px;text-align:center;" autocomplete="new-password">
         <input id="regPin2" type="password" class="field" placeholder="Confirm password" data-i18n-ph="confirmPwPh" maxlength="8" style="letter-spacing:4px;text-align:center;" autocomplete="new-password">
+        <input id="regCC" class="field" placeholder="聊天码（4-8位字母或数字）" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="letter-spacing:2px;text-align:center;">
+        <div style="margin:-8px 4px 12px;font-size:calc(12px * var(--ui-font-scale,1));color:#8e8e93;text-align:left;">↑ 聊天码：别人第一次加你时要输入，可以改成好记的</div>
         <button class="btn-blue" id="reg-btn" onclick="doRegister()" style="background:linear-gradient(135deg,#ff9a9e,#a18cd1);" data-i18n="createBtn">Create Account</button>
-        <div style="text-align:center;margin-top:8px;font-size:calc(11px * var(--ui-font-scale,1));color:#c7c7cc;">邮箱用于找回密码，请使用真实邮箱</div>
+        <div style="text-align:center;margin-top:8px;font-size:calc(11px * var(--ui-font-scale,1));color:#c7c7cc;">不需要邮箱和验证码 · 聊天码随时可以在设置里改</div>
         <div style="text-align:center;margin-top:14px;font-size:calc(14px * var(--ui-font-scale,1));color:#9b9bb0;"><span data-i18n="haveAccount">Already have an account?</span> <span style="color:#a18cd1;font-weight:600;cursor:pointer;" onclick="switchTo('login')" data-i18n="loginLink">Log in</span></div>
       </div>
       <div id="recovery-form" style="display:none;">
@@ -1786,6 +1789,15 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
     <!-- ─── 隐私与安全 ─── -->
     <div id="sh-priv" data-i18n="privacy" style="margin-top:20px;padding:0 16px 6px;font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;text-transform:uppercase;letter-spacing:.3px;">隐私与安全</div>
     <div class="card" style="padding:0;">
+      <div class="row" onclick="gcEditChatCode()" style="padding:14px 16px;border-bottom:1px solid var(--theme-border);">
+        <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3"/><path d="M17 6l3 3"/><path d="M14.5 8.5l2 2"/></svg></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:calc(17px * var(--ui-font-scale,1));">聊天码</div>
+          <div id="ccDesc" style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">别人第一次加你，要输入你的账号和聊天码</div>
+        </div>
+        <span id="ccShow" style="color:#8e8e93;font-size:calc(15px * var(--ui-font-scale,1));margin-right:6px;letter-spacing:1px;"></span>
+        <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
+      </div>
       <div class="row" onclick="show('hide-set')" style="padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11a5 5 0 00-10 0"/><circle cx="12" cy="16" r="1"/><path d="M3 11h18l-1.5 8a2 2 0 01-2 1.7H6.5a2 2 0 01-2-1.7L3 11z"/></svg></div>
         <div style="flex:1;">
@@ -2307,9 +2319,11 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
 <div id="newChatModal" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:700;display:none;align-items:center;justify-content:center;">
   <div style="background:var(--theme-field-bg,#fff);border-radius:20px;padding:24px;text-align:center;width:280px;box-shadow:0 20px 50px rgba(0,0,0,.25);">
     <div style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:700;margin-bottom:4px;color:var(--theme-text);">发起新聊天</div>
-    <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:14px;">输入对方的 ID 或昵称</div>
-    <input id="newChatInput" type="text" placeholder="例如: 12 或 张三" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid var(--theme-field-border,#e5e5ea);background:var(--theme-itxt-bg,#fff);color:var(--theme-text);font-size:calc(16px * var(--ui-font-scale,1));outline:none;" onkeydown="if(event.key==='Enter')submitNewChat()">
-    <div style="display:flex;gap:8px;margin-top:16px;">
+    <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:14px;">输入对方的账号和聊天码</div>
+    <input id="newChatInput" type="text" placeholder="TA 的账号，例如 4821" inputmode="numeric" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid var(--theme-field-border,#e5e5ea);background:var(--theme-itxt-bg,#fff);color:var(--theme-text);font-size:calc(16px * var(--ui-font-scale,1));outline:none;" onkeydown="if(event.key==='Enter')submitNewChat()">
+    <input id="newChatCode" type="text" placeholder="TA 的聊天码" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="width:100%;box-sizing:border-box;margin-top:10px;padding:12px 14px;border-radius:12px;border:0.5px solid var(--theme-field-border,#e5e5ea);background:var(--theme-itxt-bg,#fff);color:var(--theme-text);font-size:calc(16px * var(--ui-font-scale,1));outline:none;letter-spacing:1px;" onkeydown="if(event.key==='Enter')submitNewChat()">
+    <div id="newChatTip" style="min-height:16px;margin-top:8px;font-size:calc(12px * var(--ui-font-scale,1));color:#ff3b30;"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
       <button onclick="closeNewChatModal()" style="flex:1;background:var(--theme-row-bg,#f2f2f7);color:var(--theme-text);border:none;padding:10px 0;border-radius:12px;font-size:calc(16px * var(--ui-font-scale,1));cursor:pointer;">取消</button>
       <button onclick="submitNewChat()" style="flex:1;background:linear-gradient(135deg,var(--theme-accent1),var(--theme-accent2));color:#fff;border:none;padding:10px 0;border-radius:12px;font-size:calc(16px * var(--ui-font-scale,1));cursor:pointer;">开始聊天</button>
     </div>
@@ -4278,7 +4292,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.21';
+var CORE_VERSION='v2.22';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -6291,7 +6305,7 @@ async function _autoRelogin(){
 function forceLogout(){_onKicked();}
 
 // ═══ 设置同步到中央数据库：锁屏密码/隐藏模式/伪装方式/激活方式/销毁方式 ═══
-var SYNCED_SETTING_KEYS=['appLockPin','hide','dis','trig','dest','dpin','testGatePin','lockTimeout','autoLockLeave','barkUrl','focusMode','barkEnabled','doNotDisturb','barkIconUrl','shortcutName','pwaAppName','uiFontSize','autoSchedEnabled','autoSchedMode','autoSchedStart','autoSchedEnd','autoSchedDays'];
+var SYNCED_SETTING_KEYS=['appLockPin','hide','dis','trig','dest','dpin','testGatePin','lockTimeout','autoLockLeave','barkUrl','focusMode','barkEnabled','doNotDisturb','barkIconUrl','shortcutName','pwaAppName','uiFontSize','autoSchedEnabled','autoSchedMode','autoSchedStart','autoSchedEnd','autoSchedDays','pwHash','ccHash'];
 async function pushSettings(){
   if(!lg('registered')||!myId)return;
   var obj={};
@@ -11301,7 +11315,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.21"></script>
+<script src="./chat-core.js?v2.22"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11750,6 +11764,356 @@ function updDots(err){
     };
     markRoomRead._gcDel=true;
   }
+})();
+</script>
+<script>
+// ═══ v2.22 账号号码 + 聊天码 ═══
+// 注册：不用邮箱、不用验证码。账号是 4-8 位数字（自己挑或随机分配，不能重复），再设一个聊天码。
+// 加新的人：输入对方账号 + 对方的聊天码，对上了就能聊（像 AirDrop 配对）。聊天码随时在设置里改。
+// 已经聊过的人（通讯录里有、或者有过聊天记录）不受影响，直接聊。
+// 登录：服务器上存的是密码的加盐哈希，登录时核对，密码不对进不去（以前只检查账号存在）。
+(function(){
+  function $(id){return document.getElementById(id);}
+  function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+  window._gcNormCC=function(v){return String(v||'').replace(/[^0-9a-zA-Z]/g,'').toUpperCase();};
+  function normPw(v){return String(v||'').replace(/[^0-9a-zA-Z]/g,'');}
+  function own(h,id){return !!h&&String(h).indexOf(String(id)+'$')===0;}
+  window._gcHash=async function(kind,id,val){
+    var enc=new TextEncoder();
+    var key=await crypto.subtle.importKey('raw',enc.encode(String(val)),'PBKDF2',false,['deriveBits']);
+    var bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode('gc-'+kind+':'+id),iterations:100000},key,128);
+    return String(id)+'$'+Array.prototype.map.call(new Uint8Array(bits),function(b){return ('0'+b.toString(16)).slice(-2);}).join('');
+  };
+  function randCC(){var s='';for(var i=0;i<6;i++)s+=Math.floor(Math.random()*10);return s;}
+  // 随机找一个没人用的号码：先在 4 位里找，4 位快用完了（抽样大多被占）再到 5 位……最多 8 位
+  window._gcFreeAcct=async function(){
+    for(var d=4;d<=8;d++){
+      var lo=Math.pow(10,d-1),c=[];
+      while(c.length<12){var x=lo+Math.floor(Math.random()*9*lo);if(c.indexOf(x)<0)c.push(x);}
+      try{
+        var r=await _sb.from('users').select('id').in('id',c);
+        if(r.error)return c[0];
+        var used={};(r.data||[]).forEach(function(u){used[String(u.id)]=1;});
+        var free=c.filter(function(x){return !used[String(x)];});
+        if(free.length>=3)return free[0];
+      }catch(e){return c[0];}
+    }
+    return null;
+  };
+
+  // ── 注册页：预填一个随机号码和聊天码，可以自己改 ──
+  var _prefilling=false;
+  window._gcPrefillReg=async function(force){
+    var a=$('regAcct'),c=$('regCC');
+    if(c&&!c.value)c.value=randCC();
+    if(!a||_prefilling||(!force&&a.value))return;
+    _prefilling=true;a.placeholder='正在分配号码…';
+    try{var n=await _gcFreeAcct();if(n&&(force||!a.value)){a.value=String(n);_gcAcctTip('随机分配的号码，也可以改成你喜欢的 4-8 位数字','#8e8e93');}}finally{_prefilling=false;a.placeholder='账号（4-8位数字）';}
+  };
+  window._gcAcctTip=function(t,col){var el=$('regAcctTip');if(el){el.textContent=t||'';el.style.color=col||'#8e8e93';}};
+  window._gcCheckAcct=async function(){
+    var a=$('regAcct');if(!a)return;var v=(a.value||'').replace(/\D/g,'');a.value=v;
+    if(!v){_gcAcctTip('');return;}
+    if(!/^[1-9]\d{3,7}$/.test(v)){_gcAcctTip('账号要 4-8 位数字，不能以 0 开头','#ff3b30');return;}
+    try{var r=await _sb.from('users').select('id').eq('id',parseInt(v)).maybeSingle();
+      if(a.value!==v)return;
+      if(r.data)_gcAcctTip('这个号码已经有人用了，换一个吧','#ff3b30');else if(!r.error)_gcAcctTip('✓ 这个号码可以用','#34c759');}catch(e){}
+  };
+  var _sw=window.switchTo;
+  if(typeof _sw==='function'){window.switchTo=function(f){var r=_sw.apply(this,arguments);if(f==='reg')_gcPrefillReg(false);return r;};}
+  if(lg('registered')!=='true')setTimeout(function(){var f=$('reg-form');if(f&&f.style.display!=='none')_gcPrefillReg(false);},300);
+
+  // ── 注册：账号号码 + 密码 + 聊天码，不要邮箱和验证码 ──
+  window.doRegister=async function(){
+    var name=($('regName').value||'').trim();
+    var acct=(($('regAcct')&&$('regAcct').value)||'').replace(/\D/g,'');
+    var cc=_gcNormCC($('regCC')&&$('regCC').value);
+    var pin=normPw($('regPin').value),pin2=normPw($('regPin2').value);
+    if(!name){alert('请输入昵称');return;}
+    if(!/^[1-9]\d{3,7}$/.test(acct)){alert('账号要 4-8 位数字，不能以 0 开头');return;}
+    if(cc.length<4||cc.length>8){alert('聊天码要 4-8 位字母或数字');return;}
+    if(!pin||pin.length<4){alert('密码至少需要4位');return;}
+    if(pin!==pin2){alert('两次密码不一致');return;}
+    var deviceId=lg('deviceId')||('dev_'+Math.random().toString(36).substr(2,16));
+    ls('deviceId',deviceId);
+    var check=await _sb.from('users').select('id,name').eq('device_id',deviceId).maybeSingle();
+    if(check.data){
+      alert('此设备已有账号！\n账号: '+check.data.id+'\n昵称: '+check.data.name+'\n\n请直接登录。');
+      switchTo('login');var li=$('loginId');if(li)li.value=String(check.data.id);
+      return;
+    }
+    var btn=$('reg-btn');
+    function reset(){if(btn){btn.disabled=false;btn.textContent='创建账号';}}
+    if(btn){btn.disabled=true;btn.textContent='注册中...';}
+    try{
+      var taken=await _sb.from('users').select('id').eq('id',parseInt(acct)).maybeSingle();
+      if(taken.data){reset();_gcAcctTip('这个号码已经有人用了，换一个吧','#ff3b30');alert('账号 '+acct+' 已经有人用了，换一个号码吧');return;}
+      var pwH=await _gcHash('pw',acct,pin),ccH=await _gcHash('cc',acct,cc);
+      var res=await _sb.from('users').insert({id:parseInt(acct),name:name,device_id:deviceId,settings:{pwHash:pwH,ccHash:ccH}}).select().single();
+      if(res.error){
+        var dup=res.error.code==='23505'||/duplicate|already exists/i.test(res.error.message||'');
+        if(dup&&!/device/i.test(res.error.message||'')){reset();alert('账号 '+acct+' 刚被别人注册了，换一个号码吧');return;}
+        // 数据库不允许自选编号时，退回自动分配
+        res=await _sb.from('users').insert({name:name,device_id:deviceId}).select().single();
+        if(res.error){reset();alert('注册失败：'+res.error.message);return;}
+        acct=String(res.data.id);pwH=await _gcHash('pw',acct,pin);ccH=await _gcHash('cc',acct,cc);
+        await _sb.from('users').update({settings:{pwHash:pwH,ccHash:ccH}}).eq('id',res.data.id);
+      }
+      ['barkUrl','barkEnabled','barkIconUrl','doNotDisturb','appLockPin','focusMode',
+       'shortcutName','pwaAppName','testGatePin','hide','dis','trig','dest','dpin',
+       'lockTimeout','autoLockLeave','autoSchedEnabled','autoSchedMode','autoSchedStart','autoSchedEnd','autoSchedDays','myEmail'].forEach(function(k){localStorage.removeItem(k);});
+      var rc=makeRC();
+      G.pin=pin;ls('pin',pin);ls('myName',name);ls('rescueCode',rc);
+      myId=String(res.data.id);ls('myId',myId);ls('registered','true');
+      ls('pwHash',pwH);ls('ccHash',ccH);ls('chatCode',cc);ls('gcAcctOwner',myId);ls('gcPwSync',pwH);
+      var si=$('myIdShow');if(si)si.textContent='ID: '+myId+' · '+name;
+      var na=$('nameDisplay');if(na)na.textContent=name;
+      var av=$('avatarDisplay');if(av)av.textContent=name[0].toUpperCase();
+      alert('✅ 注册成功！\n\n你的账号：'+myId+'\n你的聊天码：'+cc+'\n\n别人第一次加你，要输入你的账号和聊天码。聊天码随时可以在 设置 → 隐私与安全 → 聊天码 里改。\n\n🔐 救援码：'+rc+'\n忘记密码时用它找回，请妥善保存！');
+      await _backupCredentials();
+      _saveDeviceToken(myId);
+      pushSettings();
+      _startMain();
+    }catch(e){reset();alert('注册失败：'+(e&&e.message||e));}
+  };
+
+  // ── 登录：核对密码 ──
+  function failState(k){try{return JSON.parse(lg(k)||'{}')||{};}catch(e){return {};}}
+  function lockedMsg(st){var s=Math.ceil(((st.until||0)-Date.now())/1000);return s>60?Math.ceil(s/60)+' 分钟':s+' 秒';}
+  function noteFail(k){var st=failState(k);st.n=(st.n||0)+1;if(st.n>=5){st.lk=(st.lk||0)+1;st.until=Date.now()+Math.min(60000*Math.pow(2,st.lk-1),3600000);st.n=0;}ls(k,JSON.stringify(st));return st;}
+  window.doLogin=async function(){
+    myId=null;G.pin='';
+    ['registered','pin','myId','myName','gcDevTok','sessionToken','tokenExpiry','pwHash','ccHash','chatCode','gcAcctOwner','gcPwSync'].forEach(function(k){ls(k,'');});
+    try{await _idbSet('account',null);}catch(e){}
+    var raw=($('loginId')?$('loginId').value.trim():'');
+    var pin=$('loginPin').value;
+    if(!raw){alert('请输入账号');return;}
+    if(!pin){alert('请输入密码');return;}
+    var resolvedId='';
+    if(raw.indexOf('@')>-1){
+      var emailRes=await _sb.from('users').select('id,name').eq('email',raw.toLowerCase()).maybeSingle();
+      if(!emailRes.data){alert('该邮箱未绑定任何账号\n\n请用账号登录，或先注册');return;}
+      resolvedId=String(emailRes.data.id);
+    }else{
+      resolvedId=raw.replace(/\D/g,'');
+      if(!resolvedId){alert('账号只能是数字');return;}
+    }
+    var fk='gcLoginFail_'+resolvedId,st=failState(fk);
+    if(st.until&&st.until>Date.now()){alert('密码错误次数太多，请 '+lockedMsg(st)+' 后再试');return;}
+    var res=await _sb.from('users').select('id,name,settings').eq('id',parseInt(resolvedId)).maybeSingle();
+    if(res.error){alert('网络不太好，请稍后再试');return;}
+    if(!res.data){alert('账号 '+resolvedId+' 不存在，请检查后重试');return;}
+    var id=String(res.data.id),s=res.data.settings||{};
+    var ph=await _gcHash('pw',id,normPw(pin));
+    if(own(s.pwHash,id)&&s.pwHash!==ph){
+      st=noteFail(fk);
+      alert(st.until&&st.until>Date.now()?'密码错误次数太多，请 '+lockedMsg(st)+' 后再试':'密码错误');
+      return;
+    }
+    localStorage.removeItem(fk);
+    myId=id;
+    ls('myId',myId);ls('myName',res.data.name);ls('pin',pin);G.pin=pin;
+    ls('registered','true');
+    ls('tokenExpiry',String(Date.now()+7*24*60*60*1000));
+    ls('pwHash',ph);ls('gcPwSync',ph);ls('gcAcctOwner',myId);
+    if(own(s.ccHash,id))ls('ccHash',s.ccHash);
+    await _backupCredentials();
+    _saveDeviceToken(myId);
+    await pullSettings();
+    _startMain();
+  };
+
+  // ── 设置同步：密码/聊天码的哈希本机还没有时，不拿空值覆盖服务器上的 ──
+  window.pushSettings=async function(){
+    if(!lg('registered')||!myId)return;
+    var obj={};
+    SYNCED_SETTING_KEYS.forEach(function(k){obj[k]=lg(k)||'';});
+    if(!own(obj.pwHash,myId)||!own(obj.ccHash,myId)){
+      try{var r=await _sb.from('users').select('settings').eq('id',parseInt(myId)||myId).maybeSingle();var s=(r.data&&r.data.settings)||{};
+        if(!own(obj.pwHash,myId))obj.pwHash=own(s.pwHash,myId)?s.pwHash:'';
+        if(!own(obj.ccHash,myId))obj.ccHash=own(s.ccHash,myId)?s.ccHash:'';}catch(e){}
+    }
+    await _sb.from('users').update({settings:obj}).eq('id',parseInt(myId)||myId);
+  };
+  async function patchSettings(p){
+    var r=await _sb.from('users').select('settings').eq('id',parseInt(myId)||myId).maybeSingle();
+    if(r.error)throw r.error;
+    var s=Object.assign({},(r.data&&r.data.settings)||{},p);
+    var u=await _sb.from('users').update({settings:s}).eq('id',parseInt(myId)||myId);
+    if(u&&u.error)throw u.error;
+  }
+
+  // ── 每次启动：老账号补上密码哈希和聊天码；被旧版本覆盖掉的也补回来 ──
+  var _bootFor=null,_booting=false;
+  async function boot(){
+    if(_booting||lg('registered')!=='true'||!myId||_bootFor===String(myId))return;
+    _booting=true;
+    try{
+      var id=String(myId);
+      var r=await _sb.from('users').select('settings').eq('id',parseInt(id)||id).maybeSingle();
+      if(r.error||!r.data)return;
+      var s=r.data.settings||{},p={},isOwner=lg('gcAcctOwner')===id;
+      var pin=normPw(lg('pin')||'');
+      if(pin.length>=4){
+        var ph=await _gcHash('pw',id,pin);
+        if(!own(s.pwHash,id)||(s.pwHash!==ph&&lg('gcPwSync')!==ph))p.pwHash=ph;
+        ls('pwHash',p.pwHash||s.pwHash);ls('gcPwSync',ph);
+      }else if(own(s.pwHash,id))ls('pwHash',s.pwHash);
+      if(own(s.ccHash,id)){
+        ls('ccHash',s.ccHash);
+        var cc=lg('chatCode');
+        if(cc&&(!isOwner||await _gcHash('cc',id,cc)!==s.ccHash))localStorage.removeItem('chatCode');
+      }else{
+        var cc2=isOwner&&lg('chatCode');
+        if(!cc2){cc2=randCC();ls('chatCode',cc2);}
+        p.ccHash=await _gcHash('cc',id,cc2);ls('ccHash',p.ccHash);
+      }
+      ls('gcAcctOwner',id);
+      if(p.pwHash||p.ccHash)await patchSettings(p);
+      _bootFor=id;
+      _gcCCRender();
+    }catch(e){console.log('[acct boot]',e);}
+    finally{_booting=false;}
+  }
+  window._gcAcctBoot=boot;
+  setTimeout(boot,1500);setInterval(boot,4000);
+
+  // 改密码 / 用救援码重置密码后，同步新的密码哈希
+  ['changePin','doRecovery'].forEach(function(fn){
+    var orig=window[fn];if(typeof orig!=='function')return;
+    window[fn]=function(){var before=lg('pin');var r=orig.apply(this,arguments);if(lg('pin')!==before){_bootFor=null;boot();}return r;};
+  });
+
+  // ── 设置 → 隐私与安全 → 聊天码 ──
+  window._gcCCRender=function(){
+    var el=$('ccShow'),d=$('ccDesc');if(!el)return;
+    var cc=lg('chatCode');
+    el.textContent=cc?cc:(own(lg('ccHash'),myId)?'已设置':'');
+    if(d)d.textContent=cc?'别人第一次加你，要输入你的账号和聊天码':(own(lg('ccHash'),myId)?'换过设备，看不到原来的聊天码，可以设个新的':'别人第一次加你，要输入你的账号和聊天码');
+  };
+  window.gcEditChatCode=async function(){
+    if(!myId)return;
+    var cur=lg('chatCode')||'';
+    var v=prompt('设置新的聊天码（4-8 位字母或数字）\n\n已经在聊的人不受影响；新的人加你要用新聊天码。'+(cur?'\n当前聊天码：'+cur:''),cur);
+    if(v===null)return;
+    v=_gcNormCC(v);
+    if(v.length<4||v.length>8){alert('聊天码要 4-8 位字母或数字');return;}
+    try{
+      var h=await _gcHash('cc',myId,v);
+      await patchSettings({ccHash:h});
+      ls('chatCode',v);ls('ccHash',h);ls('gcAcctOwner',String(myId));
+      _gcCCRender();
+      alert('✅ 聊天码已改为：'+v);
+    }catch(e){alert('保存失败，请检查网络后再试');}
+  };
+  setTimeout(_gcCCRender,500);
+
+  // ── 配对：已经聊过的人直接聊；新的人要对上聊天码 ──
+  window._gcEstablished=async function(uid){
+    uid=String(uid);var me=String(myId);
+    try{
+      if(G.msgs&&G.msgs[uid]&&G.msgs[uid].length)return true;
+      var a=await _sb.from('friends').select('id').eq('user_id',me).eq('friend_id',uid).limit(1);
+      if(a.data&&a.data.length)return true;
+      var b=await _sb.from('friends').select('id').eq('user_id',uid).eq('friend_id',me).limit(1);
+      if(b.data&&b.data.length)return true;
+      var room=roomIdOf(me,uid);
+      var c=await _sb.from('conversations').select('room_id').eq('room_id',room).limit(1);
+      if(c.data&&c.data.length)return true;
+      var d=await _sb.from('messages').select('id').eq('room_id',room).limit(1);
+      if(d.data&&d.data.length)return true;
+    }catch(e){}
+    return false;
+  };
+  window._gcPairWith=async function(u,code){
+    var uid=String(u.id),fk='gcPairFail_'+uid,st=failState(fk);
+    if(st.until&&st.until>Date.now()){alert('聊天码输错太多次，请 '+lockedMsg(st)+' 后再试');return false;}
+    code=_gcNormCC(code);
+    if(code.length<4){alert('请输入对方的聊天码（4-8 位）');return false;}
+    var r=await _sb.from('users').select('id,settings').eq('id',parseInt(uid)||0).maybeSingle();
+    if(r.error||!r.data){alert('网络不太好，请稍后再试');return false;}
+    var h=r.data.settings&&r.data.settings.ccHash;
+    if(!own(h,uid)){alert('对方还没有聊天码，暂时加不了 TA。\n请对方把 App 打开一次（会自动更新并生成聊天码），再把聊天码告诉你。');return false;}
+    if(await _gcHash('cc',uid,code)!==h){
+      st=noteFail(fk);
+      alert(st.until&&st.until>Date.now()?'聊天码输错太多次，请 '+lockedMsg(st)+' 后再试':'聊天码不对，请向对方确认');
+      return false;
+    }
+    localStorage.removeItem(fk);
+    var me=String(myId);
+    if(!await saveFriend(uid,u.name))return false;
+    try{
+      var ex=await _sb.from('friends').select('id').eq('user_id',uid).eq('friend_id',me).maybeSingle();
+      if(!ex.data)await _sb.from('friends').insert({user_id:uid,friend_id:me,nickname:lg('myName')||null});
+    }catch(e){}
+    return true;
+  };
+  // 不在对话框里时（扫码、名片、资料页）弹窗要聊天码
+  window._gcGate=async function(u){
+    if(String(u.id)===String(myId)){alert('这是你自己的账号');return false;}
+    if(await _gcEstablished(u.id))return true;
+    var code=prompt('第一次和「'+(u.name||u.id)+'」聊天\n请输入 TA 的聊天码：');
+    if(code===null)return false;
+    return await _gcPairWith(u,code);
+  };
+  async function findUser(input){
+    input=String(input||'').trim();
+    var res=null;
+    if(/^\d+$/.test(input))res=await _sb.from('users').select('id,name').eq('id',parseInt(input)).maybeSingle();
+    if(!res||!res.data)res=await _sb.from('users').select('id,name').ilike('name',input).maybeSingle();
+    return res&&res.data||null;
+  }
+  function colorOf(id){var colors=['#007aff','#34c759','#ff9f0a','#ff3b30','#bf5af2','#30b0c7'];return colors[(parseInt(id)||0)%colors.length];}
+  async function openWith(u){
+    var fres=await _sb.from('friends').select('nickname').eq('user_id',String(myId)).eq('friend_id',String(u.id)).maybeSingle();
+    var existingNick=fres.data&&fres.data.nickname;
+    var displayName=existingNick||u.name||String(u.id);
+    if(!fres.data)await saveFriend(String(u.id),u.name);
+    openChat(String(u.id),displayName[0].toUpperCase(),colorOf(u.id),displayName);
+    try{loadContacts();}catch(e){}
+  }
+
+  var _snc=window.showNewChat;
+  window.showNewChat=function(){var r=_snc&&_snc.apply(this,arguments);var c=$('newChatCode');if(c)c.value='';var t=$('newChatTip');if(t)t.textContent='';return r;};
+  window.submitNewChat=async function(){
+    var inp=$('newChatInput'),input=(inp&&inp.value||'').trim();
+    if(!input)return;
+    var codeEl=$('newChatCode'),tip=$('newChatTip');
+    function say(t){if(tip){tip.textContent=t;tip.style.color='#ff3b30';}else alert(t);}
+    var u=await findUser(input);
+    if(!u){say('没找到这个账号，请确认号码');return;}
+    if(String(u.id)===String(myId)){say('这是你自己的账号');return;}
+    if(!await _gcEstablished(u.id)){
+      var code=codeEl?codeEl.value:'';
+      if(!_gcNormCC(code)){say('第一次和 TA 聊天，要输入 TA 的聊天码');if(codeEl)codeEl.focus();return;}
+      if(!await _gcPairWith(u,code))return;
+    }
+    closeNewChatModal();
+    await openWith(u);
+  };
+  window.addFriendAndOpen=async function(uid){
+    var res=await _sb.from('users').select('id,name').eq('id',parseInt(uid)||0).maybeSingle();
+    if(res.error||!res.data){alert('没找到这个账号');return;}
+    if(!await _gcGate(res.data))return;
+    await openWith(res.data);
+  };
+  window.addContactById=async function(inputId){
+    var tid=inputId||prompt('输入对方账号：');
+    if(!tid)return;
+    var u=await findUser(tid);
+    if(!u){alert('没找到这个账号');return;}
+    if(!await _gcGate(u))return;
+    var nick=prompt('给 '+u.name+' 设个备注（不填就用 TA 的昵称）：');
+    await saveFriend(String(u.id),nick||u.name);
+    alert('已添加：'+(nick||u.name));
+  };
+  ['profileOpenChat','profileAddFriend'].forEach(function(fn){
+    var orig=window[fn];if(typeof orig!=='function')return;
+    window[fn]=async function(uid,name){
+      if(!await _gcGate({id:uid,name:name}))return;
+      return orig.apply(this,arguments);
+    };
+  });
 })();
 </script>
 </body>
