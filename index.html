@@ -4292,7 +4292,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.22';
+var CORE_VERSION='v2.23';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11315,7 +11315,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.22"></script>
+<script src="./chat-core.js?v2.23"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -12114,6 +12114,99 @@ function updDots(err){
       return orig.apply(this,arguments);
     };
   });
+})();
+</script>
+<script>
+// ═══ v2.23 聊天码改用页面内输入框（iPhone 主屏幕 App 里系统 prompt 弹窗不可靠）═══
+(function(){
+  function $(id){return document.getElementById(id);}
+  function own(h,id){return !!h&&String(h).indexOf(String(id)+'$')===0;}
+  function failLocked(k){try{var st=JSON.parse(localStorage.getItem(k)||'{}')||{};if(st.until&&st.until>Date.now()){var s=Math.ceil((st.until-Date.now())/1000);return s>60?Math.ceil(s/60)+' 分钟':s+' 秒';}}catch(e){}return '';}
+  var _askDone=null;
+  function box(){
+    var o=$('gcAskBox');if(o)return o;
+    o=document.createElement('div');o.id='gcAskBox';
+    o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100000;display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+    o.innerHTML='<div style="background:var(--theme-field-bg,#fff);color:var(--theme-text,#1c1c1e);border-radius:20px;padding:22px 20px 18px;width:100%;max-width:320px;box-sizing:border-box;box-shadow:0 20px 50px rgba(0,0,0,.25);text-align:center;">'
+      +'<div id="gcAskTitle" style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:700;margin-bottom:6px;"></div>'
+      +'<div id="gcAskDesc" style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;line-height:1.5;margin-bottom:14px;white-space:pre-line;"></div>'
+      +'<input id="gcAskInput" type="text" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid var(--theme-field-border,#d1d1d6);background:var(--theme-itxt-bg,#fff);color:var(--theme-text,#1c1c1e);font-size:calc(20px * var(--ui-font-scale,1));letter-spacing:3px;text-align:center;outline:none;">'
+      +'<div id="gcAskErr" style="min-height:18px;margin-top:8px;font-size:calc(12px * var(--ui-font-scale,1));color:#ff3b30;"></div>'
+      +'<div style="display:flex;gap:8px;margin-top:6px;">'
+      +'<button id="gcAskCancel" type="button" style="flex:1;background:var(--theme-row-bg,#f2f2f7);color:var(--theme-text,#1c1c1e);border:none;padding:11px 0;border-radius:12px;font-size:calc(16px * var(--ui-font-scale,1));">取消</button>'
+      +'<button id="gcAskRand" type="button" style="flex:1;display:none;background:var(--theme-row-bg,#f2f2f7);color:#a18cd1;border:none;padding:11px 0;border-radius:12px;font-size:calc(16px * var(--ui-font-scale,1));">🎲 随机</button>'
+      +'<button id="gcAskOk" type="button" style="flex:1;background:linear-gradient(135deg,var(--theme-accent1,#ff9a9e),var(--theme-accent2,#a18cd1));color:#fff;border:none;padding:11px 0;border-radius:12px;font-size:calc(16px * var(--ui-font-scale,1));font-weight:600;">确定</button>'
+      +'</div></div>';
+    document.body.appendChild(o);
+    $('gcAskCancel').onclick=function(){finish(null);};
+    $('gcAskOk').onclick=function(){finish($('gcAskInput').value);};
+    $('gcAskRand').onclick=function(){var s='';for(var i=0;i<6;i++)s+=Math.floor(Math.random()*10);$('gcAskInput').value=s;$('gcAskErr').textContent='';};
+    $('gcAskInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();finish(this.value);}});
+    $('gcAskInput').addEventListener('input',function(){$('gcAskErr').textContent='';});
+    return o;
+  }
+  function finish(v){
+    var d=_askDone;if(!d)return;
+    if(v!==null&&d.check){var err=d.check(v);if(err){$('gcAskErr').textContent=err;return;}}
+    _askDone=null;var o=$('gcAskBox');if(o)o.style.display='none';
+    try{$('gcAskInput').blur();}catch(e){}
+    d.resolve(v);
+  }
+  // 页面内输入框，返回 Promise：确定 → 输入的内容，取消 → null
+  window._gcAsk=function(opt){
+    var o=box();
+    if(_askDone){var p=_askDone;_askDone=null;p.resolve(null);}
+    $('gcAskTitle').textContent=opt.title||'';
+    $('gcAskDesc').textContent=opt.desc||'';
+    var inp=$('gcAskInput');inp.value=opt.value||'';inp.placeholder=opt.placeholder||'';
+    $('gcAskErr').textContent='';
+    $('gcAskRand').style.display=opt.random?'block':'none';
+    $('gcAskOk').textContent=opt.ok||'确定';
+    o.style.display='flex';
+    try{inp.focus();}catch(e){}
+    return new Promise(function(resolve){_askDone={resolve:resolve,check:opt.check};});
+  };
+  function checkCC(v){v=_gcNormCC(v);return v.length<4||v.length>8?'聊天码要 4-8 位字母或数字':'';}
+
+  window.gcEditChatCode=async function(){
+    if(!myId)return;
+    var cur=localStorage.getItem('chatCode')||'';
+    var v=await _gcAsk({title:'我的聊天码',
+      desc:'我的账号：'+myId+'\n别人第一次加你，要输入你的账号和这个聊天码。\n改了以后，已经在聊的人不受影响。',
+      value:cur,placeholder:'4-8 位字母或数字',random:true,ok:'保存',check:checkCC});
+    if(v===null)return;
+    v=_gcNormCC(v);
+    if(v===cur&&own(localStorage.getItem('ccHash'),myId))return;
+    try{
+      var h=await _gcHash('cc',myId,v);
+      var r=await _sb.from('users').select('settings').eq('id',parseInt(myId)||myId).maybeSingle();
+      if(r.error)throw r.error;
+      var s=Object.assign({},(r.data&&r.data.settings)||{},{ccHash:h});
+      var u=await _sb.from('users').update({settings:s}).eq('id',parseInt(myId)||myId);
+      if(u&&u.error)throw u.error;
+      localStorage.setItem('chatCode',v);localStorage.setItem('ccHash',h);localStorage.setItem('gcAcctOwner',String(myId));
+      _gcCCRender();
+      alert('✅ 聊天码已改为：'+v);
+    }catch(e){alert('保存失败，请检查网络后再试');}
+  };
+
+  window._gcCCRender=function(){
+    var el=$('ccShow'),d=$('ccDesc');if(!el)return;
+    var cc=localStorage.getItem('chatCode'),has=own(localStorage.getItem('ccHash'),myId);
+    el.textContent=cc?cc:(has?'已设置':'未设置');
+    if(d)d.textContent=cc?'点这里修改 · 别人第一次加你要输入':(has?'换过设备看不到原来的，点这里设个新的':'点这里设置 · 别人第一次加你要输入');
+  };
+  setTimeout(_gcCCRender,600);
+  // 扫码、名片、资料页加新的人：同样用页面内输入框要聊天码
+  window._gcGate=async function(u){
+    if(String(u.id)===String(myId)){alert('这是你自己的账号');return false;}
+    if(await _gcEstablished(u.id))return true;
+    var lk=failLocked('gcPairFail_'+u.id);
+    if(lk){alert('聊天码输错太多次，请 '+lk+' 后再试');return false;}
+    var code=await _gcAsk({title:'输入 TA 的聊天码',desc:'第一次和「'+(u.name||u.id)+'」聊天\n要输入 TA 的聊天码',placeholder:'TA 的聊天码',ok:'开始聊天',check:checkCC});
+    if(code===null)return false;
+    return await _gcPairWith(u,code);
+  };
 })();
 </script>
 </body>
