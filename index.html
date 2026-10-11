@@ -4292,7 +4292,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.23';
+var CORE_VERSION='v2.24';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11315,7 +11315,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.23"></script>
+<script src="./chat-core.js?v2.24"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -12207,6 +12207,51 @@ function updDots(err){
     if(code===null)return false;
     return await _gcPairWith(u,code);
   };
+})();
+</script>
+<script>
+// ═══ v2.24 聊天窗口不闪 ═══
+// 以前每次同步（几秒一次）都把整个聊天窗口清空重画：图片重新加载、气泡重排，看着一闪一闪。
+// 现在只动有变化的那几行：没变的消息、图片原样不动；新消息只加一行，已读/撤回只换那一行。
+(function(){
+  if(typeof renderMsgs!=='function'||renderMsgs._gcNoFlash)return;
+  var desc=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+  if(!desc||!desc.set||!desc.get)return;
+  function key(n){return n.nodeType===1?n.outerHTML:('#'+n.nodeType+':'+n.nodeValue);}
+  function full(c,nodes,keys){
+    desc.set.call(c,'');
+    var f=document.createDocumentFragment();nodes.forEach(function(n){f.appendChild(n);});c.appendChild(f);
+    c._gcNodes=nodes;c._gcKeys=keys;c._gcFor=window.G&&G.chat;
+  }
+  function patch(c,html){
+    var t=document.createElement('template');t.innerHTML=html;
+    var nodes=Array.prototype.slice.call(t.content.childNodes),keys=nodes.map(key);
+    var old=c._gcNodes,ok=keys.length,ks=c._gcKeys,cur=c.childNodes;
+    // 第一次、换了聊天、或者别的代码动过这个列表：整体换一次（跟以前一样）
+    if(!old||!ks||c._gcFor!==(window.G&&G.chat)||cur.length!==old.length){full(c,nodes,keys);return;}
+    for(var i=0;i<old.length;i++){if(cur[i]!==old[i]){full(c,nodes,keys);return;}}
+    var p=0;while(p<old.length&&p<keys.length&&ks[p]===keys[p])p++;
+    var s=0;while(s<old.length-p&&s<keys.length-p&&ks[old.length-1-s]===keys[keys.length-1-s])s++;
+    if(p===old.length&&p===keys.length)return; // 什么都没变：一个像素都不动
+    var ref=s?old[old.length-s]:null;
+    for(i=p;i<old.length-s;i++)c.removeChild(old[i]);
+    var f=document.createDocumentFragment();for(i=p;i<keys.length-s;i++)f.appendChild(nodes[i]);
+    c.insertBefore(f,ref);
+    c._gcNodes=old.slice(0,p).concat(nodes.slice(p,keys.length-s),old.slice(old.length-s));
+    c._gcKeys=keys;
+  }
+  var o=renderMsgs;
+  renderMsgs=function(){
+    var c=document.getElementById('chatMsgs');
+    if(!c)return o.apply(this,arguments);
+    try{Object.defineProperty(c,'innerHTML',{configurable:true,get:function(){return desc.get.call(c);},set:function(v){try{patch(c,String(v));}catch(e){c._gcNodes=null;desc.set.call(c,v);}}});}
+    catch(e){return o.apply(this,arguments);}
+    try{return o.apply(this,arguments);}
+    finally{delete c.innerHTML;}
+  };
+  renderMsgs._gcNoFlash=true;
+  // 保留前面几层包装上的标记，别让它们再包一次
+  ['_gcDedupe','_gcSafe'].forEach(function(k){if(o[k])renderMsgs[k]=o[k];});
 })();
 </script>
 </body>
