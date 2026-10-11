@@ -4292,7 +4292,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.24';
+var CORE_VERSION='v2.25';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5004,7 +5004,7 @@ document.addEventListener('touchend',function(){
 // blur 在部分 WebView 里比 visibilitychange 更早，之前这里只盖遮罩不切界面，
 // 于是「更早」的那条路径反而防护更弱。现在两件事一起做。
 window.addEventListener('blur',function(){
-  if(_gcPickerOpen||Date.now()-_gcDialogAt<1500)return;   // 本页自己的对话框/选照片，不是离开
+  if((typeof _gcPickerSkip==='function'?_gcPickerSkip():_gcPickerOpen)||Date.now()-_gcDialogAt<1500)return;   // 本页自己的对话框/选照片，不是离开
   shieldOn(); _preemptive=false; disguiseNow();
   if(_hideDisguised){_disguiseAutoBack=_autoBackAllowed();if(!_disguiseAutoBack)_gcLockSession();} // 上滑到多任务、拉控制中心：按离开处理
 });
@@ -11315,7 +11315,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.24"></script>
+<script src="./chat-core.js?v2.25"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11531,6 +11531,8 @@ function updDots(err){
     window[n]=function(){dlgAt=Date.now();try{return o.apply(window,arguments);}finally{dlgAt=Date.now();}};
   });
   document.addEventListener('click',function(e){var t=e.target;if(t&&t.tagName==='INPUT'&&t.type==='file')picker=true;},true);
+  ['change','cancel'].forEach(function(ev){document.addEventListener(ev,function(e){var t=e.target;if(t&&t.type==='file')picker=false;},true);});
+  ['touchstart','pointerdown'].forEach(function(ev){document.addEventListener(ev,function(){picker=false;},true);});
   window.addEventListener('focus',function(){picker=false;});
   function ownUi(){
     if(picker||Date.now()-dlgAt<1500)return true;
@@ -12253,6 +12255,47 @@ function updDots(err){
   // 保留前面几层包装上的标记，别让它们再包一次
   ['_gcDedupe','_gcSafe'].forEach(function(k){if(o[k])renderMsgs[k]=o[k];});
 })();
+</script>
+<script>
+// ═══ v2.25 离开即隐身·补漏 ═══
+// 1. 底部手势被当成"离开"切到伪装界面、输密码回来后，"已隐藏"的标记没清掉，
+//    之后真正离开（打开别的 App、上滑到多任务）一律不再隐身，回来也不要密码 —— 多任务卡片里就是聊天。
+//    现在只要回到了聊天/列表/设置这些正常界面，标记就清掉，下一次离开照常隐身。
+// 2. 发图片时打开相册，"正在选照片（不算离开）"的标记要等页面重新获得焦点才清掉；
+//    iOS 主屏幕 App 选完照片经常不发这个事件，标记一直挂着，之后离开全都不隐身。
+//    现在选好/取消照片、手指再碰屏幕、或者已经豁免过一次，都会清掉。
+(function(){
+  var SAFE=['dweather','dcalc','dclk','dnote','newsHome','applock','testgate','reg'];
+  if(typeof show==='function'&&!show._gcStealthFix){
+    var o=show;
+    show=function(id){
+      var r=o.apply(this,arguments);
+      try{
+        if(SAFE.indexOf(String(id))<0&&typeof _hideDisguised!=='undefined'&&_hideDisguised){
+          var a=(document.querySelector('.screen.active')||{}).id||'';
+          if(SAFE.indexOf(a)<0){_hideDisguised=false;_preemptive=false;_disguiseAutoBack=false;}
+        }
+      }catch(e){}
+      return r;
+    };
+    show._gcStealthFix=true;
+  }
+  function clearPicker(){try{if(typeof _gcPickerOpen!=='undefined')_gcPickerOpen=false;window._gcPickerUsed=false;}catch(e){}}
+  var pickAt=0;
+  document.addEventListener('click',function(e){var t=e.target;if(t&&t.tagName==='INPUT'&&t.type==='file'){pickAt=Date.now();window._gcPickerUsed=false;}},true);
+  ['change','cancel'].forEach(function(ev){document.addEventListener(ev,function(e){var t=e.target;if(t&&t.type==='file')clearPicker();},true);});
+  ['touchstart','pointerdown'].forEach(function(ev){document.addEventListener(ev,function(){if(Date.now()-pickAt>250)clearPicker();},true);});
+  // 选照片的豁免最多管 2 分钟
+  setInterval(function(){try{if(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen&&Date.now()-pickAt>120000)clearPicker();}catch(e){}},5000);
+})();
+// 选照片时只豁免一次失焦：再失焦一次就是真的离开了
+function _gcPickerSkip(){
+  try{
+    if(!_gcPickerOpen)return false;
+    if(window._gcPickerUsed){_gcPickerOpen=false;window._gcPickerUsed=false;return false;}
+    window._gcPickerUsed=true;return true;
+  }catch(e){return false;}
+}
 </script>
 </body>
 </html>
