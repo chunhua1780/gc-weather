@@ -4292,7 +4292,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.25';
+var CORE_VERSION='v2.26';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -5004,7 +5004,7 @@ document.addEventListener('touchend',function(){
 // blur 在部分 WebView 里比 visibilitychange 更早，之前这里只盖遮罩不切界面，
 // 于是「更早」的那条路径反而防护更弱。现在两件事一起做。
 window.addEventListener('blur',function(){
-  if((typeof _gcPickerSkip==='function'?_gcPickerSkip():_gcPickerOpen)||Date.now()-_gcDialogAt<1500)return;   // 本页自己的对话框/选照片，不是离开
+  if((typeof _gcPickerSkip==='function'?_gcPickerSkip():_gcPickerOpen)||Date.now()-_gcDialogAt<700)return;   // 本页自己的对话框/选照片，不是离开
   shieldOn(); _preemptive=false; disguiseNow();
   if(_hideDisguised){_disguiseAutoBack=_autoBackAllowed();if(!_disguiseAutoBack)_gcLockSession();} // 上滑到多任务、拉控制中心：按离开处理
 });
@@ -11315,7 +11315,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.25"></script>
+<script src="./chat-core.js?v2.26"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11526,6 +11526,7 @@ function updDots(err){
   var core=typeof shieldOn==='function'&&typeof disguiseNow==='function';
   function free(){try{return (localStorage.getItem('focusMode')||'free')==='free';}catch(e){return false;}}
   var picker=false,dlgAt=0;
+  window._gcLgOwn=function(){return ownUi();};
   ['alert','confirm','prompt'].forEach(function(n){
     var o=window[n];if(typeof o!=='function')return;
     window[n]=function(){dlgAt=Date.now();try{return o.apply(window,arguments);}finally{dlgAt=Date.now();}};
@@ -11535,8 +11536,8 @@ function updDots(err){
   ['touchstart','pointerdown'].forEach(function(ev){document.addEventListener(ev,function(){picker=false;},true);});
   window.addEventListener('focus',function(){picker=false;});
   function ownUi(){
-    if(picker||Date.now()-dlgAt<1500)return true;
-    try{if(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen)return true;if(typeof _gcDialogAt!=='undefined'&&Date.now()-_gcDialogAt<1500)return true;}catch(e){}
+    if(picker||Date.now()-dlgAt<700)return true;
+    try{if(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen)return true;if(typeof _gcDialogAt!=='undefined'&&Date.now()-_gcDialogAt<700)return true;}catch(e){}
     var ae=document.activeElement;return !!(ae&&ae.tagName==='IFRAME');
   }
   // 旧版外壳没有遮罩：预先建好一层（平时几乎透明），离开时只改透明度，赶在快照之前
@@ -11577,7 +11578,7 @@ function updDots(err){
     if(f){if(had===false&&!core)coverOff();had=true;return;}
     if(had===true&&!ownUi())leave();
     had=false;
-  },100);
+  },50);
   // 3. blur（新版外壳本来就有，这里只补旧版）
   if(!core)window.addEventListener('blur',function(){if(!ownUi())leave();});
   // 旧版：回到前台、手指点回来时把遮罩撤掉（底下已经是伪装界面）
@@ -12296,6 +12297,62 @@ function _gcPickerSkip(){
     window._gcPickerUsed=true;return true;
   }catch(e){return false;}
 }
+</script>
+<script>
+// ═══ v2.26 非自由模式：只要不在前台就隐身，回来必须输密码 ═══
+(function(){
+  var SAFE=['dweather','dcalc','dclk','dnote','newsHome','applock','testgate','reg'];
+  function free(){try{return (localStorage.getItem('focusMode')||'free')==='free';}catch(e){return false;}}
+  function activeId(){return (document.querySelector('.screen.active')||{}).id||'';}
+  function locked(){
+    if(free())return false;
+    // 只在确实停在伪装/验证界面时才算锁着；已经回到聊天/列表，说明已经解锁过
+    if(SAFE.indexOf(activeId())<0)return false;
+    if(window._gcDisguiseMode===true)return true;
+    var unlocked=false;try{unlocked=sessionStorage.getItem('testGatePassed')==='1';}catch(e){}
+    return !unlocked;
+  }
+  window._gcStrictLocked=locked;
+  // 伪装/锁定状态下，任何路径（点通知、深链接、实时消息回调）都不能直接打开聊天：记下来，输完密码再进
+  if(typeof openChat==='function'&&!openChat._gcStrict){
+    var oc=openChat;
+    openChat=function(n){
+      try{if(locked()){if(n&&typeof _lockReturnScreen!=='undefined')_lockReturnScreen='chat:'+n;return;}}catch(e){}
+      return oc.apply(this,arguments);
+    };
+    for(var k in oc)if(Object.prototype.hasOwnProperty.call(oc,k))openChat[k]=oc[k];
+    openChat._gcStrict=true;
+  }
+  // 进过聊天/列表/设置这些界面，就算"用过"：之后离开再回来一律要密码（不再有自动放行）
+  if(typeof show==='function'&&!show._gcStrict){
+    var os=show;
+    show=function(id){
+      var r=os.apply(this,arguments);
+      try{if(!free()&&SAFE.indexOf(String(id))<0&&SAFE.indexOf(activeId())<0&&typeof _appWasActive!=='undefined')_appWasActive=true;}catch(e){}
+      return r;
+    };
+    for(var k2 in os)if(Object.prototype.hasOwnProperty.call(os,k2))show[k2]=os[k2];
+    show._gcStrict=true;
+  }
+  // 兜底：每 50 毫秒看一次，只要页面不在前台（后台、被盖住、失去焦点）而且还停在聊天界面，就立刻隐身
+  setInterval(function(){
+    try{
+      if(free()||localStorage.getItem('registered')!=='true')return;
+      var a=activeId();if(!a||SAFE.indexOf(a)>=0)return;
+      var away=document.hidden;
+      if(!away){var f=true;try{f=document.hasFocus();}catch(e){}if(!f){
+        // 本页自己的弹窗、选照片、焦点在内嵌框里，都不算离开
+        var own=false;
+        try{own=(typeof _gcLgOwn==='function'&&_gcLgOwn())||(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen)||(typeof _gcDialogAt!=='undefined'&&Date.now()-_gcDialogAt<700);}catch(e){}
+        var ae=document.activeElement;if(ae&&ae.tagName==='IFRAME')own=true;
+        away=!own;
+      }}
+      if(!away)return;
+      if(typeof _gcLeaveNow==='function')_gcLeaveNow();
+      else if(typeof disguiseNow==='function'){shieldOn();disguiseNow();}
+    }catch(e){}
+  },50);
+})();
 </script>
 </body>
 </html>
