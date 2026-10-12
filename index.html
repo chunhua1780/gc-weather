@@ -4292,7 +4292,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.26';
+var CORE_VERSION='v2.27';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11315,7 +11315,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.26"></script>
+<script src="./chat-core.js?v2.27"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11414,7 +11414,7 @@ function updDots(err){
       if(!m||m[1]===running)return;
       try{if(sessionStorage.getItem('gc_reloaded_for')===m[1])return;sessionStorage.setItem('gc_reloaded_for',m[1]);}catch(e){}
       // 新页面直接写进本机缓存再刷新（缓存里的是秒开用的那份）
-      var gone=false,go=function(){if(gone)return;gone=true;location.reload();};
+      var gone=false,go=function(){if(gone)return;gone=true;if(typeof window._gcDeferReload==='function'&&window._gcDeferReload())return;location.reload();};
       try{
         if(window.caches&&t.indexOf('var CORE_VERSION=')>=0){
           var key=new URL('./index.html',location.href).href.split('?')[0].split('#')[0];
@@ -12352,6 +12352,83 @@ function _gcPickerSkip(){
       else if(typeof disguiseNow==='function'){shieldOn();disguiseNow();}
     }catch(e){}
   },50);
+})();
+</script>
+<script>
+// ═══ v2.27 回到前台必隐身 ═══
+// iOS 把主屏幕 App 放到后台时经常直接冻住，离开时那几道隐身代码一行都来不及跑；
+// 回来时页面原样解冻，停在聊天界面。所以不能只靠"离开时"隐身，"回来时"必须再锁一次：
+//  · 回到前台（visibilitychange / pageshow / resume），
+//  · 或者发现页面被冻过（定时器停了 3 秒以上），
+// 只要还停在聊天/列表/设置，就立刻切到伪装界面、要密码。自由模式不变。
+(function(){
+  var SAFE=['dweather','dcalc','dclk','dnote','newsHome','applock','testgate','reg'];
+  function free(){try{return (localStorage.getItem('focusMode')||'free')==='free';}catch(e){return true;}}
+  function activeId(){return (document.querySelector('.screen.active')||{}).id||'';}
+  function ownUi(){
+    try{
+      if(typeof _gcLgOwn==='function'&&_gcLgOwn())return true;
+      if(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen)return true;
+      if(typeof _gcDialogAt!=='undefined'&&Date.now()-_gcDialogAt<700)return true;
+    }catch(e){}
+    return false;
+  }
+  function hardLock(){
+    try{
+      if(free()||localStorage.getItem('registered')!=='true')return false;
+      var a=activeId();if(!a||SAFE.indexOf(a)>=0)return false;
+      var ret=(a==='chat'&&typeof G!=='undefined'&&G.chat)?('chat:'+G.chat):a;
+      try{var ae=document.activeElement;if(ae&&ae.blur&&/INPUT|TEXTAREA/.test(ae.tagName))ae.blur();}catch(e){}
+      // 新版外壳：走原来的伪装切换
+      if(typeof disguiseNow==='function'&&typeof _hideDisguised!=='undefined'){
+        _hideDisguised=false;_preemptive=false;
+        disguiseNow();
+        _disguiseAutoBack=false;
+        if(typeof _gcLockSession==='function')_gcLockSession();
+        if(SAFE.indexOf(activeId())>=0)return true;
+      }
+      // 旧版外壳 / 兜底：直接进启动时的伪装界面
+      if(typeof _lockReturnScreen!=='undefined')_lockReturnScreen=ret;
+      try{sessionStorage.removeItem('testGatePassed');}catch(e){}
+      window._gcDisguiseMode=true;
+      if(typeof _showStartupStealth==='function')_showStartupStealth();
+      return SAFE.indexOf(activeId())>=0;
+    }catch(e){return false;}
+  }
+  window._gcHardLock=hardLock;
+  // 拍照/选照片会离开页面一下：点了选文件之后的第一次"回来"不算（只豁免一次，最多 3 分钟）
+  var pickPending=false,pickAt=0;
+  document.addEventListener('click',function(e){var t=e.target;if(t&&t.tagName==='INPUT'&&t.type==='file'){pickPending=true;pickAt=Date.now();}},true);
+  // 选好/取消后很快就清掉豁免（选好照片稍等 1.5 秒，让紧跟着的那次"回来"仍算在拍照里）；手指再碰屏幕也清掉
+  document.addEventListener('change',function(e){var t=e.target;if(t&&t.type==='file')setTimeout(function(){pickPending=false;},1500);},true);
+  document.addEventListener('cancel',function(e){var t=e.target;if(t&&t.type==='file')pickPending=false;},true);
+  ['touchstart','pointerdown'].forEach(function(ev){document.addEventListener(ev,function(){if(Date.now()-pickAt>250)pickPending=false;},true);});
+  function pickerReturn(){if(pickPending&&Date.now()-pickAt<180000){pickPending=false;return true;}pickPending=false;return false;}
+  function back(){
+    if(document.hidden)return;
+    if(ownUi())return;
+    if(pickerReturn())return;
+    hardLock();
+    // 有新版本：趁着在伪装界面时再刷新，不打断正在聊天的人
+    try{if(window._gcPendingReload&&SAFE.indexOf(activeId())>=0){window._gcPendingReload=false;setTimeout(function(){location.reload();},300);}}catch(e){}
+  }
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)back();});
+  window.addEventListener('pageshow',function(e){if(e&&e.persisted)back();});
+  document.addEventListener('resume',back);
+  // 冻结检测：定时器停了 3 秒以上 = 页面被系统冻过（在后台）
+  var last=Date.now();
+  setInterval(function(){
+    var now=Date.now(),gap=now-last;last=now;
+    if(gap>3000&&!document.hidden&&!ownUi())back();
+  },250);
+  // 自动更新：正在聊天时不立刻刷新，等下次进伪装界面再刷
+  window._gcDeferReload=function(){
+    try{
+      if(free()||localStorage.getItem('registered')!=='true')return false;
+      if(SAFE.indexOf(activeId())>=0)return false;
+      window._gcPendingReload=true;return true;
+    }catch(e){return false;}
+  };
 })();
 </script>
 </body>
