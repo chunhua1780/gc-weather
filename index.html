@@ -4292,7 +4292,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.27';
+var CORE_VERSION='v2.28';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -7353,7 +7353,7 @@ async function syncRoomMessages(name){
         if(isMediaUrl){
           var justRead=!msg.sent&&chatOpen;
           var expired=createdMs<weekAgo;
-          if(justRead||expired)toCleanup.push({id:m.id,src:msg.src,expired:expired&&!justRead});
+          /* v2.28：不再一打开聊天就删服务器上的视频/文件和这条消息（本机只存了链接，一删就打不开、记录也没了） */
         }
       }
       return msg;
@@ -10258,6 +10258,7 @@ function onVid(e){
       return;
     }
     var url='https://mztoenhgfuomzrashrqk.supabase.co/storage/v1/object/public/media/'+fname;
+    try{if(window._gcMediaPut)_gcMediaPut(url,f,localUrl);}catch(_e){}
     for(var i=msgs.length-1;i>=0;i--){
       if(msgs[i].type==='video'&&msgs[i].src===localUrl){msgs[i].src=url;msgs[i].loading=false;break;}
     }
@@ -10327,6 +10328,7 @@ function onFile(e){
       return;
     }
     var url='https://mztoenhgfuomzrashrqk.supabase.co/storage/v1/object/public/media/'+fname;
+    try{if(window._gcMediaPut)_gcMediaPut(url,f);}catch(_e){}
     for(var i=msgs.length-1;i>=0;i--){
       if(msgs[i].type==='file'&&msgs[i].fname===origName&&msgs[i].loading){msgs[i].src=url;msgs[i].loading=false;break;}
     }
@@ -11315,7 +11317,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.27"></script>
+<script src="./chat-core.js?v2.28"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -12429,6 +12431,97 @@ function _gcPickerSkip(){
       window._gcPendingReload=true;return true;
     }catch(e){return false;}
   };
+})();
+</script>
+<script>
+// ═══ v2.28 视频/文件：先存到本机再说 ═══
+// 以前对方一打开聊天，就当"已经看过、已存本机"，立刻把服务器上的视频文件和这条消息都删掉 ——
+// 可本机只存了一个链接，文件一删就打不开；消息一删，同步时本机这条记录也跟着没了。
+// 现在：收到的视频/文件打开聊天时下载存进本机（IndexedDB），之后一律从本机播放；
+// 发出去的视频/文件发送时就存进本机。聊天记录永远不删；服务器上的文件在接收方存好 24 小时后再清掉。
+(function(){
+  if(window._gcMediaPut)return;
+  var DB=null;
+  function db(){
+    if(DB)return DB;
+    DB=new Promise(function(res,rej){
+      try{var r=indexedDB.open('gcMedia',1);
+        r.onupgradeneeded=function(){r.result.createObjectStore('b');};
+        r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};}catch(e){rej(e);}
+    });
+    DB.catch(function(){DB=null;});
+    return DB;
+  }
+  function idbGet(k){return db().then(function(d){return new Promise(function(res){try{var q=d.transaction('b').objectStore('b').get(k);q.onsuccess=function(){res(q.result||null);};q.onerror=function(){res(null);};}catch(e){res(null);}});}).catch(function(){return null;});}
+  function idbPut(k,v){return db().then(function(d){return new Promise(function(res){try{var t=d.transaction('b','readwrite');t.objectStore('b').put(v,k);t.oncomplete=function(){res(true);};t.onerror=function(){res(false);};t.onabort=function(){res(false);};}catch(e){res(false);}});}).catch(function(){return false;});}
+  var obj={},rev={},saved={},missing={},busy={},tries={};
+  function isMedia(u){return typeof u==='string'&&u.indexOf('/storage/v1/object/public/media/')>=0;}
+  function setObj(u,o){obj[u]=o;rev[o]=u;}
+  window._gcMediaPut=function(url,blob,objUrl){
+    try{setObj(url,objUrl||URL.createObjectURL(blob));idbPut(url,blob).then(function(ok){if(ok)saved[url]=1;});}catch(e){}
+  };
+  function rerender(){try{if(typeof G!=='undefined'&&G.chat&&typeof renderMsgs==='function'){var ce=document.getElementById('chat');if(ce&&ce.classList.contains('active'))renderMsgs();}}catch(e){}}
+  function ensure(u){
+    if(obj[u]||missing[u]||busy[u])return;
+    if((tries[u]||0)>=3)return;
+    busy[u]=1;tries[u]=(tries[u]||0)+1;
+    idbGet(u).then(function(b){
+      if(b){setObj(u,URL.createObjectURL(b));saved[u]=1;return;}
+      return fetch(u,{cache:'no-store'}).then(function(r){
+        if(!r.ok){if(r.status===400||r.status===404)missing[u]=1;return;}
+        return r.blob().then(function(bl){
+          if(!bl||!bl.size){missing[u]=1;return;}
+          setObj(u,URL.createObjectURL(bl));
+          return idbPut(u,bl).then(function(ok){if(ok)saved[u]=1;});
+        });
+      });
+    }).catch(function(){}).then(function(){delete busy[u];rerender();});
+  }
+  // 接收方本机存好、而且已经过了 24 小时：服务器上的文件删掉（聊天记录保留）
+  var purged={};try{purged=JSON.parse(localStorage.getItem('gcMediaPurged')||'{}')||{};}catch(e){}
+  function purge(m,u){
+    if(m.sent||!saved[u]||purged[u]||!(m.ts&&Date.now()-m.ts>24*3600*1000))return;
+    purged[u]=1;try{localStorage.setItem('gcMediaPurged',JSON.stringify(purged));}catch(e){}
+    try{var fn=u.split('/media/')[1];if(fn)_sb.storage.from('media').remove([decodeURIComponent(fn)]).then(function(){},function(){});}catch(e){}
+  }
+  if(typeof renderMsgs==='function'&&!renderMsgs._gcMedia){
+    var o=renderMsgs;
+    renderMsgs=function(){
+      var sw=[];
+      try{
+        var list=(typeof G!=='undefined'&&G.chat&&G.msgs&&G.msgs[G.chat])||[];
+        list.forEach(function(m){
+          if(!m||(m.type!=='video'&&m.type!=='file')||m.loading||m.failed||!isMedia(m.src))return;
+          var u=m.src;
+          if(obj[u]){sw.push([m,'src',u]);m.src=obj[u];purge(m,u);}
+          else if(missing[u]){
+            sw.push([m,'type',m.type],[m,'text',m.text],[m,'src',u]);
+            var t=m.type;m.type='text';m.src=null;
+            m.text=t==='video'?'🎬 这段视频已失效（服务器上已删除），请让对方重新发送':'📄 文件「'+(m.fname||'')+'」已失效，请让对方重新发送';
+          }
+          else ensure(u);
+        });
+      }catch(e){}
+      try{return o.apply(this,arguments);}
+      finally{
+        for(var i=sw.length-1;i>=0;i--)sw[i][0][sw[i][1]]=sw[i][2];
+        try{[].forEach.call(document.querySelectorAll('#chatMsgs video'),function(v){if(!v.hasAttribute('playsinline')){v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');v.preload='metadata';}});}catch(e){}
+      }
+    };
+    for(var k in o)if(Object.prototype.hasOwnProperty.call(o,k))renderMsgs[k]=o[k];
+    renderMsgs._gcMedia=true;
+  }
+  // 存聊天记录时绝不能把本机临时地址（blob:）存进去，换回原来的链接
+  if(typeof saveLocalMsgs==='function'&&!saveLocalMsgs._gcMedia){
+    var os=saveLocalMsgs;
+    saveLocalMsgs=function(peer,list){
+      var sw=[];
+      try{(list||[]).forEach(function(m){if(m&&typeof m.src==='string'&&rev[m.src]){sw.push([m,m.src]);m.src=rev[m.src];}});}catch(e){}
+      try{return os.apply(this,arguments);}
+      finally{sw.forEach(function(x){x[0].src=x[1];});}
+    };
+    saveLocalMsgs._gcMedia=true;
+  }
 })();
 </script>
 </body>

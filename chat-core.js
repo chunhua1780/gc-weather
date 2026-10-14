@@ -255,7 +255,7 @@ async function syncRoomMessages(name){
             else{msg.delivered=true;msg.read=true;}
             if((m.type==='video'||m.type==='file')&&msg.src){
               var isMediaUrl=msg.src.indexOf('/storage/v1/object/public/media/')>=0;
-              if(isMediaUrl){var justRead=!msg.sent&&chatOpen;var expired=createdMs<weekAgo;if(justRead||expired)toCleanup.push({id:m.id,src:msg.src,expired:expired&&!justRead});}
+              if(isMediaUrl){var justRead=!msg.sent&&chatOpen;var expired=createdMs<weekAgo;/* v2.28：不再一打开聊天就删服务器上的视频/文件和这条消息（本机只存了链接，一删就打不开、记录也没了） */}
             }
             return msg;
           }catch(e){return {id:m.id,text:'[Message]',type:'text',sent:String(m.sender)===String(myId),t:gt(),ts:new Date(m.created_at).getTime()||Date.now()};}
