@@ -803,6 +803,15 @@ body.theme-dark .mr.s .bub.bub-read,body.theme-neon .mr.s .bub.bub-read,body.the
 .xi:active{opacity:.6;}
 .xib{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:calc(26px * var(--ui-font-scale,1));}
 .xil{font-size:calc(11px * var(--ui-font-scale,1));color:#3c3c43;}
+.xp{padding:18px 14px 22px;}
+.xg{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 8px;}
+.xi{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+.xib{width:58px;height:58px;border-radius:17px;display:flex;align-items:center;justify-content:center;color:var(--xi-c,#0a84ff);background:var(--theme-field-bg,#fff);border:0.5px solid rgba(60,60,67,.14);box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 14px rgba(0,0,0,.05);transition:transform .16s cubic-bezier(.3,.7,.4,1),background-color .16s;}
+.xib svg{display:block;}
+.xi:active .xib{transform:scale(.92);background:rgba(120,120,128,.14);}
+.xil{font-size:calc(12px * var(--ui-font-scale,1));color:var(--theme-text,#1c1c1e);opacity:.72;letter-spacing:.2px;white-space:nowrap;}
+body.theme-dark .xib,body.theme-neon .xib,body.theme-aurora .xib,body.theme-midnight .xib{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.08);box-shadow:none;}
+@media (prefers-color-scheme:dark){body:not([class*="theme-"]) .xib{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.08);box-shadow:none;}}
 .og{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
 .oc{background:var(--theme-field-bg);border:2px solid var(--theme-field-border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s;color:var(--theme-text);}
 .oc.on{border-color:var(--theme-link);background:var(--theme-row-bg);}
@@ -1388,24 +1397,23 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
   <button onclick="sendDirectFile()" style="background:#007aff;color:#fff;border:none;padding:6px 12px;border-radius:8px;margin-top:4px;width:100%;">Send File</button>
 </div>
 <div class="irow">
-      <div class="ibtn" onclick="toggleDirectUpload()" title="Upload file">📎</div>
+      <div class="ibtn" onclick="toggleDirectUpload()" title="发送文件"><svg viewBox="0 0 24 24" style="stroke-width:1.8"><path d="M20.5 11.6l-8.2 8.2a5.2 5.2 0 0 1-7.4-7.4l8.6-8.6a3.5 3.5 0 0 1 4.9 4.9l-8.4 8.4a1.7 1.7 0 0 1-2.5-2.5l7.8-7.8"/></svg></div>
       <div class="ibtn" onclick="togXP()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
-      <div class="ibtn" onclick="togEmoji()" title="Emoji" style="font-size:calc(20px * var(--ui-font-scale,1));">😊</div>
+      <div class="ibtn" onclick="togEmoji()" title="表情"><svg viewBox="0 0 24 24" style="stroke-width:1.8"><circle cx="12" cy="12" r="9.5"/><path d="M8.2 14.3c.9 1.4 2.2 2.1 3.8 2.1s2.9-.7 3.8-2.1"/><path d="M9 9.6v.6M15 9.6v.6" style="stroke-width:2.4"/></svg></div>
       <textarea class="itxt" id="mi" placeholder="Message..." rows="1" onkeydown="hk(event)" oninput="autoResizeMI();notifyTyping();"></textarea>
       <div class="ibtn" onmousedown="recStart()" onmouseup="recStop()" ontouchstart="recStart(event)" ontouchend="recStop()"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg></div>
       <button class="isend" onclick="sendMsg()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="#fff" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
     </div>
     <div class="xp" id="xpanel">
       <div class="xg">
-        <label class="xi" style="cursor:pointer;"><input type="file" accept="image/*" capture="camera" style="display:none" onchange="onImg(event)"><div class="xib" style="background:#007aff">📷</div><span class="xil">Camera</span></label>
-        <label class="xi" style="cursor:pointer;"><input type="file" accept="image/*" style="display:none" onchange="onImg(event)"><div class="xib" style="background:#5ac8fa">🖼️</div><span class="xil">Gallery</span></label>
-        <label class="xi" style="cursor:pointer;"><input type="file" accept="video/*" style="display:none" onchange="onVid(event)"><div class="xib" style="background:#ff3b30">🎬</div><span class="xil">Video</span></label>
-        <div class="xi" onclick="doLoc()"><div class="xib" style="background:#34c759">📍</div><span class="xil">Location</span></div>
-        <label class="xi" style="cursor:pointer;"><input type="file" style="display:none" onchange="onFile(event)"><div class="xib" style="background:#ff9f0a">📁</div><span class="xil">File</span></label>
-        <div class="xi" onclick="doContactCard()"><div class="xib" style="background:#5856d6">👤</div><span class="xil">名片</span></div>
-        <div class="xi" onclick="doBurn()"><div class="xib" style="background:#ff3b30">💣</div><span class="xil">Burn</span></div>
-        <div class="xi" onclick="startCall()"><div class="xib" style="background:#34c759">📞</div><span class="xil">Voice</span></div>
-        <div class="xi" onclick="panic()"><div class="xib" style="background:#ff3b30">🚨</div><span class="xil">Destroy</span></div>
+        <label class="xi"><input type="file" accept="image/*" capture="camera" style="display:none" onchange="onImg(event)"><div class="xib" style="--xi-c:#0a84ff"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.6A2.6 2.6 0 0 1 5.6 6h1.7l1.5-2.2h6.4L16.7 6h1.7A2.6 2.6 0 0 1 21 8.6v8.8a2.6 2.6 0 0 1-2.6 2.6H5.6A2.6 2.6 0 0 1 3 17.4z"/><circle cx="12" cy="12.8" r="3.6"/></svg></div><span class="xil">拍照</span></label>
+        <label class="xi"><input type="file" accept="image/*" style="display:none" onchange="onImg(event)"><div class="xib" style="--xi-c:#ff9f0a"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3.2"/><circle cx="8.6" cy="9.4" r="1.7"/><path d="M21 15.4l-4.6-4.6a1.3 1.3 0 0 0-1.8 0L5.6 19.8"/></svg></div><span class="xil">照片</span></label>
+        <label class="xi"><input type="file" accept="video/*" style="display:none" onchange="onVid(event)"><div class="xib" style="--xi-c:#ff375f"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="3"/><path d="M15.5 10.3l4.7-2.8a.5.5 0 0 1 .8.4v8.2a.5.5 0 0 1-.8.4l-4.7-2.8"/></svg></div><span class="xil">视频</span></label>
+        <label class="xi"><input type="file" style="display:none" onchange="onFile(event)"><div class="xib" style="--xi-c:#32ade6"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.8 3H7.6A2.6 2.6 0 0 0 5 5.6v12.8A2.6 2.6 0 0 0 7.6 21h8.8a2.6 2.6 0 0 0 2.6-2.6V8.2z"/><path d="M13.8 3v5.2H19"/></svg></div><span class="xil">文件</span></label>
+        <div class="xi" onclick="doLoc()"><div class="xib" style="--xi-c:#30d158"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.6-5.7-6.6-11.1a6.6 6.6 0 0 1 13.2 0C18.6 15.3 12 21 12 21z"/><circle cx="12" cy="9.9" r="2.4"/></svg></div><span class="xil">位置</span></div>
+        <div class="xi" onclick="doContactCard()"><div class="xib" style="--xi-c:#5e5ce6"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10.8" r="2.1"/><path d="M5.9 16c.6-1.5 1.8-2.3 3.1-2.3s2.5.8 3.1 2.3"/><path d="M14.6 10h3.9M14.6 13.4h2.7"/></svg></div><span class="xil">名片</span></div>
+        <div class="xi" onclick="startCall()"><div class="xib" style="--xi-c:#30d158"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.7 3.6h2.1l1.6 4.1-2 1.3a11.6 11.6 0 0 0 6.6 6.6l1.3-2 4.1 1.6v2.1a2.1 2.1 0 0 1-2.2 2.1A15.3 15.3 0 0 1 4.6 5.8a2.1 2.1 0 0 1 2.1-2.2z"/></svg></div><span class="xil">语音通话</span></div>
+        <div class="xi xi-danger" onclick="panic()"><div class="xib" style="--xi-c:#ff3b30"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.4 2.9v5.6c0 4.5-3.1 8.2-7.4 9.5-4.3-1.3-7.4-5-7.4-9.5V5.9z"/><path d="M12 8.2v4.6"/><path d="M12 16.1v.1"/></svg></div><span class="xil">紧急销毁</span></div>
       </div>
     </div>
     <div class="ep" id="emojiPanel"><div class="ep-grid" id="emojiGrid"></div></div>
@@ -4292,7 +4300,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.28';
+var CORE_VERSION='v2.29';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11317,7 +11325,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.28"></script>
+<script src="./chat-core.js?v2.29"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
