@@ -1008,10 +1008,14 @@ async function loadContacts(){
   _lastContactsLoad=_n;_loadingContacts=true;setTimeout(function(){_loadingContacts=false;},5000);
   try{
     var mid=String(myId),iMid=parseInt(mid)||0;var seen={},contactIds=[];
-    var fr=await _sb.from('friends').select('friend_id,nickname').eq('user_id',mid);
+    // v2.31：好友表 + 两个会话查询并行跑，别一个个串着等
+    var _lcp=await Promise.all([
+      _sb.from('friends').select('friend_id,nickname').eq('user_id',mid),
+      _sb.from('conversations').select('*').eq('user1',iMid).order('updated_at',{ascending:false}).limit(100),
+      _sb.from('conversations').select('*').eq('user2',iMid).order('updated_at',{ascending:false}).limit(100)
+    ]);
+    var fr=_lcp[0],cq1=_lcp[1],cq2=_lcp[2];
     var friendMap={};if(fr.data)fr.data.forEach(function(f){friendMap[String(f.friend_id)]=f.nickname||'';});
-    var cq1=await _sb.from('conversations').select('*').eq('user1',iMid).order('updated_at',{ascending:false}).limit(100);
-    var cq2=await _sb.from('conversations').select('*').eq('user2',iMid).order('updated_at',{ascending:false}).limit(100);
     var allConvs=[].concat(cq1.data||[]).concat(cq2.data||[]);
     allConvs.sort(function(a,b){return new Date(b.updated_at)-new Date(a.updated_at);});
     var _convSeen={};allConvs=allConvs.filter(function(c){if(_convSeen[c.room_id])return false;_convSeen[c.room_id]=true;return true;});
@@ -1046,9 +1050,10 @@ async function loadContacts(){
     var users=await _sb.from('users').select('id,name,avatar_url').in('id',uids);
     var userMap={},avatarMap={};if(users.data)users.data.forEach(function(u){userMap[String(u.id)]=u.name;if(u.avatar_url)avatarMap[String(u.id)]=u.avatar_url;});
     try{var _ec2=JSON.parse(localStorage.getItem('chatListCache')||'null');if(_ec2){contactIds.forEach(function(cid){if(!userMap[cid]&&_ec2.um&&_ec2.um[cid])userMap[cid]=_ec2.um[cid];if(!avatarMap[cid]&&_ec2.am&&_ec2.am[cid])avatarMap[cid]=_ec2.am[cid];});}}catch(e){}
-    await _gcFetchPeerReads(contactIds,seen);
+    // v2.31：列表先画出来，已读爪印后台补、拿到再重画一次，不再卡最多 4 秒
     _saveChatListCache(contactIds,seen,friendMap,userMap,avatarMap);
     _renderContacts(contactIds,seen,friendMap,userMap,avatarMap);
+    _gcFetchPeerReads(contactIds,seen).then(function(){try{_saveChatListCache(contactIds,seen,friendMap,userMap,avatarMap);_renderContacts(contactIds,seen,friendMap,userMap,avatarMap);}catch(e){}});
     if(typeof AdManager!=='undefined'&&AdManager._ready)AdManager.showInChatList();
   }catch(e){console.log('[loadContacts] error:',e&&e.message);}
   finally{_loadingContacts=false;}
