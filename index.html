@@ -4300,7 +4300,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.29';
+var CORE_VERSION='v2.30';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11325,7 +11325,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.29"></script>
+<script src="./chat-core.js?v2.30"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -12344,19 +12344,29 @@ function _gcPickerSkip(){
     for(var k2 in os)if(Object.prototype.hasOwnProperty.call(os,k2))show[k2]=os[k2];
     show._gcStrict=true;
   }
-  // 兜底：每 50 毫秒看一次，只要页面不在前台（后台、被盖住、失去焦点）而且还停在聊天界面，就立刻隐身
+  // 兜底：每 50 毫秒看一次。判断"不在前台"只用可靠的 document.hidden；
+  // 真正切走（切后台/多任务/控制中心）由 blur 事件即时隐身、以及"回到前台必锁"兜底。
+  // 以前还单凭 document.hasFocus()===false 当"离开"，但很多手机在前台（没聚焦输入框时）
+  // 也返回 false，会把人不停踢到伪装界面、消息发不出去 —— 现在只有确实发生过 blur
+  // （真的失去焦点）且之后没再 focus 回来，才按失焦处理，静止的 hasFocus=false 不算。
+  var _gcBlurAt=0,_gcFocusAt=Date.now();
+  window.addEventListener('blur',function(){_gcBlurAt=Date.now();});
+  window.addEventListener('focus',function(){_gcFocusAt=Date.now();});
   setInterval(function(){
     try{
       if(free()||localStorage.getItem('registered')!=='true')return;
       var a=activeId();if(!a||SAFE.indexOf(a)>=0)return;
       var away=document.hidden;
-      if(!away){var f=true;try{f=document.hasFocus();}catch(e){}if(!f){
-        // 本页自己的弹窗、选照片、焦点在内嵌框里，都不算离开
-        var own=false;
-        try{own=(typeof _gcLgOwn==='function'&&_gcLgOwn())||(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen)||(typeof _gcDialogAt!=='undefined'&&Date.now()-_gcDialogAt<700);}catch(e){}
-        var ae=document.activeElement;if(ae&&ae.tagName==='IFRAME')own=true;
-        away=!own;
-      }}
+      if(!away&&_gcBlurAt>_gcFocusAt&&Date.now()-_gcBlurAt>250){
+        var f=true;try{f=document.hasFocus();}catch(e){}
+        if(!f){
+          // 本页自己的弹窗、选照片、焦点在内嵌框里，都不算离开
+          var own=false;
+          try{own=(typeof _gcLgOwn==='function'&&_gcLgOwn())||(typeof _gcPickerOpen!=='undefined'&&_gcPickerOpen)||(typeof _gcDialogAt!=='undefined'&&Date.now()-_gcDialogAt<700);}catch(e){}
+          var ae=document.activeElement;if(ae&&ae.tagName==='IFRAME')own=true;
+          away=!own;
+        }
+      }
       if(!away)return;
       if(typeof _gcLeaveNow==='function')_gcLeaveNow();
       else if(typeof disguiseNow==='function'){shieldOn();disguiseNow();}
