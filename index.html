@@ -1806,6 +1806,11 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
         <span id="ccShow" style="color:#8e8e93;font-size:calc(15px * var(--ui-font-scale,1));margin-right:6px;letter-spacing:1px;"></span>
         <span style="color:#c7c7cc;font-size:calc(18px * var(--ui-font-scale,1));">›</span>
       </div>
+      <div class="row" style="border-bottom:1px solid var(--theme-border);">
+        <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div style="flex:1;min-width:0;"><div style="font-size:calc(17px * var(--ui-font-scale,1));">聊天码保护</div><div id="ccSwDesc" style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-top:1px;">已关 · 别人知道你的账号就能加你</div></div>
+        <div class="tog" id="ccSwToggle" onclick="gcToggleCcEnabled()"><div class="td"></div></div>
+      </div>
       <div class="row" onclick="show('hide-set')" style="padding:14px 16px;">
         <div class="si" style="background:var(--theme-row-bg);"><svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--theme-icon)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11a5 5 0 00-10 0"/><circle cx="12" cy="16" r="1"/><path d="M3 11h18l-1.5 8a2 2 0 01-2 1.7H6.5a2 2 0 01-2-1.7L3 11z"/></svg></div>
         <div style="flex:1;">
@@ -2327,9 +2332,9 @@ html.gc-landscape #installBanner,html.gc-landscape #huaweiBanner{left:0 !importa
 <div id="newChatModal" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:700;display:none;align-items:center;justify-content:center;">
   <div style="background:var(--theme-field-bg,#fff);border-radius:20px;padding:24px;text-align:center;width:280px;box-shadow:0 20px 50px rgba(0,0,0,.25);">
     <div style="font-size:calc(18px * var(--ui-font-scale,1));font-weight:700;margin-bottom:4px;color:var(--theme-text);">发起新聊天</div>
-    <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:14px;">输入对方的账号和聊天码</div>
+    <div style="font-size:calc(13px * var(--ui-font-scale,1));color:#8e8e93;margin-bottom:14px;">输入对方的账号（对方开了聊天码保护才要填聊天码）</div>
     <input id="newChatInput" type="text" placeholder="TA 的账号，例如 4821" inputmode="numeric" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid var(--theme-field-border,#e5e5ea);background:var(--theme-itxt-bg,#fff);color:var(--theme-text);font-size:calc(16px * var(--ui-font-scale,1));outline:none;" onkeydown="if(event.key==='Enter')submitNewChat()">
-    <input id="newChatCode" type="text" placeholder="TA 的聊天码" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="width:100%;box-sizing:border-box;margin-top:10px;padding:12px 14px;border-radius:12px;border:0.5px solid var(--theme-field-border,#e5e5ea);background:var(--theme-itxt-bg,#fff);color:var(--theme-text);font-size:calc(16px * var(--ui-font-scale,1));outline:none;letter-spacing:1px;" onkeydown="if(event.key==='Enter')submitNewChat()">
+    <input id="newChatCode" type="text" placeholder="TA 的聊天码（对方开了保护才要）" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="width:100%;box-sizing:border-box;margin-top:10px;padding:12px 14px;border-radius:12px;border:0.5px solid var(--theme-field-border,#e5e5ea);background:var(--theme-itxt-bg,#fff);color:var(--theme-text);font-size:calc(16px * var(--ui-font-scale,1));outline:none;letter-spacing:1px;" onkeydown="if(event.key==='Enter')submitNewChat()">
     <div id="newChatTip" style="min-height:16px;margin-top:8px;font-size:calc(12px * var(--ui-font-scale,1));color:#ff3b30;"></div>
     <div style="display:flex;gap:8px;margin-top:6px;">
       <button onclick="closeNewChatModal()" style="flex:1;background:var(--theme-row-bg,#f2f2f7);color:var(--theme-text);border:none;padding:10px 0;border-radius:12px;font-size:calc(16px * var(--ui-font-scale,1));cursor:pointer;">取消</button>
@@ -4300,7 +4305,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.31';
+var CORE_VERSION='v2.32';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -6313,7 +6318,7 @@ async function _autoRelogin(){
 function forceLogout(){_onKicked();}
 
 // ═══ 设置同步到中央数据库：锁屏密码/隐藏模式/伪装方式/激活方式/销毁方式 ═══
-var SYNCED_SETTING_KEYS=['appLockPin','hide','dis','trig','dest','dpin','testGatePin','lockTimeout','autoLockLeave','barkUrl','focusMode','barkEnabled','doNotDisturb','barkIconUrl','shortcutName','pwaAppName','uiFontSize','autoSchedEnabled','autoSchedMode','autoSchedStart','autoSchedEnd','autoSchedDays','pwHash','ccHash'];
+var SYNCED_SETTING_KEYS=['appLockPin','hide','dis','trig','dest','dpin','testGatePin','lockTimeout','autoLockLeave','barkUrl','focusMode','barkEnabled','doNotDisturb','barkIconUrl','shortcutName','pwaAppName','uiFontSize','autoSchedEnabled','autoSchedMode','autoSchedStart','autoSchedEnd','autoSchedDays','pwHash','ccHash','ccEnabled'];
 async function pushSettings(){
   if(!lg('registered')||!myId)return;
   var obj={};
@@ -11325,7 +11330,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.31"></script>
+<script src="./chat-core.js?v2.32"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -12540,6 +12545,106 @@ function _gcPickerSkip(){
     };
     saveLocalMsgs._gcMedia=true;
   }
+})();
+</script>
+<script>
+// ═══ v2.32 聊天码开关（默认关）═══
+// 要不要聊天码，由"被加的那个人"的开关决定：
+//  关（默认）→ 别人知道你的账号就能直接加你聊天；
+//  开        → 别人第一次加你，必须输入你的账号 + 正确的聊天码；
+//  已经建立聊天的，双方都不用再输。
+// 一个人找另一个人：只要知道对方的账号（对方开了保护再加上聊天码）即可，不用两头都加。
+(function(){
+  function $(id){return document.getElementById(id);}
+  function own(h,id){return !!h&&String(h).indexOf(String(id)+'$')===0;}
+  function colorOf(id){var c=['#007aff','#34c759','#ff9f0a','#ff3b30','#bf5af2','#30b0c7'];return c[(parseInt(id)||0)%c.length];}
+  function ccOn(){try{return localStorage.getItem('ccEnabled')==='on';}catch(e){return false;}}
+  function pairLocked(uid){try{var st=JSON.parse(localStorage.getItem('gcPairFail_'+uid)||'{}')||{};if(st.until&&st.until>Date.now()){var s=Math.ceil((st.until-Date.now())/1000);return s>60?Math.ceil(s/60)+' 分钟':s+' 秒';}}catch(e){}return '';}
+
+  window._gcCcSwRender=function(){
+    var t=$('ccSwToggle');if(t){if(ccOn())t.classList.add('on');else t.classList.remove('on');}
+    var d=$('ccSwDesc');if(d)d.textContent=ccOn()?'已开 · 别人第一次加你要输对聊天码':'已关 · 别人知道你的账号就能加你';
+    try{if(typeof _gcCCRender==='function')_gcCCRender();}catch(e){}
+  };
+  window.gcToggleCcEnabled=async function(){
+    if(!myId)return;
+    var nv=!ccOn();
+    if(nv&&!own(localStorage.getItem('ccHash'),myId)){alert('请先设置聊天码（点上面「聊天码」那一行）');return;}
+    localStorage.setItem('ccEnabled',nv?'on':'');
+    _gcCcSwRender();
+    try{
+      var r=await _sb.from('users').select('settings').eq('id',parseInt(myId)||myId).maybeSingle();
+      var s=Object.assign({},(r.data&&r.data.settings)||{},{ccEnabled:nv?'on':''});
+      await _sb.from('users').update({settings:s}).eq('id',parseInt(myId)||myId);
+    }catch(e){}
+    alert(nv?'✅ 聊天码保护已开\n别人第一次加你，要输入你的账号和聊天码':'聊天码保护已关\n别人知道你的账号就能直接加你聊天');
+  };
+  setTimeout(_gcCcSwRender,700);
+
+  // 目标用户要不要聊天码：只看"对方"的开关，且对方确实有聊天码
+  window._gcTargetNeedsCode=async function(uid){
+    try{
+      var r=await _sb.from('users').select('settings').eq('id',parseInt(uid)||0).maybeSingle();
+      var s=(r&&r.data&&r.data.settings)||{};
+      return s.ccEnabled==='on'&&own(s.ccHash,uid);
+    }catch(e){return false;}
+  };
+  // 双向建立好友关系（不验证，供"不需要聊天码"的直接添加用）
+  window._gcLinkBoth=async function(u){
+    var uid=String(u.id),me=String(myId);
+    if(!await saveFriend(uid,u.name))return false;
+    try{var ex=await _sb.from('friends').select('id').eq('user_id',uid).eq('friend_id',me).maybeSingle();
+      if(!ex.data)await _sb.from('friends').insert({user_id:uid,friend_id:me,nickname:localStorage.getItem('myName')||null});}catch(e){}
+    return true;
+  };
+  async function openWith(u){
+    var uid=String(u.id);
+    var fres=await _sb.from('friends').select('nickname').eq('user_id',String(myId)).eq('friend_id',uid).maybeSingle();
+    var nick=fres.data&&fres.data.nickname;var disp=nick||u.name||uid;
+    if(!fres.data)await saveFriend(uid,u.name);
+    openChat(uid,disp[0].toUpperCase(),colorOf(uid),disp);
+    try{loadContacts();}catch(e){}
+  }
+  async function findUser(input){
+    input=String(input||'').trim();var res=null;
+    if(/^\d+$/.test(input))res=await _sb.from('users').select('id,name').eq('id',parseInt(input)).maybeSingle();
+    if(!res||!res.data)res=await _sb.from('users').select('id,name').ilike('name',input).maybeSingle();
+    return res&&res.data||null;
+  }
+
+  // 扫码 / 名片 / 资料页加人
+  window._gcGate=async function(u){
+    if(String(u.id)===String(myId)){alert('这是你自己的账号');return false;}
+    if(await _gcEstablished(u.id))return true;
+    if(!await _gcTargetNeedsCode(u.id)){return await _gcLinkBoth(u);}
+    var lk=pairLocked(u.id);if(lk){alert('聊天码输错太多次，请 '+lk+' 后再试');return false;}
+    var code=(typeof _gcAsk==='function')
+      ? await _gcAsk({title:'输入 TA 的聊天码',desc:'TA 开了聊天码保护\n第一次加 TA 要输入聊天码',placeholder:'TA 的聊天码',ok:'开始聊天'})
+      : prompt('TA 开了聊天码保护，请输入 TA 的聊天码：');
+    if(code===null)return false;
+    return await _gcPairWith(u,code);
+  };
+  // 新建聊天
+  window.submitNewChat=async function(){
+    var inp=$('newChatInput'),input=(inp&&inp.value||'').trim();if(!input)return;
+    var codeEl=$('newChatCode'),tip=$('newChatTip');
+    function say(t){if(tip){tip.textContent=t;tip.style.color='#ff3b30';}else alert(t);}
+    var u=await findUser(input);
+    if(!u){say('没找到这个账号，请确认号码');return;}
+    if(String(u.id)===String(myId)){say('这是你自己的账号');return;}
+    if(!await _gcEstablished(u.id)){
+      if(await _gcTargetNeedsCode(u.id)){
+        var lk=pairLocked(u.id);if(lk){say('聊天码输错太多次，请 '+lk+' 后再试');return;}
+        var code=codeEl?codeEl.value:'';
+        if(!_gcNormCC(code)){say('TA 开了聊天码保护，要输入 TA 的聊天码');if(codeEl)codeEl.focus();return;}
+        if(!await _gcPairWith(u,code))return;
+      }else{
+        if(!await _gcLinkBoth(u))return;
+      }
+    }
+    if(typeof closeNewChatModal==='function')closeNewChatModal();
+    await openWith(u);
+  };
 })();
 </script>
 </body>
