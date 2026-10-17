@@ -221,7 +221,7 @@ async function syncRoomMessages(name){
   try{
     var a=parseInt(myId)||myId,b=parseInt(name)||name;
     var room=roomIdOf(a,b);
-    var _rrP=Promise.resolve(_sb.from('messages').select('content').eq('room_id',room).eq('type','read_receipt').eq('sender',String(name)).order('created_at',{ascending:false}).limit(1)).catch(function(){return null;});var res=await _sb.from('messages').select('*').eq('room_id',room).order('created_at',{ascending:false}).limit(50);
+    var _rrP=Promise.resolve(_sb.from('messages').select('content').eq('room_id',room).eq('type','read_receipt').eq('sender',String(name)).order('created_at',{ascending:false}).limit(1)).catch(function(){return null;});var res=await _sb.from('messages').select('*').eq('room_id',room).neq('type','read_receipt').neq('type','gc_del').order('created_at',{ascending:false}).limit(50);
     var serverMsgs=[];var toCleanup=[];
     var chatOpen=(G.chat===name);var weekAgo=Date.now()-7*24*60*60*1000;
     var otherLastRead=0;
@@ -550,6 +550,8 @@ async function markRoomRead(otherId){
     var room=roomIdOf(parseInt(myId)||myId,parseInt(otherId)||otherId);
     var ins=await _sb.from('messages').insert({room_id:room,sender:String(myId),type:'read_receipt',content:String(ts)});
     if(ins.error)console.log('markRoomRead failed:',ins.error.message);
+    // 清掉自己在这个房间里更早的已读回执，别让它们无限堆积、把真消息挤出同步窗口
+    try{var _rcut=new Date(Date.now()-60000).toISOString();Promise.resolve(_sb.from('messages').delete().eq('room_id',room).eq('sender',String(myId)).eq('type','read_receipt').lt('created_at',_rcut)).catch(function(){});}catch(e){}
     if(typingSub)typingSub.send({type:'broadcast',event:'read',payload:{from:String(myId),upto:ts}});
   }catch(e){console.log('markRoomRead err',e&&e.message);}
 }
