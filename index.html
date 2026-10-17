@@ -4309,7 +4309,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.35';
+var CORE_VERSION='v2.36';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11349,7 +11349,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.35"></script>
+<script src="./chat-core.js?v2.36"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11360,6 +11360,7 @@ function updDots(err){
   var DESK='(min-width:560px) and (min-height:501px)';
   function rgba(s){var m=(s||'').match(/[\d.]+/g);if(!m||m.length<3)return null;return[+m[0],+m[1],+m[2],m.length>3?+m[3]:1];}
   function lastStop(img){if(!img||img==='none')return null;var a=img.match(/rgba?\([^)]*\)/g);return a?rgba(a[a.length-1]):null;}
+  function firstStop(img){if(!img||img==='none')return null;var a=img.match(/rgba?\([^)]*\)/g);return a?rgba(a[0]):null;}
   function over(b,c){if(!c||!(c[3]>0))return b;var a=c[3];return[c[0]*a+b[0]*(1-a),c[1]*a+b[1]*(1-a),c[2]*a+b[2]*(1-a)];}
   function opaque(el){if(!el)return false;var cs=getComputedStyle(el);var c=rgba(cs.backgroundColor);return (c&&c[3]>=0.99)||(cs.backgroundImage&&cs.backgroundImage!=='none');}
   // 只认当前界面自己和 body 的颜色，安装提示条/toast 这类临时浮层不算，不然浮层一消失颜色就残留
@@ -11396,10 +11397,13 @@ function updDots(err){
       if(!own){body.style.backgroundColor='';body.style.backgroundImage='';}
       var c=sample(sc);if(!c)return;
       document.documentElement.style.backgroundColor=c;
+      // 顶栏(Safari theme-color)：天气界面且没开城市列表时，用天空顶部的干净蓝，别用发闷的底栏色
+      var themeC=c;
+      try{if(sc&&sc.id==='dweather'){var _sh=sc.querySelector('.aw-sheet');if(!(_sh&&_sh.classList.contains('on'))){var _sky=sc.querySelector('.aw-sky');if(_sky){var _tp=firstStop(getComputedStyle(_sky).backgroundImage);if(_tp)themeC='rgb('+Math.round(_tp[0])+','+Math.round(_tp[1])+','+Math.round(_tp[2])+')';}}}}catch(e){}
       // Safari 工具条/状态栏用 theme-color 着色，原来写死成主题粉色，跟页面底色撞色；
       // 改成跟页面底边同一个颜色，系统栏和页面连成一体。
       var m=document.getElementById('metaThemeColor');
-      if(m){var hx='#'+c.match(/\d+/g).map(function(n){return ('0'+(+n).toString(16)).slice(-2);}).join('');if(m.content!==hx)m.content=hx;}
+      if(m){var hx='#'+themeC.match(/\d+/g).map(function(n){return ('0'+(+n).toString(16)).slice(-2);}).join('');if(m.content!==hx)m.content=hx;}
       if(own){body.style.backgroundColor=c;body.style.backgroundImage='none';}
     }catch(e){}
   }
