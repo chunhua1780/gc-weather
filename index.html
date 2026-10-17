@@ -970,9 +970,11 @@ body.theme-dark .xib,body.theme-neon .xib,body.theme-aurora .xib,body.theme-midn
   position:absolute; left:0; right:0; bottom:0; z-index:3;
   height:calc(52px + var(--safe-bottom,0px)); padding-bottom:var(--safe-bottom,0px);
   display:flex; align-items:center; justify-content:space-between; padding-left:20px; padding-right:20px;
-  background:var(--aw-bar-bg,rgba(40,58,86,.34)); /* 实色由 _gcSyncEdgeColor 按天空底色算好写入，跟屏幕最底下那截完全同色 */
+  /* 底栏直接续用天空那张渐变图，并按整屏高度贴到屏幕最底部：显示的正是天空最底下那一截，
+     跟正上方的天空严丝合缝连成一体，不再是一条突兀的浅蓝/发灰色带。渐变与屏高由 _gcSyncEdgeColor 写入。 */
+  background:var(--aw-bar-bg,linear-gradient(180deg,#2e5a8c 0%,#3f7cb5 45%,#77a7cf 100%));
+  background-size:100% var(--aw-sky-h,100vh); background-position:center bottom; background-repeat:no-repeat;
   -webkit-backdrop-filter:blur(26px); backdrop-filter:blur(26px);
-  border-top:.5px solid rgba(255,255,255,.14);
 }
 .aw-bar-btn{ width:26px; height:26px; color:rgba(255,255,255,.92); cursor:pointer; }
 .aw-bar-btn svg{ width:100%; height:100%; display:block; }
@@ -4309,7 +4311,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.39';
+var CORE_VERSION='v2.40';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11350,7 +11352,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.39"></script>
+<script src="./chat-core.js?v2.40"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11382,15 +11384,15 @@ function updDots(err){
     try{
       var body=document.body;if(!body)return;
       var sc=document.querySelector('.screen.active');
-      // 天气底栏：直接用天空最底下那截的实色，底栏跟它正上方的天空同一个颜色、融成一体，
-      // 不再额外叠深蓝色调（那会把底栏压成一条发灰的横杠，跟天空撞色、很难看）。
+      // 天气底栏：直接续用天空那张渐变图、按整屏高度贴到最底部，底栏显示的就是天空最底下那一截，
+      // 跟正上方的天空严丝合缝、看不出分界，不再是一条突兀的浅蓝/发灰色带。
       if(sc&&sc.id==='dweather'){
         var sky=sc.querySelector('.aw-sky');
         if(sky){
-          var ks=getComputedStyle(sky),kb=[255,255,255];
-          kb=over(kb,rgba(getComputedStyle(sc).backgroundColor));
-          kb=over(kb,rgba(ks.backgroundColor));kb=over(kb,lastStop(ks.backgroundImage));
-          sc.style.setProperty('--aw-bar-bg','rgb('+Math.round(kb[0])+','+Math.round(kb[1])+','+Math.round(kb[2])+')');
+          var ks=getComputedStyle(sky),grad=ks.backgroundImage;
+          if(grad&&grad!=='none')sc.style.setProperty('--aw-bar-bg',grad);
+          else{var kb=over([255,255,255],rgba(ks.backgroundColor));sc.style.setProperty('--aw-bar-bg','rgb('+Math.round(kb[0])+','+Math.round(kb[1])+','+Math.round(kb[2])+')');}
+          var _skh=sky.offsetHeight||sc.offsetHeight||0;if(_skh)sc.style.setProperty('--aw-sky-h',_skh+'px');
         }
       }
       var own=opaque(sc)&&!(window.matchMedia&&matchMedia(DESK).matches);
