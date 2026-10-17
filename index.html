@@ -4312,7 +4312,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.43';
+var CORE_VERSION='v2.44';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11042,9 +11042,23 @@ async function loadWeather(lat,lon,name){
       // 秒开：先用上次存下的天气立刻画出来，再去网上取最新的覆盖上去
       var _wk='gcWx:'+location.pathname+':'+(+lat).toFixed(2)+','+(+lon).toFixed(2);
       try{var _wc=JSON.parse(localStorage.getItem(_wk)||'null');if(_wc&&_wc.current){await loadWeather(lat,lon,name,_gcWxAged(_wc));_wxShown=true;}}catch(e){}
-      var r=await fetch(url);
-      d=await r.json();
-      if(!d||!d.current)throw new Error('bad weather data');
+      // 天气接口不稳 / 网络慢时，单次 fetch 很容易失败 ——「天气加载不出来」多半就是这个。
+      // 改成带 9 秒超时的重试（最多 3 次，逐步退避）；期间先前已用本机缓存画出来了，不会白屏。
+      var d2=null,_werr=null;
+      for(var _wtry=0;_wtry<3&&!d2;_wtry++){
+        try{
+          var _wac=('AbortController' in window)?new AbortController():null;
+          var _wto=_wac?setTimeout(function(){try{_wac.abort();}catch(e){}},9000):0;
+          var r=await fetch(url,_wac?{signal:_wac.signal,cache:'no-store'}:{cache:'no-store'});
+          if(_wto)clearTimeout(_wto);
+          if(!r.ok)throw new Error('HTTP '+r.status);
+          var _wj=await r.json();
+          if(!_wj||!_wj.current)throw new Error('bad weather data');
+          d2=_wj;
+        }catch(_we){_werr=_we;if(_wtry<2)await new Promise(function(res){setTimeout(res,700*(_wtry+1));});}
+      }
+      if(!d2)throw _werr||new Error('weather fetch failed');
+      d=d2;
       if(G_wxCurrent&&(G_wxCurrent.lat!==lat||G_wxCurrent.lon!==lon))return;
       try{localStorage.setItem(_wk,JSON.stringify(d));}catch(e){}
     }
@@ -11364,7 +11378,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.43"></script>
+<script src="./chat-core.js?v2.44"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
