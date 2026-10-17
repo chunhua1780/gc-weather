@@ -1015,6 +1015,10 @@ body.theme-dark .xib,body.theme-neon .xib,body.theme-aurora .xib,body.theme-midn
 .aw-ct-n{ font-size:22px; font-weight:600; line-height:1.2; }
 .aw-ct-s{ font-size:14px; color:rgba(255,255,255,.75); margin-top:2px; }
 .aw-ct-t{ font-size:46px; font-weight:200; letter-spacing:-2px; line-height:1; }
+.aw-ct-l{display:flex;flex-direction:column;}
+.aw-ct-r{display:flex;flex-direction:column;align-items:flex-end;}
+.aw-ct-tm{font-size:15px;color:rgba(255,255,255,.9);margin-top:2px;}
+.aw-ct-hl{font-size:13px;color:rgba(255,255,255,.8);margin-top:10px;white-space:nowrap;}
 .aw-ct-x{
   position:absolute; right:10px; bottom:10px; font-size:12px;
   color:rgba(255,255,255,.6); padding:4px 8px; border-radius:8px;
@@ -4305,7 +4309,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.34';
+var CORE_VERSION='v2.35';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -10955,16 +10959,28 @@ function initWeather(){
   loadWeather(cur.lat,cur.lon,cur.name);
 }
 
+function _gcWxSeedDefaults(){
+  try{
+    if(localStorage.getItem('wxSeeded')==='1')return;
+    localStorage.setItem('wxSeeded','1');
+    var cur=getWxCities(),names={};cur.forEach(function(c){names[c.name]=1;});
+    [{name:'北京',lat:39.90,lon:116.41},{name:'上海',lat:31.23,lon:121.47},{name:'香港',lat:22.32,lon:114.17},{name:'东京',lat:35.68,lon:139.69},{name:'伦敦',lat:51.51,lon:-0.13},{name:'纽约',lat:40.71,lon:-74.01}].forEach(function(d){if(!names[d.name]&&cur.length<6)cur.push(d);});
+    setWxCities(cur);
+  }catch(e){}
+}
 function renderWxCityChips(){
   var box=document.getElementById('wxCityList');
   if(!box)return;
   var cities=getWxCities();
+  _gcWxSeedDefaults();cities=getWxCities();
   box.innerHTML=cities.map(function(c,i){
     var safe=esc(c.name).replace(/'/g,"\\'");
     return '<div class="aw-ct" id="awct'+i+'" onclick="loadWeather('+c.lat+','+c.lon+',\''+safe+'\');wxCloseCityList()">'
-      +'<div><div class="aw-ct-n">'+esc(c.name)+'</div>'
-      +'<div class="aw-ct-s" id="awcs'+i+'">--</div></div>'
-      +'<div class="aw-ct-t" id="awctt'+i+'">--°</div>'
+      +'<div class="aw-ct-l"><div class="aw-ct-n">'+esc(c.name)+'</div>'
+      +'<div class="aw-ct-tm" id="awcm'+i+'"></div>'
+      +'<div class="aw-ct-s" id="awcs'+i+'">--</div>'
+      +'<div class="aw-ct-hl" id="awchl'+i+'"></div></div>'
+      +'<div class="aw-ct-r"><div class="aw-ct-t" id="awctt'+i+'">--°</div></div>'
       +(cities.length>1?'<div class="aw-ct-x" onclick="event.stopPropagation();removeWxCity('+i+')">移除</div>':'')
       +'</div>';
   }).join('');
@@ -10973,12 +10989,15 @@ function renderWxCityChips(){
 async function _wxCityPreview(c,i){
   try{
     var r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+c.lat+'&longitude='+c.lon
-      +'&current=temperature_2m,weather_code,is_day&timezone=auto');
+      +'&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
     var d=await r.json();
     var t=document.getElementById('awctt'+i), s=document.getElementById('awcs'+i), card=document.getElementById('awct'+i);
+    var tm=document.getElementById('awcm'+i), hl=document.getElementById('awchl'+i);
     if(t)t.textContent=Math.round(d.current.temperature_2m)+'°';
     if(s)s.textContent=wxDescCn(d.current.weather_code);
     if(card)card.style.background=wxSky(d.current.weather_code,d.current.is_day===1);
+    if(tm&&d.utc_offset_seconds!=null){var lt=new Date(Date.now()+d.utc_offset_seconds*1000);tm.textContent=lt.getUTCHours()+':'+('0'+lt.getUTCMinutes()).slice(-2);}
+    if(hl&&d.daily&&d.daily.temperature_2m_max){hl.textContent='高'+Math.round(d.daily.temperature_2m_max[0])+'° 低'+Math.round(d.daily.temperature_2m_min[0])+'°';}
   }catch(e){}
 }
 function removeWxCity(i){
@@ -11330,7 +11349,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.34"></script>
+<script src="./chat-core.js?v2.35"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
