@@ -4310,7 +4310,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.41';
+var CORE_VERSION='v2.42';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11351,7 +11351,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.41"></script>
+<script src="./chat-core.js?v2.42"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11389,14 +11389,17 @@ function updDots(err){
       var c=sample(sc);if(!c)return;
       // 顶栏(Safari theme-color)：天气界面且没开城市列表时，用天空顶部的干净蓝，别用发闷的底栏色；
       // 并把页面底色（底栏/底部安全区取色处）也设成同一个蓝，让上栏、下栏和页面连成一体、不再撞色。
-      var themeC=c;
-      try{if(sc&&sc.id==='dweather'){var _sh=sc.querySelector('.aw-sheet');if(!(_sh&&_sh.classList.contains('on'))){var _sky=sc.querySelector('.aw-sky');if(_sky){var _tp=firstStop(getComputedStyle(_sky).backgroundImage);if(_tp){themeC='rgb('+Math.round(_tp[0])+','+Math.round(_tp[1])+','+Math.round(_tp[2])+')';c=themeC;}}}}}catch(e){}
-      document.documentElement.style.backgroundColor=c;
-      // Safari 工具条/状态栏用 theme-color 着色，原来写死成主题粉色，跟页面底色撞色；
-      // 改成跟页面底边同一个颜色，系统栏和页面连成一体。
+      var themeC=c,wxGrad=null;
+      try{if(sc&&sc.id==='dweather'){var _sh=sc.querySelector('.aw-sheet');if(!(_sh&&_sh.classList.contains('on'))){var _sky=sc.querySelector('.aw-sky');if(_sky){var _gi=getComputedStyle(_sky).backgroundImage;if(_gi&&_gi!=='none'){wxGrad=_gi;var _tp=firstStop(_gi);if(_tp)themeC='rgb('+Math.round(_tp[0])+','+Math.round(_tp[1])+','+Math.round(_tp[2])+')';var _bt=lastStop(_gi);if(_bt)c='rgb('+Math.round(_bt[0])+','+Math.round(_bt[1])+','+Math.round(_bt[2])+')';}}}}}catch(e){}
+      // 天气界面：把整张天空渐变同样铺到 html/body（整块视口，含顶部状态栏和底部 Home 指示条两个安全区），
+      // 这样上下安全区都是同一条渐变的自然延续，屏幕最底下不会再冒出一条深色的分层带。c 取天空底色兜底。
+      var _de=document.documentElement;
+      if(wxGrad){_de.style.backgroundColor=c;_de.style.backgroundImage=wxGrad;_de.style.backgroundSize='100% 100%';_de.style.backgroundRepeat='no-repeat';}
+      else{_de.style.backgroundColor=c;_de.style.backgroundImage='';}
+      // Safari 状态栏用 theme-color 着色：天气界面用天空顶部色，跟顶部状态栏那截对上。
       var m=document.getElementById('metaThemeColor');
       if(m){var hx='#'+themeC.match(/\d+/g).map(function(n){return ('0'+(+n).toString(16)).slice(-2);}).join('');if(m.content!==hx)m.content=hx;}
-      if(own){body.style.backgroundColor=c;body.style.backgroundImage='none';}
+      if(own){if(wxGrad){body.style.backgroundColor=c;body.style.backgroundImage=wxGrad;body.style.backgroundSize='100% 100%';body.style.backgroundRepeat='no-repeat';}else{body.style.backgroundColor=c;body.style.backgroundImage='none';}}
     }catch(e){}
   }
   var t2=null;
