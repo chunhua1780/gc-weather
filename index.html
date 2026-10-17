@@ -983,7 +983,7 @@ body.theme-dark .xib,body.theme-neon .xib,body.theme-aurora .xib,body.theme-midn
 
 /* ── 城市列表 ── */
 .aw-sheet{
-  position:absolute; inset:0; z-index:4; display:none; flex-direction:column;
+  position:absolute; inset:0; z-index:7; display:none; flex-direction:column;
   background:#1c1c1e; color:#fff;
   padding:max(20px,calc(12px + var(--safe-top,0px))) 16px calc(16px + var(--safe-bottom,0px));
   overflow-y:auto; -webkit-overflow-scrolling:touch;
@@ -4309,7 +4309,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.36';
+var CORE_VERSION='v2.37';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11304,7 +11304,8 @@ G.pe='';
 function openPIN(){
   // 这台设备已经登录过（本地已有有效账号），说明就是机主本人在用手势解锁伪装界面，
   // 直接放行进聊天，不需要再多输一遍密码——避免每次重开App都要过一遍密码墙。
-  if(lg('registered')==='true'&&lg('myId')){
+  // 但仅限"自由模式"：非自由模式（回家/隐身等）下手势只调出密码盘，必须输对密码才进聊天，绝不放行。
+  if(lg('registered')==='true'&&lg('myId')&&(lg('focusMode')||'free')==='free'){
     sessionStorage.setItem('testGatePassed','1');
     ls('gatePassedPersist','1');
     window._gcDisguiseMode=false;
@@ -11349,7 +11350,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.36"></script>
+<script src="./chat-core.js?v2.37"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
