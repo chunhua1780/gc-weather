@@ -4309,7 +4309,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.37';
+var CORE_VERSION='v2.38';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11350,7 +11350,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.37"></script>
+<script src="./chat-core.js?v2.38"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11397,10 +11397,11 @@ function updDots(err){
       var own=opaque(sc)&&!(window.matchMedia&&matchMedia(DESK).matches);
       if(!own){body.style.backgroundColor='';body.style.backgroundImage='';}
       var c=sample(sc);if(!c)return;
-      document.documentElement.style.backgroundColor=c;
-      // 顶栏(Safari theme-color)：天气界面且没开城市列表时，用天空顶部的干净蓝，别用发闷的底栏色
+      // 顶栏(Safari theme-color)：天气界面且没开城市列表时，用天空顶部的干净蓝，别用发闷的底栏色；
+      // 并把页面底色（底栏/底部安全区取色处）也设成同一个蓝，让上栏、下栏和页面连成一体、不再撞色。
       var themeC=c;
-      try{if(sc&&sc.id==='dweather'){var _sh=sc.querySelector('.aw-sheet');if(!(_sh&&_sh.classList.contains('on'))){var _sky=sc.querySelector('.aw-sky');if(_sky){var _tp=firstStop(getComputedStyle(_sky).backgroundImage);if(_tp)themeC='rgb('+Math.round(_tp[0])+','+Math.round(_tp[1])+','+Math.round(_tp[2])+')';}}}}catch(e){}
+      try{if(sc&&sc.id==='dweather'){var _sh=sc.querySelector('.aw-sheet');if(!(_sh&&_sh.classList.contains('on'))){var _sky=sc.querySelector('.aw-sky');if(_sky){var _tp=firstStop(getComputedStyle(_sky).backgroundImage);if(_tp){themeC='rgb('+Math.round(_tp[0])+','+Math.round(_tp[1])+','+Math.round(_tp[2])+')';c=themeC;}}}}}catch(e){}
+      document.documentElement.style.backgroundColor=c;
       // Safari 工具条/状态栏用 theme-color 着色，原来写死成主题粉色，跟页面底色撞色；
       // 改成跟页面底边同一个颜色，系统栏和页面连成一体。
       var m=document.getElementById('metaThemeColor');
