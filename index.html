@@ -4309,7 +4309,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.38';
+var CORE_VERSION='v2.39';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11350,7 +11350,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.38"></script>
+<script src="./chat-core.js?v2.39"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11382,15 +11382,14 @@ function updDots(err){
     try{
       var body=document.body;if(!body)return;
       var sc=document.querySelector('.screen.active');
-      // 天气底栏：原来是半透明+毛玻璃，实际显示的颜色跟算出来的底色总差一点，刚打开时天空还在变色差得更明显。
-      // 改成按天空最底下的颜色叠上底栏色调，算出一个实色直接给底栏用，底栏和最底下那截就是同一个颜色。
+      // 天气底栏：直接用天空最底下那截的实色，底栏跟它正上方的天空同一个颜色、融成一体，
+      // 不再额外叠深蓝色调（那会把底栏压成一条发灰的横杠，跟天空撞色、很难看）。
       if(sc&&sc.id==='dweather'){
         var sky=sc.querySelector('.aw-sky');
         if(sky){
           var ks=getComputedStyle(sky),kb=[255,255,255];
           kb=over(kb,rgba(getComputedStyle(sc).backgroundColor));
           kb=over(kb,rgba(ks.backgroundColor));kb=over(kb,lastStop(ks.backgroundImage));
-          kb=over(kb,[40,58,86,.34]);
           sc.style.setProperty('--aw-bar-bg','rgb('+Math.round(kb[0])+','+Math.round(kb[1])+','+Math.round(kb[2])+')');
         }
       }

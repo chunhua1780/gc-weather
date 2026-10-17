@@ -504,6 +504,10 @@ function _gcStoreUpto(peer,upto){
   upto=+upto||0;if(!peer||!upto)return;
   try{var o=JSON.parse(localStorage.getItem('gcPeerReadUpto')||'{}');if(!(o[String(peer)]>=upto)){o[String(peer)]=upto;localStorage.setItem('gcPeerReadUpto',JSON.stringify(o));}}catch(e){}
 }
+// 我自己在每个会话里"读到哪儿"的时间点，存在本机。重开App、断线重连补消息（catchUp 会把近两分钟的消息
+// 重新走一遍处理）时，比这个时间点更早的消息一律算已读，不再反复把已读的又标成未读、让红点一直赖着。
+function _gcMyUpto(peer){try{var o=JSON.parse(localStorage.getItem('gcMyReadUpto')||'{}');return +o[String(peer)]||0;}catch(e){return 0;}}
+function _gcSetMyUpto(peer,ts){ts=+ts||0;if(!peer||!ts)return;try{var o=JSON.parse(localStorage.getItem('gcMyReadUpto')||'{}');if(!(o[String(peer)]>=ts)){o[String(peer)]=ts;localStorage.setItem('gcMyReadUpto',JSON.stringify(o));}}catch(e){}}
 function _gcNoteRead(peer,upto){
   peer=String(peer);_gcStoreUpto(peer,upto);
   var up=Math.max(+upto||0,_gcPeerUpto(peer));if(!up)return false;
@@ -547,6 +551,7 @@ async function markRoomRead(otherId){
     // 回执时间取本机时钟和这段对话里最新一条消息（服务器时间）的较大值：手机时钟稍慢时，
     // 刚读的最新几条消息时间会比回执还晚，对方那边就一直不出爪印
     var ts=Date.now();(G.msgs[otherId]||[]).forEach(function(m){if(m&&m.ts>ts)ts=m.ts;});
+    _gcSetMyUpto(otherId,ts); // 记下我已读到这儿，重开App后这之前的消息不再算未读
     var room=roomIdOf(parseInt(myId)||myId,parseInt(otherId)||otherId);
     var ins=await _sb.from('messages').insert({room_id:room,sender:String(myId),type:'read_receipt',content:String(ts)});
     if(ins.error)console.log('markRoomRead failed:',ins.error.message);
@@ -665,6 +670,9 @@ function listenForAllMessages(){
           saveLocalMsgs(senderId,G.msgs[senderId]);
           _sb.from('messages').update({delivered:true}).eq('id',m.id).then(function(){});
           if(chatOpenNow)scheduleMarkRoomRead(senderId);
+          // 只有"确实是没读过的新消息"才加未读红点：会话没开着、而且这条比我在这个会话里读到的位置更晚。
+          // （catchUp 重放的、或我已经读过的，msgTs 不会超过 _gcMyUpto，就不会再加。）
+          else if(msgTs>_gcMyUpto(senderId))addUnread(senderId);
           if(G.chat===senderId)renderMsgs();
           if(document.hidden&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
             try{
@@ -702,8 +710,8 @@ function listenForAllMessages(){
             /* v2.18: 不再给自己推送（对方发消息时已经推给我了，这里只会重复） */
           }
         }
-        var inThisChat=(G.chat===senderId)&&document.getElementById('chat')&&document.getElementById('chat').classList.contains('active');
-        if(!inThisChat)addUnread(senderId);
+        // 未读红点只在上面"新消息"分支里按已读位置加，这里不再无条件地给每条（含重放、已读的）都加，
+        // 否则重开App/断线重连时 catchUp 一重放，读过的消息又全冒出红点、怎么点都不消。
       }catch(e){console.log('[listenForAllMessages] error:',e&&e.message);}
     }).subscribe(function(s){console.log('All msgs sub:',s);if(typeof _gcRtStatus==='function')_gcRtStatus(s);});
 }
@@ -725,6 +733,8 @@ function openChat(name,ini,color,displayName){
     var cutoff=getDeletedCutoff(name);
     if(_lc.length>0)G.msgs[name]=cutoff>0?_lc.filter(function(m){return m.ts>cutoff;}):_lc;
   }
+  // 一打开会话就把"我读到哪儿"推进到当前最新一条：以后重开App/断线补消息，这之前的都算已读、不再冒红点
+  try{var _mx=0;(G.msgs[name]||[]).forEach(function(m){if(m&&m.ts>_mx)_mx=m.ts;});_gcSetMyUpto(name,_mx||Date.now());}catch(e){}
   show('chat');initChatLayout();
   document.getElementById('xpanel').classList.remove('on');
   renderMsgs();
