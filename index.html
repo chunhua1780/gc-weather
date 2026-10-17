@@ -4305,7 +4305,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.33';
+var CORE_VERSION='v2.34';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11330,7 +11330,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.33"></script>
+<script src="./chat-core.js?v2.34"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -12645,6 +12645,30 @@ function _gcPickerSkip(){
     if(typeof closeNewChatModal==='function')closeNewChatModal();
     await openWith(u);
   };
+})();
+</script>
+<script>
+// ═══ v2.34 周期性清理垃圾，数据库轻量化 ═══
+// 已读回执每看一次就写一条，越堆越多（曾有单个房间 1.7 万条），把真消息挤出同步窗口、
+// 淹没实时推送，导致部分消息发不出/收不到/读不到。这里让 App 以本人身份定期清掉自己的旧回执，
+// 只保留最近几分钟的（用于显示已读）。只删自己的回执，绝不碰任何真实消息。
+(function(){
+  var _sweeping=false;
+  function sweep(){
+    try{
+      if(_sweeping)return;
+      if(localStorage.getItem('registered')!=='true'||!window.myId||!window._sb)return;
+      _sweeping=true;setTimeout(function(){_sweeping=false;},20000);
+      var cut=new Date(Date.now()-5*60000).toISOString();
+      // 自己 5 分钟前的已读回执，所有房间一次清掉（最近的留着保持"已读"状态，之后看消息会自动补）
+      Promise.resolve(_sb.from('messages').delete().eq('sender',String(myId)).eq('type','read_receipt').lt('created_at',cut))
+        .then(function(){_sweeping=false;}).catch(function(){_sweeping=false;});
+    }catch(e){_sweeping=false;}
+  }
+  window._gcSweepJunk=sweep;
+  setTimeout(sweep,8000);          // 启动后清一次
+  setInterval(sweep,10*60000);     // 之后每 10 分钟清一次
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(sweep,4000);});
 })();
 </script>
 </body>
