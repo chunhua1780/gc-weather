@@ -875,7 +875,7 @@ async function sendMsg(){
 async function _doSendText(msgObj,chatAtSend,room){
   if(!room)return;var _tmr=null;
   try{
-    var _timeout=new Promise(function(_,rej){_tmr=setTimeout(function(){rej(new Error('send_timeout'));},8000);});
+    var _timeout=new Promise(function(_,rej){_tmr=setTimeout(function(){rej(new Error('send_timeout'));},14000);});
     var r=await Promise.race([_sb.from('messages').insert({room_id:room,sender:String(myId),content:msgObj.text,type:'text',duration:_gcNonce(msgObj)}).select().single(),_timeout]);
     clearTimeout(_tmr);
     if(r&&r.data&&!r.error){
@@ -893,7 +893,9 @@ function _markFailed(msgObj,chatAtSend){
 }
 var _retrying=false;
 function retryFailedMsgs(){
-  if(_retrying||!myId||!navigator.onLine)return;_retrying=true;var tasks=[];
+  // 不再因 navigator.onLine 为 false 就不重试：弱网/境外主机时这个值经常不可靠，
+  // 真断网的话 insert 自己会很快失败，没损失；但网络一恢复就能把"发不出"的消息补发出去。
+  if(_retrying||!myId)return;_retrying=true;var tasks=[];
   Object.keys(G.msgs||{}).forEach(function(peerId){
     var room=roomIdOf(parseInt(myId)||myId,parseInt(peerId)||peerId);
     (G.msgs[peerId]||[]).forEach(function(m){if(m.failed&&m.sent&&(m.type==='text'||!m.type)&&m.text&&m.id==null)tasks.push({m:m,peerId:peerId,room:room});});

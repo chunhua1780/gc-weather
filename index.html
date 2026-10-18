@@ -4312,7 +4312,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.44';
+var CORE_VERSION='v2.45';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11378,7 +11378,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.44"></script>
+<script src="./chat-core.js?v2.45"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
@@ -11730,7 +11730,7 @@ function updDots(err){
   }
   window._gcCatchUp=catchUp;
   var lastRetry=0;
-  function retry(){if(Date.now()-lastRetry<15000)return;lastRetry=Date.now();try{if(typeof retryFailedMsgs==='function')retryFailedMsgs();}catch(e){}}
+  function retry(){if(Date.now()-lastRetry<8000)return;lastRetry=Date.now();try{if(typeof retryFailedMsgs==='function')retryFailedMsgs();}catch(e){}}
   function wake(){kick();setTimeout(function(){if(!healthy)resub();catchUp();lastRetry=0;retry();},400);}
   document.addEventListener('visibilitychange',function(){if(!document.hidden)wake();});
   window.addEventListener('online',wake);
