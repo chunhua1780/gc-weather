@@ -11714,16 +11714,13 @@ function updDots(err){
     try{
       var rs=rooms();if(!rs.length)return;
       // ★ 关键修复（信息丢失/收不到的根因）：补消息的"上次同步点"一律按【服务器时间】记——
-      // 取已收到消息里最新一条的 created_at，而不是手机本地时间 Date.now()。
-      // 以前混用两套时钟：手机钟只要比服务器快几分钟，since 就被推到未来，这段时间差里对方发来的消息
-      // 整段被跳过、永远补不回来 → 就是"信息收不到、严重丢失"。改成服务器时间后，手机钟准不准都不受影响。
+      // 取已收到消息里最新一条的 created_at，而不是手机本地时间 Date.now()。手机钟只要比服务器快几分钟，
+      // 旧写法的 since 就被推到未来，这段时间差里对方发来的消息整段被跳过、永远补不回来。改服务器时间后不受影响。
       var lastSrv=localStorage.getItem('gcLastMsgSrv');
-      var since=lastSrv?new Date(new Date(lastSrv).getTime()-300000).toISOString()  // 回看 5 分钟冗余，重复的按指纹去掉
-                       :new Date(Date.now()-3*86400000).toISOString();             // 首次/换设备：抓最近 3 天，补齐离线期间漏掉的
+      var since=lastSrv?new Date(new Date(lastSrv).getTime()-300000).toISOString():new Date(Date.now()-3*86400000).toISOString();
       var r=await _sb.from('messages').select('*').in('room_id',rs).gt('created_at',since).order('created_at',{ascending:true}).limit(600);
       if(r&&r.data&&!r.error){
         r.data.forEach(function(m){try{window._gcAllMsgHandler({new:m});}catch(e){}});
-        // 同步点只认真实收到的服务器时间；没有新消息就不动（绝不用本地时间顶上去，否则又把时钟差带回来）
         if(r.data.length)localStorage.setItem('gcLastMsgSrv',r.data[r.data.length-1].created_at);
         if(r.data.length&&typeof G!=='undefined'&&G.chat&&typeof syncRoomMessages==='function'){
           var ce=document.getElementById('chat');if(ce&&ce.classList.contains('active'))syncRoomMessages(G.chat).catch(function(){});
