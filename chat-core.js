@@ -792,13 +792,14 @@ function renderMsgs(){
     }
     if(m.type==='recalled'){html+='<div style="text-align:center;color:#aaa;font-size:12px;margin:6px 0;">'+(s?'你撤回了一条消息':'对方撤回了一条消息')+'</div>';continue;}
     if(m.type==='image'){
+      var _is=(window._gcSbUrl?_gcSbUrl(m.src):m.src); // 图片地址按当前线路(直连/桥)改写，换线/国内外都能打开
       if(m.loading&&!m.src)b='<div style="width:160px;height:120px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.8;">📷 处理中...</div>';
-      else if(m.loading)b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" src="'+m.src+'" style="opacity:.6;"><div style="font-size:12px;opacity:.7;">发送中...</div></div>';
-      else if(m.failed)b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" src="'+m.src+'" style="opacity:.5;" onclick="openImgViewer(this.src)"><div style="font-size:12px;color:#ff3b30;">⚠️ 发送失败</div></div>';
-      else if(m.src&&m.src.length>4){if(m.thumb&&!m.sent)b='<img class="msg-img" src="'+m.thumb+'" style="filter:blur(3px);transition:filter .3s;" data-full="'+m.src+'" onload="upgradeImg(this)" onclick="openImgViewer(this.dataset.full||this.src)">';else b='<img class="msg-img" src="'+m.src+'" onclick="openImgViewer(this.src)">';}
+      else if(m.loading)b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" src="'+_is+'" style="opacity:.6;"><div style="font-size:12px;opacity:.7;">发送中...</div></div>';
+      else if(m.failed)b='<div style="display:flex;flex-direction:column;gap:4px;"><img class="msg-img" src="'+_is+'" style="opacity:.5;" onclick="openImgViewer(this.src)"><div style="font-size:12px;color:#ff3b30;">⚠️ 发送失败</div></div>';
+      else if(m.src&&m.src.length>4){if(m.thumb&&!m.sent)b='<img class="msg-img" src="'+m.thumb+'" style="filter:blur(3px);transition:filter .3s;" data-full="'+_is+'" onload="upgradeImg(this)" onclick="openImgViewer(this.dataset.full||this.src)">';else b='<img class="msg-img" src="'+_is+'" onclick="openImgViewer(this.src)">';}
       else b='<div>📷 Image</div>';
     }else if(m.type==='voice'){
-      if(m.src&&(m.src.startsWith('http')||m.src.startsWith('blob'))){var vdur=m.dur||'?';var barW=Math.min(120,Math.max(40,parseInt(vdur)*8||40));b='<div onclick="playAudio(this)" data-src="'+m.src+'" style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:'+(barW+60)+'px;"><span class="play-icon" style="font-size:18px;">▶️</span><div style="flex:1;height:3px;background:rgba(255,255,255,.4);border-radius:2px;min-width:'+barW+'px;"></div><span style="font-size:12px;opacity:.8;">'+vdur+'″</span></div>';}
+      if(m.src&&(m.src.startsWith('http')||m.src.startsWith('blob'))){var vdur=m.dur||'?';var barW=Math.min(120,Math.max(40,parseInt(vdur)*8||40));b='<div onclick="playAudio(this)" data-src="'+(window._gcSbUrl?_gcSbUrl(m.src):m.src)+'" style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:'+(barW+60)+'px;"><span class="play-icon" style="font-size:18px;">▶️</span><div style="flex:1;height:3px;background:rgba(255,255,255,.4);border-radius:2px;min-width:'+barW+'px;"></div><span style="font-size:12px;opacity:.8;">'+vdur+'″</span></div>';}
     }else if(m.type==='location'){
       var mapUrl=m.mapUrl||('https://maps.google.com/?q='+(m.addr||''));
       b='<div>📍 <a href="'+mapUrl+'" target="_blank" style="color:inherit;text-decoration:underline;">'+(m.addr||'Location')+'</a></div>';
@@ -808,7 +809,7 @@ function renderMsgs(){
     }else if(m.type==='video'){
       if(m.loading)b='<div style="opacity:.6;font-size:13px;">Sending...</div>';
       else if(m.failed)b='<div style="font-size:12px;color:#ff3b30;">⚠️ 视频发送失败</div>';
-      else if(m.src)b='<video class="msg-img" src="'+m.src+'" controls style="max-width:220px;border-radius:10px;"></video>';
+      else if(m.src)b='<video class="msg-img" src="'+(window._gcSbUrl?_gcSbUrl(m.src):m.src)+'" controls style="max-width:220px;border-radius:10px;"></video>';
       else b='<div>🎬 Video</div>';
     }else if(m.type==='file'){
       if(m.loading)b='<div style="opacity:.6;font-size:13px;">📄 '+esc(m.fname||'File')+' (Sending...)</div>';
