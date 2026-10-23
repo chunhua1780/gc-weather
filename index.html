@@ -164,24 +164,23 @@ if((location.protocol!=='https:'&&location.protocol!=='http:')||location.hostnam
   });
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>天气</title>
 <script>
 // ═══ 后端线路：国外直连 Supabase(快)，国内走免费的 Cloudflare 桥，App 自动选能通的那条 ═══
 window.GC_SB_DIRECT='https://mztoenhgfuomzrashrqk.supabase.co';
 window.GC_SB_PROXY='https://gcbridge.b777studio.workers.dev';
-(function(){
-  var u;try{u=localStorage.getItem('gcSbUrl');}catch(e){}
-  if(location.origin===GC_SB_PROXY)u=GC_SB_PROXY; // 从桥域名打开App：数据同源走桥，最稳
-  else if(u!==GC_SB_DIRECT&&u!==GC_SB_PROXY)u=GC_SB_DIRECT; // 默认直连，脏值也回到直连
-  window.GC_SB_URL=u;
-})();
+(function(){var u;try{u=localStorage.getItem('gcSbUrl');}catch(e){}if(location.origin===GC_SB_PROXY)u=GC_SB_PROXY;else if(u!==GC_SB_DIRECT&&u!==GC_SB_PROXY)u=GC_SB_DIRECT;window.GC_SB_URL=u;})();
 // 把任意一条线路上的媒体/接口地址，改写成当前这条线路（换线后老链接也能照常打开）
-window._gcSbUrl=function(u){
-  try{ if(typeof u!=='string')return u;
-    return u.replace(GC_SB_DIRECT,GC_SB_URL).replace(GC_SB_PROXY,GC_SB_URL);
-  }catch(e){return u;}
-};
+window._gcSbUrl=function(u){try{if(typeof u!=='string')return u;return u.replace(GC_SB_DIRECT,GC_SB_URL).replace(GC_SB_PROXY,GC_SB_URL);}catch(e){return u;}};
+// 自动选线路：当前线路连不上就换另一条并刷新；在桥上但直连也通(回国外了)就切回直连更快
+(function(){
+  var KEY='sb_publishable_pOM3IfVWYiscQ-cz9vAwvA_F2Ht6zg1';
+  function reachable(base){return new Promise(function(res){var done=false;var t=setTimeout(function(){if(!done){done=true;res(false);}},6000);
+    try{fetch(base+'/rest/v1/',{headers:{apikey:KEY},cache:'no-store'}).then(function(r){if(!done){done=true;clearTimeout(t);res(!!r&&r.status>0&&r.status<500);}},function(){if(!done){done=true;clearTimeout(t);res(false);}});}catch(e){if(!done){done=true;clearTimeout(t);res(false);}}});}
+  function use(url){try{localStorage.setItem('gcSbUrl',url);}catch(e){}try{location.reload();}catch(e){}}
+  setTimeout(function(){(async function(){try{if(location.origin===GC_SB_PROXY)return;var cur=window.GC_SB_URL||GC_SB_DIRECT;if(!(await reachable(cur))){var other=cur===GC_SB_DIRECT?GC_SB_PROXY:GC_SB_DIRECT;if(await reachable(other))use(other);}else if(cur===GC_SB_PROXY){if(await reachable(GC_SB_DIRECT))use(GC_SB_DIRECT);}}catch(e){}})();},2500);
+})();
 </script>
+<title>天气</title>
 
 <!-- ═══ PWA 核心 ═══ -->
 <link rel="manifest" href="./manifest.json">
@@ -7132,26 +7131,6 @@ function pickLang(code){
 <script src="./vendor/jsQR.js" async></script>
 <script>
 var _sb=supabase.createClient(window.GC_SB_URL||'https://mztoenhgfuomzrashrqk.supabase.co','sb_publishable_pOM3IfVWYiscQ-cz9vAwvA_F2Ht6zg1',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{heartbeatIntervalMs:15000,timeout:10000}});
-// ═══ 自动选线路：当前线路连不上就换另一条并刷新；在桥上但直连也通(回国外了)就切回直连更快 ═══
-(function(){
-  var KEY='sb_publishable_pOM3IfVWYiscQ-cz9vAwvA_F2Ht6zg1';
-  // 能连上 = 真的收到了服务器回应(状态码 <500)。被墙会直接失败，或被 Service Worker 兜底成 503/5xx，都算不通。
-  function reachable(base){return new Promise(function(res){var done=false;var t=setTimeout(function(){if(!done){done=true;res(false);}},6000);
-    try{fetch(base+'/rest/v1/',{headers:{apikey:KEY},cache:'no-store'}).then(function(r){if(!done){done=true;clearTimeout(t);res(!!r&&r.status>0&&r.status<500);}},function(){if(!done){done=true;clearTimeout(t);res(false);}});}catch(e){if(!done){done=true;clearTimeout(t);res(false);}}});}
-  function use(url){try{localStorage.setItem('gcSbUrl',url);}catch(e){}try{location.reload();}catch(e){}}
-  setTimeout(function(){(async function(){
-    try{
-      if(location.origin===GC_SB_PROXY)return; // 已从桥域名打开，数据就走桥，不再探测切换
-      var cur=window.GC_SB_URL||GC_SB_DIRECT;
-      if(!(await reachable(cur))){
-        var other=cur===GC_SB_DIRECT?GC_SB_PROXY:GC_SB_DIRECT;
-        if(await reachable(other))use(other);
-      }else if(cur===GC_SB_PROXY){
-        if(await reachable(GC_SB_DIRECT))use(GC_SB_DIRECT);
-      }
-    }catch(e){}
-  })();},2500);
-})();
 
 // ═══════════════════════════════════════════════════════════
 // 商业广告模块接口（预留空壳，当前不生效，方便以后接入）
