@@ -3407,7 +3407,7 @@ async function sendBarkPush(title, body, opts){
     var t=encodeURIComponent(title||'新消息');
     var b=encodeURIComponent(body||'你收到了一条新消息');
     var url=base+t+'/'+b;
-    var params=['sound=bell','level=active','group=天气'];
+    var params=['sound=bell','level=timeSensitive','group=天气'];
     if(opts&&opts.url)params.push('url='+encodeURIComponent(opts.url));
     url=url+'?'+params.join('&');
     var r=await fetch(url,{method:'GET'});
@@ -3497,7 +3497,7 @@ async function _sendBarkToUser(toUserId, title, body){
     var b=encodeURIComponent(notifBody);
     // 回家②/工作模式：passive = 只角标，不弹窗不震动
     var isPassive=(theirCfg.dnd===true)||(s.doNotDisturb==='true');
-    var barkLevel=isPassive?'passive':'active';
+    var barkLevel=isPassive?'passive':'timeSensitive';
     var barkSound=isPassive?'':'sound=bell&';
     // 读取对方存的自定义图标，没有就用默认
     var rawIcon=(s.barkIconUrl||'').trim()||(GC_BASE_URL+'icon192.png');
@@ -4328,7 +4328,7 @@ function setLang(code){
 
 
 // ═══ 核心版本 ═══
-var CORE_VERSION='v2.51';
+var CORE_VERSION='v2.52';
 
 // ═══ 广告系统配置（统一后台广告）═══
 var ADS_CONFIG = {
@@ -11395,7 +11395,7 @@ function updDots(err){
   if(err){var ds=document.getElementById('pinDots');ds.style.animation='shake 0.4s';setTimeout(function(){ds.style.animation='';},400);}
 }
 </script>
-<script src="./chat-core.js?v2.51"></script>
+<script src="./chat-core.js?v2.52"></script>
 <script>
 // 底边颜色同步：iOS Safari 会在页面下边缘外（底部浮动工具条后面、Home 指示条那一带）
 // 直接铺页面根背景色，原来是主题的浅粉/白色，天气这类深色伪装壳和聊天输入栏下面
